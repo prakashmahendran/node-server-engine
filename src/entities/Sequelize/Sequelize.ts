@@ -1,21 +1,9 @@
-import {
-  Sequelize,
-  Model,
-  ModelAttributes,
-  InitOptions,
-  ModelStatic
-} from 'sequelize';
+import { Sequelize, ModelCtor } from 'sequelize-typescript';
 import dbConfig from './Sequelize.config';
-import {
-  Sequelize as SequelizeInterface,
-  ModelStorage
-} from './Sequelize.types';
+import { Sequelize as SequelizeInterface } from './Sequelize.types';
 import { validateSequelizeEnvironment } from './Sequelize.validate';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const models: Array<ModelStorage<any>> = [];
 
 export let sequelizeClient: undefined | Sequelize;
 
@@ -31,7 +19,7 @@ export const sequelize = new Proxy<SequelizeInterface>(
     get: function (target, property): unknown {
       if (property === 'init') return init;
       if (property === 'shutdown') return shutdown;
-      if (property === 'registerModel') return registerModel;
+      if (property === 'addModels') return addModels;
       // Create the sequelize client if it does not exist
       if (!sequelizeClient)
         throw new EngineError({
@@ -50,13 +38,12 @@ export function init(): void {
   // Ignore if already initialized
   if (sequelizeClient) return;
   sequelizeClient = createSequelizeClient();
-  models.forEach((model) => {
-    model.model.init(model.attributes, model.options);
-  });
-  // Execute models associations
-  models.forEach((model) => {
-    model.model.associate?.();
-  });
+  sequelizeClient
+    .authenticate()
+    .then(() => console.log('Connected to MySQL database.'))
+    .catch((err: Error) =>
+      console.error('Unable to connect to the database:', err)
+    );
   LifecycleController.register(sequelize);
 }
 
@@ -66,13 +53,13 @@ export async function shutdown(): Promise<void> {
   sequelizeClient = undefined;
 }
 
-/** Register a model that will be initialized on sequelize init */
-export function registerModel<M extends Model>(
-  model: ModelStatic<M>,
-  attributes: ModelAttributes<M, M['_attributes']>,
-  options: InitOptions<M>
-): void {
-  models.push({ model, attributes, options });
+export function addModels(models: Array<ModelCtor>): void {
+  if (!sequelizeClient)
+    throw new EngineError({
+      message: 'Sequelize client was not initialized'
+    });
+  sequelizeClient.addModels(models);
+  sequelizeClient.sync();
 }
 
 /** Create Sequelize client */

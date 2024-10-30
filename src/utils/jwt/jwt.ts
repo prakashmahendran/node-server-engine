@@ -3,8 +3,11 @@ import {
   JwtHeader,
   SigningKeyCallback,
   Algorithm,
-  VerifyOptions
+  VerifyOptions,
+  sign
 } from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
 import { UserTokenPayload } from './jwt.types';
 import { TokenIssuer } from 'const';
 import { EngineError } from 'entities/EngineError';
@@ -180,4 +183,22 @@ export async function jwtVerify(
       resolve(result as UserTokenPayload);
     });
   });
+}
+
+export function generateJwtToken(user: unknown) {
+  const signOptions = {
+    algorithm: 'ES256' as const, // or 'ES256' as Algorithm
+    expiresIn: '1h',
+    issuer: process.env.ACCESS_TOKEN_ISSUER,
+    audience: process.env.ACCESS_TOKEN_AUDIENCE,
+    keyid: Object.keys(keySet?.getKeys() ?? {})[0]
+  };
+
+  const privateKey = fs.readFileSync(
+    process.env.PRIVATE_KEY_PATH ?? 'keys/private-key.pem',
+    'utf8'
+  );
+  const token = sign({ user }, privateKey, signOptions);
+
+  return token;
 }

@@ -11,13 +11,11 @@ const config: Options = {
   host: process.env.SQL_HOST,
   port: process.env.SQL_PORT ? parseInt(process.env.SQL_PORT) : 5432,
   dialect: (process.env.SQL_TYPE ?? 'postgres') as Dialect,
-
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   logging: false,
   define: {
     freezeTableName: false,
-    charset: 'UTF8',
-    collate: 'en_US.UTF8'
+    charset: 'utf8mb4',
+    collate: 'utf8mb4_unicode_ci'
   },
   retry: {
     max: 5

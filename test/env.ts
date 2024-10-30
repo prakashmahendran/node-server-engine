@@ -46,9 +46,11 @@ process.env = {
   RUN_MIGRATION: 'false',
   UNDO_MIGRATION: 'false',
   SQL_HOST: process.env.SQL_HOST ?? '127.0.0.1',
-  SQL_USER: 'root',
-  SQL_PASSWORD: 'root',
-  SQL_DB: 'node',
+  SQL_PORT: '3306',
+  SQL_USER: 'tao',
+  SQL_PASSWORD: 'abc@123',
+  SQL_DB: 'testDb',
+  SQL_TYPE: 'mysql',
   DEFAULT_MESSAGE_AUDIENCE: audience,
   ...process.env
 };

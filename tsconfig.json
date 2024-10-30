@@ -24,7 +24,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "declaration": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src", "test"]
 }
