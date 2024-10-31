@@ -14,17 +14,20 @@ export async function migrateMetadataTable(
 ): Promise<void> {
   reportDebug({ namespace, message: 'Executing metadata migration routine' });
 
+  const query = `SELECT table_name FROM information_schema.tables WHERE table_schema = '${process.env.SQL_DB}'`;
   // We check if we have a custom sequelize_meta table yet
-  const tables = await sequelize.query<Array<string>>(
-    `SELECT table_name FROM information_schema.tables WHERE table_schema = ${process.env.SQL_DB}`,
-    { type: QueryTypes.SELECT }
-  );
-  const hasCustomSequelizeMeta = tables.some(
-    (table) => table[0] === 'sequelize_meta'
-  );
-  const hasLegacySequelizeMeta = tables.some(
-    (table) => table[0] === 'SequelizeMeta'
-  );
+  const tables = await sequelize.query<Array<string>>(query, {
+    type: QueryTypes.SELECT
+  });
+
+  const hasCustomSequelizeMeta =
+    process.env.SQL_TYPE === 'mysql'
+      ? tables.some((table) => Object.values(table)[0] === 'sequelize_meta')
+      : tables.some((table) => table[0] === 'sequelize_meta');
+  const hasLegacySequelizeMeta =
+    process.env.SQL_TYPE === 'mysql'
+      ? tables.some((table) => Object.values(table)[0] === 'SequelizeMeta')
+      : tables.some((table) => table[0] === 'SequelizeMeta');
 
   if (!hasCustomSequelizeMeta) {
     reportDebug({
@@ -34,7 +37,7 @@ export async function migrateMetadataTable(
     // Create the new sequelize_meta table if it does not exist
     await sequelize.query(
       `
-      CREATE TABLE public.sequelize_meta (
+      CREATE TABLE sequelize_meta (
         name      varchar(100) PRIMARY KEY,
         version   varchar(25),
         createdAt timestamp  NOT NULL,
@@ -56,13 +59,12 @@ export async function migrateMetadataTable(
           type: QueryTypes.SELECT
         }
       );
-      await sequelize.query(
-        `
-        INSERT INTO sequelize_meta (name, version, createdAt, updatedAt) VALUES
-          ${migrations.map((migration) => `('${migration.name}', NULL, NOW(), NOW())`).join(',')}
-        `,
-        { type: QueryTypes.INSERT }
-      );
+      const insertQuery = `
+      INSERT INTO sequelize_meta (name, version, createdAt, updatedAt) VALUES
+        ${migrations.map((migration) => `('${migration.name}', NULL, NOW(), NOW())`).join(',')}
+      `;
+
+      await sequelize.query(insertQuery, { type: QueryTypes.INSERT });
     }
   }
 }

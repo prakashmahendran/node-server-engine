@@ -23,8 +23,7 @@ function getMigrationPaths(): Array<string> | undefined {
   const devDefaultPath = join(process.cwd(), './src/db/migrations');
   const path = [
     process.env.DB_MIGRATIONS_DIR,
-    prodDefaultPath,
-    devDefaultPath
+    process.env.NODE_ENV === 'prod' ? prodDefaultPath : devDefaultPath
   ].filter((path) => path && existsSync(path) && lstatSync(path).isDirectory());
   reportDebug({
     namespace,
@@ -36,7 +35,9 @@ function getMigrationPaths(): Array<string> | undefined {
       customPath: process.env.DB_MIGRATIONS_DIR
     }
   });
-  return path.map((p) => `${p}*.ts`);
+  return path.map((p) =>
+    process.env.NODE_ENV === 'prod' ? `${p}/*.js` : `${p}/*.ts`
+  );
 }
 
 /** Run all the non-executed migrations one by one */
@@ -81,6 +82,7 @@ export async function runPendingMigrations(): Promise<void> {
       data: { path }
     });
     await migrator.up();
+    console.log('Db Migration Completed')
   });
 }
 

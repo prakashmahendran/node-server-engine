@@ -2,6 +2,8 @@
 export * from './report';
 export * from './filter';
 export * from './semverCompare';
+export * from './dbMigration';
+
 // env
 export * from './checkEnvironment';
 export * from './envAssert';
