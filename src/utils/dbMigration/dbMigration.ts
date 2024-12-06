@@ -82,7 +82,7 @@ export async function runPendingMigrations(): Promise<void> {
       data: { path }
     });
     await migrator.up();
-    console.log('Db Migration Completed')
+    console.log('Db Migration Completed');
   });
 }
 
@@ -94,7 +94,10 @@ export async function rollbackMigrations(): Promise<void> {
     throw new EngineError({ message: 'BUILD_ID is not defined' });
 
   // Fetch executed migrations in ascending order
-  const migrations = await SequelizeMeta.findAll({ order: [['name', 'ASC']] });
+  const migrations = await SequelizeMeta.findAll({
+    order: [['name', 'ASC']],
+    raw: true
+  });
   const rollbackUntil = migrations.find(
     (migration) =>
       migration.version &&

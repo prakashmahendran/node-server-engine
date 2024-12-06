@@ -8,13 +8,13 @@ describe('Middleware - User Resolver', function () {
   it('should expand the user object with its data using its userId', async function () {
     const me = factory.build('user');
     const next = fake();
-    const request = { user: { id: me.id } } as Request;
+    const request: Partial<Request> = { user: { id: me.id } };
 
-
-    await userResolver(request, undefined as unknown as Response, next);
+    // Call the resolver with the mocked request
+    await userResolver(request as Request, undefined as unknown as Response, next);
 
     expect(next).to.have.been.called;
-   // expect(request.user).to.deep.equal(me);
+    // expect(request.user).to.deep.equal(me);
   });
 
   it('should throw an error if there is no userId', async function () {

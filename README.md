@@ -227,6 +227,16 @@ The following settings can be used on each object the Endpoint's `options.files`
 
 ---
 
+#### Gemini File Upload
+
+An endpoint can upload a file to a google gemini AI
+
+The request must be made as `multipart/form-data`.
+
+File should be uploaded under the key file.
+
+The file's data will be available at   `req.body.fileUri req.body.mimeType  req.body.originalname`
+
 ### Socket Client
 
 The socket server start if the [Server](#server)'s webSocket option is not undefined.

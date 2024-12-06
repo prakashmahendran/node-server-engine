@@ -16,7 +16,6 @@ import {
   authTls,
   authStatic,
   authAdmin,
-  RequestUser,
   FileUploaderConfig,
   RequestAdminProps
 } from 'middleware';
@@ -52,7 +51,8 @@ export type Middleware<T extends EndpointAuthType> = (
 
 export type MiddlewareChainElement<T extends EndpointAuthType> =
   | Array<Middleware<T>>
-  | Middleware<T>;
+  | Middleware<T>
+  | any;
 
 /** Auth related parameters used with Admin authentication  */
 interface EndpointAuthAdminParams {
@@ -157,7 +157,7 @@ export interface JwtRequest<
   Locals extends Record<string, any> = Record<string, any>
 > extends Request<P, ResBody, ReqBody, ReqQuery, Locals> {
   /** User that identified using a JWT */
-  user: RequestUser;
+  user: Record<string, any> | any;
 }
 
 /** Request type when using mTLS authentication */

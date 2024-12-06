@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { EngineError } from 'entities/EngineError';
-import { RequestUser } from 'middleware/authJwt/authJwt.types';
 import { reportDebug } from 'utils';
 
 const namespace = 'engine:middleware:userResolver';
@@ -28,7 +27,7 @@ export async function userResolver(
     data: { user, request: request.user }
   });
   request.user = {
-    ...(request.user as RequestUser),
+    ...request?.user,
     ...user
   };
 

@@ -1,3 +1,5 @@
+export {};
+
 // Override the Express request object to add the files
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -5,21 +7,8 @@ declare global {
     /** Express request object */
     interface Request {
       /** User that identified using a JWT */
-      user?: RequestUser;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      user?: Record<string, any>;
     }
   }
-}
-
-/** User properties of the request object */
-export interface RequestUser {
-  /** ID of the user */
-  id: string;
-  /** ID of the token used to identify */
-  tokenId: string;
-  /** ID of the device used by the client to obtain the token */
-  deviceId: string;
-  /** Name of the user */
-  name: string;
-  /** Email of the user */
-  email: string;
 }

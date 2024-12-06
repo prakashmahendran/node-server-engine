@@ -1,4 +1,3 @@
-import { RequestUser } from "middleware/authJwt/authJwt.types";
 
 /** Content of the payload of user authentication tokens */
 export interface UserTokenPayload {
@@ -17,5 +16,6 @@ export interface UserTokenPayload {
   /** List of permissions that the user has (only on the admin API) */
   per?: Array<string> | string;
   /** User */
-  user: RequestUser;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: Record<string, any> | undefined;
 }
