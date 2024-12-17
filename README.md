@@ -35,6 +35,8 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Structuring Documentation](#structuring-documentation)
       - [Schemas and Responses](#schemas-and-responses)
     - [User Resolver](#user-resolver)
+    - [Gemini File Upload](#gemini-file-upload)
+    - [checkPermission](#check-permission-middleware)
   - [Utilities](#utilities)
     - [Request](#request)
     - [TLS Request](#tls-request)
@@ -150,7 +152,7 @@ const addNodeEndpoint = new Endpoint({
   method: EndpointMethod.POST,
   handler: (req, res, next) => res.json(addNote(req.body)),
   authType: EndpointAuthType.AUTH_JWT,
-  middleware: [migrateNoteToVersion2],
+  middleware: [checkPermission(['DeleteUser', 'AdminAccess'])],
   errorMiddleware: [addNoteErrorMiddleware],
   validator: {
     id: {
@@ -226,16 +228,6 @@ The following settings can be used on each object the Endpoint's `options.files`
 | image.quality       | number         | JPEG quality factor to use for export                                    |              |
 
 ---
-
-#### Gemini File Upload
-
-An endpoint can upload a file to a google gemini AI
-
-The request must be made as `multipart/form-data`.
-
-File should be uploaded under the key file.
-
-The file's data will be available at   `req.body.fileUri req.body.mimeType  req.body.originalname`
 
 ### Socket Client
 
@@ -716,6 +708,69 @@ new Endpoint({
     res.json({ say: `Hello ${req.user.firstName}` });
   }
 });
+```
+---
+
+#### Gemini File Upload
+
+An endpoint can upload a file to a google gemini AI
+
+The request must be made as `multipart/form-data`.
+
+File should be uploaded under the key file.
+
+The file's data will be available at   `req.body.fileUri req.body.mimeType  req.body.originalname`
+
+
+#### Check Permission Middleware
+
+/!\ **Must be used in combination with AuthType.JWT**
+
+Checks if the user has at least one of the required permissions. The permissions are case-insensitive.
+
+```javascript
+import { Endpoint, middleware, AuthType, Method } from 'node-server-engine';
+
+new Endpoint({
+  path: '/admin',
+  method: Method.GET,
+  authType: AuthType.JWT,
+  middleware: [middleware.checkPermission(['admin', 'superuser'])],
+  handler: (req, res) => {
+    res.json({ message: 'Access granted' });
+  }
+});
+```
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+
+// Middleware to check if the user has at least one of the required permissions (case-insensitive)
+export const checkPermission = (requiredActions: string | string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+
+    if (!user || !user.permissions) {
+      return res.status(403).json({ message: 'User does not have permissions' });
+    }
+
+    const requiredActionsArray = Array.isArray(requiredActions)
+      ? requiredActions
+      : [requiredActions];
+
+    const requiredActionsLower = requiredActionsArray.map(action => action.toLowerCase());
+
+    const hasPermission = user.permissions.some((permission: string) =>
+      requiredActionsLower.includes(permission.toLowerCase())
+    );
+
+    if (!hasPermission) {
+      return res.status(403).json({ message: 'Permission denied' });
+    }
+
+    next();
+  };
+};
 ```
 
 ## Utilities

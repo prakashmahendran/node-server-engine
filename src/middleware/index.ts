@@ -14,3 +14,4 @@ export * from './requestMetrics';
 export * from './version';
 export * from './authAdmin';
 export * from './geminiFileUploader';
+export * from './checkPermission';
