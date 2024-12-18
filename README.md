@@ -19,7 +19,6 @@ Framework used to develop Node backend services. This package ships with a lot o
     - [Redis](#redis)
     - [Sequelize](#sequelize)
     - [Pub/Sub](#pubsub)
-    - [MediaProcessor](#mediaprocessor)
     - [PushNotification](#pushnotification)
     - [Localizator](#localizator)
     - [ElasticSearch](#elasticsearch)
@@ -377,39 +376,6 @@ await PubSub.publish(topic, message, attributes, orderingKey);
  * Flush all pending messages and close connections with Pub/Sub
  */
 await PubSub.shutdown();
-```
-
----
-
-### MediaProcessor
-
-Communication interface with the media processing service.
-
-```javascript
-import { MediaProcessor } from 'node-server-engine';
-
-/**
- * Listener that will be called when the media processor has finished processing a given job group
- * @param {string} id - The same id as the one given in the "process" function
- * @param {boolean} success - Indicates success or failure of the jobs
- */
-function listener(id, success) {}
-
-MediaProcessor.addListener(listener);
-
-// The entity needs to initialize it's pub/sub connections
-// Handlers must be declared before this function is called
-await MediaProcessor.init();
-
-/**
- * Start a task with some processing jobs@
- * @param {string} id - Identifier used to recognize the job when it returns
- * @param {Job|Array.<Job>} - The job(s) to run
- */
-await MediaProcessor.process(id, jobs);
-
-// This should be call when the program shuts down.
-await MediaProcessor.shutdown();
 ```
 
 ---

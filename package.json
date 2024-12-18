@@ -4,8 +4,8 @@
   "description": "Framework used to develop backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rimraf dist && tsc -p tsconfig.build.json && mv dist/src/* dist && rimraf dist/src && tsc-alias -p tsconfig.build.json && npx babel src --out-dir dist --source-maps --extensions \".ts\" --ignore \"**/*.test.ts\" --copy-files --no-copy-ignored",
-    "format": "prettier --write .",
+   "build": "rimraf dist && tsc -p tsconfig.build.json && shx mv dist/src/* dist && rimraf dist/src && tsc-alias -p tsconfig.build.json && npx babel src --out-dir dist --source-maps --extensions \".ts\" --ignore \"**/*.test.ts\" --copy-files --no-copy-ignored",
+ "format": "prettier --write .",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "prepublish": "npm run build",
@@ -148,6 +148,7 @@
     "nyc": "^17.1.0",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
+    "shx": "^0.3.4",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.5.0",
     "supertest": "^7.0.0",
