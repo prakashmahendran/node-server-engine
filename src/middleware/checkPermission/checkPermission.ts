@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
-// Middleware to check if the user has at least one of the required permissions (case-insensitive)
-export const checkPermission = (requiredActions: string | string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+/** Middleware to check if the user has at least one of the required permissions (case-insensitive). */
+function checkPermission(requiredActions: string | string[]) {
+  return function (req: Request, res: Response, next: NextFunction) {
     const user = req.user;
 
     if (!user || !user.permissions) {
@@ -28,4 +28,6 @@ export const checkPermission = (requiredActions: string | string[]) => {
 
     next();
   };
-};
+}
+
+export { checkPermission };
