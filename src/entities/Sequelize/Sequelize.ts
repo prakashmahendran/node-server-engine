@@ -40,7 +40,7 @@ export function init(): void {
   sequelizeClient = createSequelizeClient();
   sequelizeClient
     .authenticate()
-    .then(() => console.log('Connected to MySQL database.'))
+    .then(() => console.log('Connected to database.'))
     .catch((err: Error) =>
       console.error('Unable to connect to the database:', err)
     );
