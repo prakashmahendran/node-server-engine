@@ -14,7 +14,7 @@ export async function migrateMetadataTable(
 ): Promise<void> {
   reportDebug({ namespace, message: 'Executing metadata migration routine' });
 
-  const query = `SELECT table_name FROM information_schema.tables WHERE table_schema = '${process.env.SQL_DB}'`;
+  const query = `SELECT table_name FROM information_schema.tables`;
 
   // We check if we have a custom sequelize_meta table yet
   const tables = await sequelize.query<Array<string>>(query, {
