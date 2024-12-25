@@ -7,7 +7,6 @@ import {
   sign
 } from 'jsonwebtoken';
 import fs from 'fs';
-import path from 'path';
 import { UserTokenPayload } from './jwt.types';
 import { TokenIssuer } from 'const';
 import { EngineError } from 'entities/EngineError';
@@ -18,7 +17,6 @@ import { envAssert } from 'utils/envAssert';
 import { reportDebug } from 'utils/report';
 
 export let keySet: KeySet | undefined;
-export let adminKeySet: KeySet | undefined;
 
 const namespace = 'engine:utils:jwt';
 
@@ -50,24 +48,12 @@ export async function initKeySets(): Promise<void> {
   }
   const promise = [keySet.init.bind(keySet)()];
 
-  // Load the key set for the admin api
-  if (!process.env.ADMIN_API_ECDSA_PUBLIC_KEY)
-    throw new EngineError({
-      message:
-        "Admin API's authentication JWT signing public key is not defined"
-    });
-  adminKeySet = new KeySet(process.env.ADMIN_API_ECDSA_PUBLIC_KEY, {
-    pem: true
-  });
-  promise.push(adminKeySet.init.bind(adminKeySet)());
-
   await Promise.all(promise);
 }
 
 /** Stop fetching keys regularly */
 export function shutdownKeySets(): void {
   if (keySet) keySet.shutdown.bind(keySet)();
-  if (adminKeySet) adminKeySet.shutdown.bind(adminKeySet)();
 }
 
 /** Get the JWT public key */
@@ -78,7 +64,7 @@ function jwtGetKey(header: JwtHeader, callback: SigningKeyCallback): void {
     return;
   }
   // Check that KeySet has been initialized
-  if (!keySet || !adminKeySet) {
+  if (!keySet) {
     callback(new EngineError({ message: 'KeySet has not been initialized' }));
     return;
   }
@@ -139,9 +125,7 @@ export async function jwtVerify(
   }
   assertEnvironment({
     ACCESS_TOKEN_AUDIENCE: envAssert.isString(),
-    ACCESS_TOKEN_ISSUER: envAssert.isString(),
-    ADMIN_API_ACCESS_TOKEN_AUDIENCE: envAssert.isString(),
-    ADMIN_ACCESS_TOKEN_ISSUER: envAssert.isString()
+    ACCESS_TOKEN_ISSUER: envAssert.isString()
   });
   let options: VerifyOptions | undefined;
 
@@ -150,13 +134,6 @@ export async function jwtVerify(
       options = {
         audience: [process.env.ACCESS_TOKEN_AUDIENCE as string],
         issuer: [process.env.ACCESS_TOKEN_ISSUER as string],
-        algorithms
-      };
-      break;
-    case TokenIssuer.ADMIN_API:
-      options = {
-        audience: [process.env.ADMIN_API_ACCESS_TOKEN_AUDIENCE as string],
-        issuer: [process.env.ADMIN_ACCESS_TOKEN_ISSUER as string],
         algorithms
       };
       break;

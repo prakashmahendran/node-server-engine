@@ -15,9 +15,7 @@ import {
   authHmac,
   authTls,
   authStatic,
-  authAdmin,
-  FileUploaderConfig,
-  RequestAdminProps
+  FileUploaderConfig
 } from 'middleware';
 
 export enum EndpointMethod {
@@ -37,8 +35,7 @@ export enum EndpointAuthType {
   JWT = 'jwt',
   TLS = 'tls',
   HMAC = 'hmac',
-  STATIC = 'static',
-  ADMIN = 'admin'
+  STATIC = 'static'
 }
 
 export const EndpointAuthTypes = Object.values(EndpointAuthType);
@@ -53,12 +50,6 @@ export type MiddlewareChainElement<T extends EndpointAuthType> =
   | Array<Middleware<T>>
   | Middleware<T>
   | any;
-
-/** Auth related parameters used with Admin authentication  */
-interface EndpointAuthAdminParams {
-  /** [Admin] User permission required to use this endpoint */
-  permission: string;
-}
 
 /** Auth related parameters used with HMAC authentication  */
 interface EndpointAuthHmacParams {
@@ -86,8 +77,6 @@ interface EndpointAuthSpecificParams {
   [EndpointAuthType.HMAC]: EndpointAuthHmacParams;
   /** Auth parameters for static authentication */
   [EndpointAuthType.STATIC]: any;
-  /** Auth parameters for admin token authentication */
-  [EndpointAuthType.ADMIN]: EndpointAuthAdminParams;
 }
 
 export type EndpointAuthParams<T extends EndpointAuthType> =
@@ -114,9 +103,7 @@ export const EndpointAuthHandlers = {
   /** Auth handler for HMAC authentication */
   [EndpointAuthType.HMAC]: authHmac,
   /** Auth handler for static authentication */
-  [EndpointAuthType.STATIC]: authStatic,
-  /** Auth handler for admin token authentication */
-  [EndpointAuthType.ADMIN]: authAdmin
+  [EndpointAuthType.STATIC]: authStatic
 };
 
 export type EndpointHandler<T extends EndpointAuthType> = (
@@ -172,18 +159,6 @@ export interface TlsRequest<
   hosts: Array<string>;
 }
 
-/** Request type when using HMAC authentication */
-export interface AdminRequest<
-  P = ParamsDictionary,
-  ResBody = any,
-  ReqBody = any,
-  ReqQuery = ParsedQs,
-  Locals extends Record<string, any> = Record<string, any>
-> extends Request<P, ResBody, ReqBody, ReqQuery, Locals> {
-  /** User that identified using a JWT */
-  admin: RequestAdminProps;
-}
-
 /** Mapping of request types in endpoints based on auth type used */
 export interface EndpointRequestType {
   /** Request type for no authentication */
@@ -196,8 +171,6 @@ export interface EndpointRequestType {
   [EndpointAuthType.HMAC]: Request;
   /** Auth handler for static authentication */
   [EndpointAuthType.STATIC]: Request;
-  /** Auth handler for admin token authentication */
-  [EndpointAuthType.ADMIN]: AdminRequest;
 }
 
 export type SafeMiddleWareChain = Array<

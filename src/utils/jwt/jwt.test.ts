@@ -25,17 +25,4 @@ describe('Utils - JWT', () => {
     const result = await jwtVerify(token, TokenIssuer.AUTH_SERVICE);
     expect(result.sub).to.equal(id);
   });
-
-  it('should pass a token with one correct audience [Admin-API]', async () => {
-    const id = randomUUID();
-    const token = generateAccessToken(id, {
-      audience: [
-        process.env.ADMIN_API_ACCESS_TOKEN_AUDIENCE as string,
-        faker.lorem.word()
-      ],
-      issuer: process.env.ADMIN_ACCESS_TOKEN_ISSUER
-    });
-    const result = await jwtVerify(token, TokenIssuer.ADMIN_API);
-    expect(result.sub).to.equal(id);
-  });
 });

@@ -19,7 +19,6 @@ export * from './request';
 export * from './tlsConfig';
 export * from './tlsRequest';
 export * from './sendPush';
-export * from './getDynamicLink';
 export * from './sendEmail';
 
 // String manipulation

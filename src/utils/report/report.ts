@@ -8,7 +8,6 @@ import { WebError } from 'entities/WebError';
 import {} from 'middleware/authHmac/authHmac.types';
 import {} from 'middleware/authJwt/authJwt.types';
 import {} from 'middleware/authTls/authTls.types';
-import {} from 'middleware/authAdmin/authAdmin.types';
 
 /** Default generic logger */
 export function reportInfo(data: InfoLogEntry | string): FullLogEntry {
@@ -62,7 +61,7 @@ export function reportError(
       ...logEntry,
       context: {
         user:
-          request.user?.id ?? request.hosts?.join(',') ?? request.admin?.email,
+          request.user?.id ?? request.hosts?.join(','),
         httpRequest: {
           url: request.originalUrl,
           method: request.method,
