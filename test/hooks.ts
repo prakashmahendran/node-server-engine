@@ -27,8 +27,6 @@ before(async () => {
 
 beforeEach(async () => {
   process.env = { ...savedEnv };
-  sequelize.init();
-  sequelize.addModels(modelArray);
 });
 
 afterEach(async () => {

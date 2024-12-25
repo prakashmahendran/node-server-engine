@@ -11,8 +11,14 @@
     "src/index.js"
   ],
   "skip-full": true,
-  "sourceMap": false,
-  "instrument": false,
+  "sourceMap": true,
+  "instrument": true,
   "require": ["@babel/register"],
-  "lines": 85
+  "reporter": ["text", "html", "lcov"],
+  "lines": 85,
+  "branches": 80,
+  "functions": 85,
+  "statements": 85,
+  "report-dir": "./.test-coverage",
+  "temp-dir": "./.nyc_output"
 }
