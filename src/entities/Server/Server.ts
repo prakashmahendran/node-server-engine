@@ -6,6 +6,7 @@ import path from 'path';
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { ValidatorSpec } from 'envalid';
 import express, { Application } from 'express';
+import cors from 'cors';
 import { Server as WebSocketServer } from 'ws';
 import { SocketClient } from '../SocketClient';
 import {
@@ -110,6 +111,14 @@ export class Server {
 
     // Create the primary express core that serves the business logic
     this.app = express();
+
+    this.app.use(
+      cors({
+        origin: process.env.CORS_ORIGIN ?? '*',
+        methods: 'GET,POST,PUT,DELETE'
+      })
+    );
+
     this.registerMiddleware(this.app);
     this.httpServer = createHttpServer(this.app);
 
