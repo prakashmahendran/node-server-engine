@@ -191,13 +191,13 @@ The server engine exposes an enumeration for auth types.
 
 <!-- markdownlint-disable MD033 -->
 
-| AuthType        | Description                                                                                                                                                                                                                               | AuthParams                                                                                                                                                                                                               |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| AuthType.NONE   | No authentication. All requests are handled                                                                                                                                                                                               |                                                                                                                                                                                                                          |
-| AuthType.JWT    | A valid JSON Web Token is required as Bearer token. To be valid it must be properly signed by auth0, and its payload must match with what is set as environment variables.<br>The user's ID is added to `req.user`.                       |                                                                                                                                                                                                                          |
-| AuthType.TLS    | Authenticate through mutual TLS. CA and an optional list of white listed host names should be set in the environment variables.                                                                                                           | **whitelist** [Array<String>]: List of certificate Common Name or Alt Name that are permitted to make requests to this endpoint.                                                                                         |
-| AuthType.HMAC   | Authenticate with a signature in the payload.<br>**This authentication is deprecated and should be avoided**                                                                                                                              | **secret** [String]: Overrides the secret used for signatures set in environment variables<br>**isGithub** [Boolean]: The request is a Github webhook and therefore uses their signature system and not the default one. |
-| AuthType.STATIC | A valid shared Bearer token is required. Shared token is stored in env variable (STATIC_TOKEN)                                                                                                                                            |                                                                                                                                                                                                                          
+| AuthType        | Description                                                                                                                                                                                                         | AuthParams                                                                                                                                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AuthType.NONE   | No authentication. All requests are handled                                                                                                                                                                         |                                                                                                                                                                                                                          |
+| AuthType.JWT    | A valid JSON Web Token is required as Bearer token. To be valid it must be properly signed by auth0, and its payload must match with what is set as environment variables.<br>The user's ID is added to `req.user`. |                                                                                                                                                                                                                          |
+| AuthType.TLS    | Authenticate through mutual TLS. CA and an optional list of white listed host names should be set in the environment variables.                                                                                     | **whitelist** [Array<String>]: List of certificate Common Name or Alt Name that are permitted to make requests to this endpoint.                                                                                         |
+| AuthType.HMAC   | Authenticate with a signature in the payload.<br>**This authentication is deprecated and should be avoided**                                                                                                        | **secret** [String]: Overrides the secret used for signatures set in environment variables<br>**isGithub** [Boolean]: The request is a Github webhook and therefore uses their signature system and not the default one. |
+| AuthType.STATIC | A valid shared Bearer token is required. Shared token is stored in env variable (STATIC_TOKEN)                                                                                                                      |
 
 <!-- markdownlint-enable MD033 -->
 
@@ -519,12 +519,12 @@ All our custom error classes take a `data` parameter. This will be logged on the
 
 These options are common to each of the error classes described below.
 
-| option   | definition                                                                                                              | example                               | default                        |
-| -------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------ |
-| message  | A message logged on the backend only                                                                                    | "Could not find user in the DB"       | **required**                   |
-| severity | The level at which this error should be logged                                                                          | [Severity](#severity).WARNING         | [Severity](#severity).CRITICAL |
-| data     | Some data related to the error that will be logged on the backend. This should help to undetrstand the runtime context. | {userId: 'xf563ugh0'} |                                |
-| error    | An error object, when this is a wrapper around an existing error object                                                 |                                       |
+| option   | definition                                                                                                              | example                         | default                        |
+| -------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------ |
+| message  | A message logged on the backend only                                                                                    | "Could not find user in the DB" | **required**                   |
+| severity | The level at which this error should be logged                                                                          | [Severity](#severity).WARNING   | [Severity](#severity).CRITICAL |
+| data     | Some data related to the error that will be logged on the backend. This should help to undetrstand the runtime context. | {userId: 'xf563ugh0'}           |                                |
+| error    | An error object, when this is a wrapper around an existing error object                                                 |                                 |
 
 #### Severity
 
@@ -674,6 +674,7 @@ new Endpoint({
   }
 });
 ```
+
 ---
 
 #### Gemini File Upload
@@ -684,8 +685,7 @@ The request must be made as `multipart/form-data`.
 
 File should be uploaded under the key file.
 
-The file's data will be available at   `req.body.fileUri req.body.mimeType  req.body.originalname`
-
+The file's data will be available at `req.body.fileUri req.body.mimeType  req.body.originalname`
 
 #### Check Permission Middleware
 
@@ -716,14 +716,18 @@ export const checkPermission = (requiredActions: string | string[]) => {
     const user = req.user;
 
     if (!user || !user.permissions) {
-      return res.status(403).json({ message: 'User does not have permissions' });
+      return res
+        .status(403)
+        .json({ message: 'User does not have permissions' });
     }
 
     const requiredActionsArray = Array.isArray(requiredActions)
       ? requiredActions
       : [requiredActions];
 
-    const requiredActionsLower = requiredActionsArray.map(action => action.toLowerCase());
+    const requiredActionsLower = requiredActionsArray.map((action) =>
+      action.toLowerCase()
+    );
 
     const hasPermission = user.permissions.some((permission: string) =>
       requiredActionsLower.includes(permission.toLowerCase())
@@ -813,27 +817,56 @@ await sendPush(userId, notification);
 
 ---
 
----
-
 ### Send Email
 
-Send an email through the email service.
+Send an email using the SMTP configuration.
 
 ```javascript
 import { sendEmail } from 'node-server-engine';
-await sendEmail(userId, template, translationKey, parameters, tags, to);
+
+const emailOptions = {
+  to: 'recipient@example.com',
+  subject: 'Welcome to our service!',
+  text: 'Hello, welcome to our platform!',
+  html: '<h1>Welcome</h1><p>Glad to have you onboard!</p>',
+  attachments: [
+    {
+      filename: 'welcome.txt',
+      content: 'Welcome to our service!'
+    }
+  ]
+};
+
+const result = await sendEmail(emailOptions);
+console.log(result.status); // 'sent', 'delivered', 'queued', or 'failed'
 ```
 
-| parameter      | description                                                                |
-| -------------- | -------------------------------------------------------------------------- |
-| userId         | ID of the user that should receive the notification                        |
-| template       | Email template to use                                                      |
-| translationKey | Key used to get localized strings                                          |
-| parameters     | Variables that can be inserted in the email template and localized strings |
-| tags           | Data injected in the localized strings as HTML tags                        |
-| to             | Array of email recipients                                                  |
-| to.\*.email    | Email of an email recipient                                                |
-| to.\*.name     | Name of an email recipient                                                 |
+### Parameters
+
+| Parameter     | Description                                                                                                       |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `from`        | (Optional) Sender's email address. Defaults to the authenticated email.                                           |
+| `to`          | Email recipient(s) as a string or array of strings.                                                               |
+| `cc`          | (Optional) Carbon Copy recipients (string or array).                                                              |
+| `bcc`         | (Optional) Blind Carbon Copy recipients (string or array).                                                        |
+| `subject`     | Subject of the email.                                                                                             |
+| `text`        | (Optional) Plain text version of the email body.                                                                  |
+| `html`        | (Optional) HTML version of the email body.                                                                        |
+| `attachments` | (Optional) Array of attachments. Each attachment can include `filename`, `content`, `path`, and other properties. |
+| `replyTo`     | (Optional) Email address for replies.                                                                             |
+| `headers`     | (Optional) Custom email headers.                                                                                  |
+| `priority`    | (Optional) Email priority (`high`, `normal`, or `low`).                                                           |
+
+### Return Status
+
+The function returns an object with the following status options:
+
+| Status      | Description                                                             |
+| ----------- | ----------------------------------------------------------------------- |
+| `sent`      | Email was successfully sent but delivery confirmation is not available. |
+| `delivered` | Email was successfully delivered.                                       |
+| `queued`    | Email is queued for delivery but not yet sent.                          |
+| `failed`    | Email could not be sent due to an error.                                |
 
 ---
 
