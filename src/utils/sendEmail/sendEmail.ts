@@ -30,7 +30,7 @@ export const sendEmail = async (
 
     // Construct email options
     const mailOptions: SendMailOptions = {
-      from: emailOptions.from || 'your-email@example.com',
+      from: emailOptions.from,
       to: emailOptions.to,
       cc: emailOptions.cc,
       bcc: emailOptions.bcc,
