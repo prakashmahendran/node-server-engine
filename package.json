@@ -1,6 +1,6 @@
 {
   "name": "node-server-engine",
-  "version": "1.2.2",
+  "version": "1.2.5",
   "description": "Framework used to develop backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.",
   "main": "dist/index.js",
   "scripts": {
@@ -59,6 +59,7 @@
     "filesize-parser": "^1.5.1",
     "flat": "^6.0.1",
     "form-data": "^4.0.1",
+    "fs-extra": "^11.3.0",
     "glob": "^11.0.0",
     "intl-messageformat": "^10.7.10",
     "ioredis": "^5.4.2",
@@ -110,6 +111,7 @@
     "@types/express": "^5.0.0",
     "@types/filesize-parser": "^1.5.3",
     "@types/flat": "^5.0.5",
+    "@types/fs-extra": "^11.0.4",
     "@types/glob": "^8.1.0",
     "@types/json-stringify-safe": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.7",

@@ -35,6 +35,7 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Schemas and Responses](#schemas-and-responses)
     - [User Resolver](#user-resolver)
     - [Gemini File Upload](#gemini-file-upload)
+    - [Multipart File Uploader](#multipart-file-uploader)
     - [checkPermission](#check-permission-middleware)
   - [Utilities](#utilities)
     - [Request](#request)
@@ -42,6 +43,7 @@ Framework used to develop Node backend services. This package ships with a lot o
     - [TLS Config](#tls-config)
     - [Send Push Notification](#send-push-notification)
     - [Send Email](#send-email)
+    - [Gemini File Upload](#gemini-file-upload)
     - [Filter](#filter)
     - [Database Migration](#database-migration)
     - [Environment Variables Verification](#environment-variables-verification)
@@ -687,6 +689,105 @@ File should be uploaded under the key file.
 
 The file's data will be available at `req.body.fileUri req.body.mimeType  req.body.originalname`
 
+---
+
+#### Multipart File Uploader
+
+This middleware handles multipart file uploads by accepting file chunks, storing them temporarily, and merging them once all chunks are uploaded.
+
+## Usage
+
+The request must be made using `multipart/form-data`.
+The file should be uploaded under the key `file`.
+
+Once the upload is complete, the following data will be available in `req.body.uploadDetails`:
+
+- **status**: `"pending"` (if chunk upload is in progress) or `"completed"` (if file is fully uploaded and merged).
+- **message**: Status message.
+- **details**:
+  - `filename`: Original filename.
+  - `uniqueID`: Unique identifier for the upload session.
+  - `chunkIndex`: The current chunk index (if upload is still in progress).
+  - `totalChunks`: Total number of chunks for the file (if upload is still in progress).
+
+## Request Format
+
+### **Endpoint:**
+
+```http
+POST /upload
+```
+
+### **Headers:**
+
+```http
+Content-Type: multipart/form-data
+```
+
+### **Form Data:**
+
+| Key           | Type   | Description                                       |
+| ------------- | ------ | ------------------------------------------------- |
+| `file`        | File   | The chunk of the file being uploaded              |
+| `filename`    | String | The original filename                             |
+| `uniqueID`    | String | A unique identifier for the file upload session   |
+| `totalChunks` | Number | The total number of chunks the file is split into |
+| `chunkIndex`  | Number | The index of the current chunk being uploaded     |
+
+## Response Format
+
+### **If chunk upload is successful but not completed:**
+
+```json
+{
+  "status": "pending",
+  "message": "Chunk uploaded successfully",
+  "details": {
+    "filename": "example.pdf",
+    "uniqueID": "123456",
+    "chunkIndex": 2,
+    "totalChunks": 5
+  }
+}
+```
+
+### **If all chunks are uploaded and merged successfully:**
+
+```json
+{
+  "status": "completed",
+  "message": "File uploaded and merged successfully",
+  "details": {
+    "filename": "example.pdf",
+    "uniqueID": "123456"
+  }
+}
+```
+
+## Error Handling
+
+If an error occurs (e.g., missing fields, failed write operations), the middleware will return an error response with details.
+
+Example:
+
+```json
+{
+  "status": "failed",
+  "message": "Missing required fields",
+  "details": {
+    "filename": null,
+    "totalChunks": null,
+    "chunkIndex": null,
+    "uniqueID": null,
+    "receivedChunk": false
+  }
+}
+```
+
+This middleware ensures smooth handling of large file uploads by splitting them into smaller chunks and merging them once all chunks are received. 🚀
+
+---
+
 #### Check Permission Middleware
 
 /!\ **Must be used in combination with AuthType.JWT**
@@ -867,6 +968,76 @@ The function returns an object with the following status options:
 | `delivered` | Email was successfully delivered.                                       |
 | `queued`    | Email is queued for delivery but not yet sent.                          |
 | `failed`    | Email could not be sent due to an error.                                |
+
+---
+
+### Gemini File Upload
+
+Upload a file to Google Gemini AI.
+
+```javascript
+import { geminiFileUpload } from 'node-server-engine';
+
+const fileBuffer = fs.readFileSync('example.pdf');
+const mimeType = 'application/pdf';
+const originalName = 'example.pdf';
+
+const result = await geminiFileUpload(fileBuffer, mimeType, originalName);
+
+if (result.success) {
+  console.log('File uploaded successfully:', result.fileUri);
+} else {
+  console.error('File upload failed:', result.error);
+}
+```
+
+### Parameters
+
+| Parameter      | Type     | Description                                                       |
+| -------------- | -------- | ----------------------------------------------------------------- |
+| `buffer`       | `Buffer` | The file content in buffer format.                                |
+| `mimeType`     | `string` | The MIME type of the file (e.g., `image/png`, `application/pdf`). |
+| `originalName` | `string` | The original filename, including the extension.                   |
+
+### Response
+
+The function returns an object with one of the following structures:
+
+#### **Success Response**
+
+```json
+{
+  "success": true,
+  "originalname": "example.pdf",
+  "fileUri": "https://gemini.googleapis.com/file/xyz123",
+  "mimeType": "application/pdf"
+}
+```
+
+#### **Failure Response**
+
+```json
+{
+  "success": false,
+  "error": "Error message"
+}
+```
+
+### Return Fields
+
+| Field          | Type      | Description                                                       |
+| -------------- | --------- | ----------------------------------------------------------------- |
+| `success`      | `boolean` | Indicates whether the upload was successful.                      |
+| `originalname` | `string`  | The name of the uploaded file.                                    |
+| `fileUri`      | `string`  | The URI of the uploaded file on Google Gemini AI.                 |
+| `mimeType`     | `string`  | The MIME type of the uploaded file.                               |
+| `error`        | `any`     | Present only if `success` is `false`. Contains the error details. |
+
+### Error Handling
+
+- If the `GOOGLE_AI_KEY` environment variable is missing, the function throws an error.
+- If the upload fails or the file processing does not complete successfully, an error response is returned.
+- Temporary files are cleaned up after the upload process to prevent storage issues.
 
 ---
 
