@@ -21,5 +21,7 @@ export * from './tlsRequest';
 export * from './sendPush';
 export * from './sendEmail';
 
+// Filesystem
+export * from './geminiFileUpload';
 // String manipulation
 export * from './trimPathSlash';
