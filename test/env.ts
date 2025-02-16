@@ -47,5 +47,6 @@ process.env = {
   SQL_DB: 'testDb',
   SQL_TYPE: 'mysql',
   DEFAULT_MESSAGE_AUDIENCE: audience,
+  GOOGLE_AI_KEY: 'AIKEY',
   ...process.env
 };

@@ -1,52 +1,35 @@
-import { CompressionOptions } from './compressAvatar';
-import { StorageUploadedFile } from 'entities/Storage';
-
-// Override the Express request object to add the files
+// Extend Express request object to include `files`
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
-    /** Express request object */
     interface Request {
-      /** Configuration for files that are uploaded with the request */
-      files?: { [key: string]: Array<UploadedFile> };
+      /** Uploaded files mapped by field name */
+      files?:
+        | { [key: string]: Express.Multer.File[] }
+        | Express.Multer.File[]
+        | undefined;
     }
   }
 }
 
 /** Custom uploaded file metadata */
-export interface UploadedFile extends StorageUploadedFile {
-  /** File name that was given to the file by the client */
+export interface UploadedFile extends Express.Multer.File {
+  /** Original file name (use `originalname` from `Express.Multer.File`) */
   originalFileName: string;
+  /** File data buffer (use `buffer` from `Express.Multer.File`) */
+  file: Buffer;
 }
 
-/** Outputs setting for the file upload. Defines where a file should be stored and how it should be processed. */
-interface FileUploaderOutputs {
-  /** Name of the output */
-  name: string;
-  /** Path to which this specific output is stored (defaults to default path if not set) */
-  path?: string;
-  /** Bucket to which this specific output is stored (defaults to default bucket if not set) */
-  bucket?: string;
-}
-
-/** Configuration for a file upload */
+/** Configuration for file upload */
 export interface FileUploaderConfig {
-  /** Field key for which this configuration applies */
+  /** Field name expected in the request */
   key: string;
-  /** A list of supported MIME Types for the file */
+  /** Allowed MIME types */
   mimeTypes?: Array<string>;
-  /** Base path where the file should be stored (default used when no output config is set, will be used as temporary storage when outputs are set) */
-  path?: string;
-  /** Bucket in which the file should be stored (will be used as temporary storage when outputs are set) */
-  bucket: string;
-  /** Maximum size of the file (ex: 2MB) */
+  /** Maximum file size (e.g., "2MB") */
   maxSize?: string;
-  /** Indicates that the file must be present */
+  /** Whether the file is required */
   required?: boolean;
-  /** Do not store with an extension (will simply be a uuid) */
+  /** Whether to store without an extension */
   noExtension?: boolean;
-  /** Specify multiple outputs with processing */
-  outputs?: Array<FileUploaderOutputs>;
-  /** @deprecated compression of images */
-  image?: CompressionOptions;
 }

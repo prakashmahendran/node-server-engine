@@ -11,7 +11,7 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Endpoint Configuration](#endpoint-configuration)
       - [Methods](#methods)
       - [Authentication](#authentication)
-      - [File Upload](#file-upload)
+      - [File Upload Middleware](#file-upload-middleware)
     - [Socket Client](#socket-client)
       - [Socket Client Options](#socket-client-options)
       - [Properties](#properties)
@@ -203,29 +203,54 @@ The server engine exposes an enumeration for auth types.
 
 <!-- markdownlint-enable MD033 -->
 
-#### File Upload
+### File Upload Middleware
 
-An endpoint can upload a file to a cloud storage and pass down its url to the handler.
+This middleware handles multipart file uploads in an Express application. It processes files in memory, validates them based on configuration options, and ensures that required files are uploaded.
 
-The request must be made as `multipart/form-data`.
+## Usage
 
-The file's data will be available at `req.files`.
+The request must be made using `multipart/form-data`. The uploaded files will be available in `req.files`.
 
 The following settings can be used on each object the Endpoint's `options.files`.
 
-| Property            | Type           | Description                                                              | Default      |
-| ------------------- | -------------- | ------------------------------------------------------------------------ | ------------ |
-| key                 | string         | Form key as which the file should be fetched                             | **required** |
-| path                | string         | Base path of the directory where the file should be stored in the bucket | `/`          |
-| bucket              | string         | Name of the bucket in which the file should be stored                    | **required** |
-| maxSize             | string         | Maximum file size in a human readable format (ex: 5MB)                   | **required** |
-| mimeTypes           | Array\<string> | A list of accepted MIME Types                                            | []           |
-| required            | boolean        | Will fail the request and not store the files if this one is missing     | false        |
-| noExtension         | boolean        | Store the file with no extension                                         | false        |
-| image               | Object         | Image manipulation to perform on the uploaded file                       |              |
-| image.resize.height | number         | Resize the image to fit a specific height                                |              |
-| image.resize.width  | number         | Resize the image to fit a specific width                                 |              |
-| image.quality       | number         | JPEG quality factor to use for export                                    |              |
+| Property    | Type           | Description                                                          | Default      |
+| ----------- | -------------- | -------------------------------------------------------------------- | ------------ |
+| key         | string         | Form key as which the file should be fetched                         | **required** |
+| maxSize     | string         | Maximum file size in a human readable format (ex: 5MB)               | **required** |
+| mimeTypes   | Array\<string> | A list of accepted MIME Types                                        | []           |
+| required    | boolean        | Will fail the request and not store the files if this one is missing | false        |
+| noExtension | boolean        | Store the file with no extension                                     | false        |
+
+## Example
+
+```typescript
+import { body } from 'express-validator';
+import { Endpoint, middleware, AuthType, Method } from 'node-server-engine';
+
+const filesConfig = [
+  { key: 'avatar', mimeTypes: ['image/png', 'image/jpeg'], required: true },
+  { key: 'document', mimeTypes: ['application/pdf'], maxSize: '5MB' }
+];
+
+new Endpoint({
+  path: '/upload',
+  method: Method.POST,
+  authType: AuthType.JWT,
+  files: filesConfig,
+  handler: (req, res) => {
+    res.json({ message: 'Files uploaded successfully', files: req.files });
+  }
+});
+```
+
+## Features
+
+- Supports multiple file uploads.
+- Validates file types and sizes.
+- Ensures required files are uploaded.
+- Uses memory storage (files are not saved to disk).
+
+This middleware simplifies file handling in Express, making it easy to manage uploads while enforcing validation rules.
 
 ---
 
