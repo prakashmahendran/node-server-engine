@@ -97,6 +97,8 @@ export function fileUploader(
         );
       }
 
+      request.body.files = uploadedFiles;
+
       next();
     });
   };
