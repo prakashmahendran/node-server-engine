@@ -6,12 +6,7 @@ import { reportError, reportDebug } from 'utils/report';
 
 const namespace = 'engine:utils:geminiFileUpload';
 
-const apiKey = process.env.GOOGLE_AI_KEY;
-if (!apiKey) {
-  throw new Error('GOOGLE_AI_KEY is not set in environment variables');
-}
-
-const fileManager = new GoogleAIFileManager(apiKey);
+const fileManager = new GoogleAIFileManager(process.env.GOOGLE_AI_KEY || '');
 
 export async function geminiFileUpload(
   buffer: Buffer,
