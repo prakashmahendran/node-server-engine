@@ -17,6 +17,7 @@ import {
   authStatic,
   FileUploaderConfig
 } from 'middleware';
+import { MultiPartFileUploaderConfig } from 'middleware/multiPartFileUploader/multiPartFileUploader.types';
 
 export enum EndpointMethod {
   GET = 'get',
@@ -129,6 +130,8 @@ export interface EndpointOptions<T extends EndpointAuthType> {
   file?: FileUploaderConfig;
   /** Settings to upload files through this endpoint (this will automatically switch the expected request to be a multipart) */
   files?: Array<FileUploaderConfig>;
+  /** Settings to upload file parts (Chunks) through this endpoint (this will automatically switch the expected request to be a multipart) */
+  multiPartFile?: MultiPartFileUploaderConfig;
   /** Express request handlers that should run on this endpoint before the business logic, they will run after the global middleware */
   middleware?: MiddlewareChainElement<T>;
   /** Express error handlers that should be registered for this endpoint. they will run before the global error handler */

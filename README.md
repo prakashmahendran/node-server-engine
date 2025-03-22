@@ -2,7 +2,7 @@
 
 Framework used to develop Node backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.
 
-- [Node Server Engine](#Node-server-engine)
+- [Node Server Engine](#node-server-engine)
   - [Install](#install)
   - [Entities](#entities)
     - [Server](#server)
@@ -12,6 +12,18 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Methods](#methods)
       - [Authentication](#authentication)
       - [File Upload Middleware](#file-upload-middleware)
+        - [Usage](#usage)
+        - [Example](#example)
+        - [Middleware Output](#middleware-output)
+        - [Features](#features)
+      - [Multipart File Upload Middleware](#multipart-file-upload-middleware)
+        - [Usage](#usage-1)
+        - [Configuration Options](#configuration-options)
+        - [Expected Request Format](#expected-request-format)
+        - [Middleware Output](#middleware-output-1)
+        - [When all chunks are not yet received, req.multipartFile has the below JSON:](#when-all-chunks-are-not-yet-received-reqmultipartfile-has-the-below-json)
+        - [When the upload is complete, req.multipartFile has the below JSON:](#when-the-upload-is-complete-reqmultipartfile-has-the-below-json)
+        - [Example](#example-1)
     - [Socket Client](#socket-client)
       - [Socket Client Options](#socket-client-options)
       - [Properties](#properties)
@@ -35,15 +47,22 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Schemas and Responses](#schemas-and-responses)
     - [User Resolver](#user-resolver)
     - [Gemini File Upload](#gemini-file-upload)
-    - [Multipart File Uploader](#multipart-file-uploader)
-    - [checkPermission](#check-permission-middleware)
+    - [Check Permission Middleware](#check-permission-middleware)
   - [Utilities](#utilities)
     - [Request](#request)
     - [TLS Request](#tls-request)
     - [TLS Config](#tls-config)
     - [Send Push Notification](#send-push-notification)
     - [Send Email](#send-email)
-    - [Gemini File Upload](#gemini-file-upload)
+    - [Parameters](#parameters)
+    - [Return Status](#return-status)
+    - [Gemini File Upload](#gemini-file-upload-1)
+    - [Parameters](#parameters-1)
+    - [Response](#response)
+      - [**Success Response**](#success-response)
+      - [**Failure Response**](#failure-response)
+    - [Return Fields](#return-fields)
+    - [Error Handling](#error-handling)
     - [Filter](#filter)
     - [Database Migration](#database-migration)
     - [Environment Variables Verification](#environment-variables-verification)
@@ -203,11 +222,11 @@ The server engine exposes an enumeration for auth types.
 
 <!-- markdownlint-enable MD033 -->
 
-### File Upload Middleware
+#### File Upload Middleware
 
 This middleware handles multipart file uploads in an Express application. It processes files in memory, validates them based on configuration options, and ensures that required files are uploaded.
 
-## Usage
+##### Usage
 
 The request must be made using `multipart/form-data`. The uploaded files will be available in `req.files`.
 
@@ -221,7 +240,7 @@ The following settings can be used on each object the Endpoint's `options.files`
 | required    | boolean        | Will fail the request and not store the files if this one is missing | false        |
 | noExtension | boolean        | Store the file with no extension                                     | false        |
 
-## Example
+##### Example
 
 ```typescript
 import { body } from 'express-validator';
@@ -243,7 +262,30 @@ new Endpoint({
 });
 ```
 
-## Features
+##### Middleware Output
+
+The middleware adds a `files` object to the `req` object, which contains information about the uploaded file.
+
+```json
+ [
+    {
+      "fieldname": "avatar",
+      "originalname": "profile.png",
+      "mimetype": "image/png",
+      "size": 204800,
+      "buffer":[]
+    },
+    {
+      "fieldname": "document",
+      "originalname": "resume.pdf",
+      "mimetype": "application/pdf",
+      "size": 512000,
+      "buffer":[]
+    }
+  ]
+```
+
+##### Features
 
 - Supports multiple file uploads.
 - Validates file types and sizes.
@@ -252,6 +294,82 @@ new Endpoint({
 
 This middleware simplifies file handling in Express, making it easy to manage uploads while enforcing validation rules.
 
+---
+
+#### Multipart File Upload Middleware
+
+This middleware enables chunked file uploads in an Express application. It allows uploading large files by splitting them into smaller chunks, validating them, and merging them once all parts are received.
+
+##### Usage
+
+The request must be made using `multipart/form-data`. The uploaded chunks are processed in memory before being stored in temporary directories. Once all chunks are uploaded, they are merged into a single file.
+
+##### Configuration Options
+
+The following settings can be used when configuring file uploads:
+
+| Property | Type    | Description                                         | Default  |
+| -------- | ------- | --------------------------------------------------- | -------- |
+| maxSize  | string  | Maximum allowed size for each chunk (e.g., `"5MB"`) | No limit |
+| required | boolean | Whether the file is mandatory for the request       | `false`  |
+
+##### Expected Request Format
+
+The client must send the following fields in the `multipart/form-data` request:
+
+| Field         | Type   | Description                              |
+| ------------- | ------ | ---------------------------------------- |
+| `file`        | File   | The chunked file data                    |
+| `filename`    | String | Name of the original file                |
+| `uniqueID`    | String | Unique identifier for the upload session |
+| `chunkIndex`  | Number | Current chunk number (0-based index)     |
+| `totalChunks` | Number | Total number of chunks for the file      |
+
+##### Middleware Output
+
+The middleware adds a `multipartFile` object to the `req` object, which contains information about the uploaded file.
+
+##### When all chunks are not yet received, req.multipartFile has the below JSON:
+
+```json
+{
+  "isPending": true,
+  "originalname": "example.pdf",
+  "uniqueID": "abc123",
+  "chunkIndex": 2,
+  "totalChunks": 5
+}
+```
+
+##### When the upload is complete, req.multipartFile has the below JSON:
+
+```json
+{
+  "isPending": false,
+  "originalname": "example.pdf",
+  "uniqueID": "abc123",
+  "filePath": "/uploads/completed_files/abc123_example.pdf"
+}
+```
+
+##### Example
+
+```typescript
+import { body } from 'express-validator';
+import { Endpoint, middleware, AuthType, Method } from 'node-server-engine';
+
+const fileConfig = { maxSize: '10MB', required: true };
+
+new Endpoint({
+  path: '/upload',
+  method: Method.POST,
+  authType: AuthType.JWT,
+  multipartFile: fileConfig,
+  handler: (req, res) => {
+    console.log(req.multipartFile);
+  }
+});
+```
 ---
 
 ### Socket Client
@@ -704,7 +822,7 @@ new Endpoint({
 
 ---
 
-#### Gemini File Upload
+### Gemini File Upload
 
 An endpoint can upload a file to a google gemini AI
 
@@ -716,104 +834,7 @@ The file's data will be available at `req.body.fileUri req.body.mimeType  req.bo
 
 ---
 
-#### Multipart File Uploader
-
-This middleware handles multipart file uploads by accepting file chunks, storing them temporarily, and merging them once all chunks are uploaded.
-
-## Usage
-
-The request must be made using `multipart/form-data`.
-The file should be uploaded under the key `file`.
-
-Once the upload is complete, the following data will be available in `req.body.uploadDetails`:
-
-- **status**: `"pending"` (if chunk upload is in progress) or `"completed"` (if file is fully uploaded and merged).
-- **message**: Status message.
-- **details**:
-  - `filename`: Original filename.
-  - `uniqueID`: Unique identifier for the upload session.
-  - `chunkIndex`: The current chunk index (if upload is still in progress).
-  - `totalChunks`: Total number of chunks for the file (if upload is still in progress).
-
-## Request Format
-
-### **Endpoint:**
-
-```http
-POST /upload
-```
-
-### **Headers:**
-
-```http
-Content-Type: multipart/form-data
-```
-
-### **Form Data:**
-
-| Key           | Type   | Description                                       |
-| ------------- | ------ | ------------------------------------------------- |
-| `file`        | File   | The chunk of the file being uploaded              |
-| `filename`    | String | The original filename                             |
-| `uniqueID`    | String | A unique identifier for the file upload session   |
-| `totalChunks` | Number | The total number of chunks the file is split into |
-| `chunkIndex`  | Number | The index of the current chunk being uploaded     |
-
-## Response Format
-
-### **If chunk upload is successful but not completed:**
-
-```json
-{
-  "status": "pending",
-  "message": "Chunk uploaded successfully",
-  "details": {
-    "filename": "example.pdf",
-    "uniqueID": "123456",
-    "chunkIndex": 2,
-    "totalChunks": 5
-  }
-}
-```
-
-### **If all chunks are uploaded and merged successfully:**
-
-```json
-{
-  "status": "completed",
-  "message": "File uploaded and merged successfully",
-  "details": {
-    "filename": "example.pdf",
-    "uniqueID": "123456"
-  }
-}
-```
-
-## Error Handling
-
-If an error occurs (e.g., missing fields, failed write operations), the middleware will return an error response with details.
-
-Example:
-
-```json
-{
-  "status": "failed",
-  "message": "Missing required fields",
-  "details": {
-    "filename": null,
-    "totalChunks": null,
-    "chunkIndex": null,
-    "uniqueID": null,
-    "receivedChunk": false
-  }
-}
-```
-
-This middleware ensures smooth handling of large file uploads by splitting them into smaller chunks and merging them once all chunks are received. 🚀
-
----
-
-#### Check Permission Middleware
+### Check Permission Middleware
 
 /!\ **Must be used in combination with AuthType.JWT**
 

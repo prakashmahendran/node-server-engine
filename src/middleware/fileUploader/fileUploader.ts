@@ -125,7 +125,7 @@ export function fileUploader(
         // Max File Size Validation
         if (fileOption.maxSize) {
           const maxSizeInBytes = bytes(fileOption.maxSize);
-          if (file.size > maxSizeInBytes) {
+          if (maxSizeInBytes && file.size > maxSizeInBytes) {
             return next(
               new WebError({
                 statusCode: 400,
@@ -146,7 +146,7 @@ export function fileUploader(
         }
       }
 
-      request.body.files = uploadedFiles;
+      request.files = uploadedFiles;
 
       next();
     });

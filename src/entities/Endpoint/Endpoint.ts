@@ -24,8 +24,14 @@ import {
   EndpointHandler
 } from './Endpoint.types';
 import { LogSeverity } from 'const';
-import { validate, fileUploader, requestMetrics } from 'middleware';
+import {
+  validate,
+  fileUploader,
+  requestMetrics,
+  multiPartFileUploader
+} from 'middleware';
 import { FileUploaderConfig } from 'middleware/fileUploader';
+import { MultiPartFileUploaderConfig } from 'middleware/multiPartFileUploader';
 import { reportDebug, reportError, reportInfo } from 'utils/report';
 
 const namespace = 'engine:Endpoint';
@@ -48,6 +54,8 @@ export class Endpoint<T extends EndpointAuthType> {
   private authParams?: EndpointAuthParams<T>;
   /** Settings to upload files through this endpoint (this will automatically switch the expected request to be a multipart) */
   private files?: Array<FileUploaderConfig>;
+  /** Settings to upload file parts (Chunks) through this endpoint (this will automatically switch the expected request to be a multipart) */
+  private multiPartFile?: MultiPartFileUploaderConfig;
   /** Express request handlers that should run on this endpoint before the business logic, they will run after the global middleware */
   private middleware?: Array<Middleware<T>>;
   /** Express error handlers that should be registered for this endpoint. they will run before the global error handler */
@@ -63,7 +71,9 @@ export class Endpoint<T extends EndpointAuthType> {
         path: config.path,
         authType: config.authType,
         authParams: config.authParams,
-        file: config.file
+        file: config.file,
+        files: config.files,
+        multiPartFile: config.multiPartFile
       }
     });
 
@@ -113,10 +123,19 @@ export class Endpoint<T extends EndpointAuthType> {
       // Register file upload
       // Validation is included in the file upload process as this uses multipart/form-data
       middlewareChain.push(fileUploader(this.files, this.validator));
-    } else {
+    }
+
+    if (this.multiPartFile) {
+      middlewareChain.push(
+        multiPartFileUploader(this.multiPartFile, this.validator)
+      );
+    }
+
+    if (!this.files && !this.multiPartFile) {
       // Register validator for regular cases
       middlewareChain.push(validate(this.validator));
     }
+
     // Register additional middleware
     if (this.middleware) {
       middlewareChain.push(...this.middleware);
