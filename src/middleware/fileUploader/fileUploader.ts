@@ -5,6 +5,8 @@ import { reportDebug } from 'utils/report';
 import multer from 'multer';
 import { FileUploaderConfig } from './fileUploader.types';
 import { validate } from './validate';
+import path from 'path';
+import bytes from 'bytes';
 
 const namespace = 'engine:middleware:fileUploader';
 
@@ -32,7 +34,7 @@ export function fileUploader(
     const storage = multer.memoryStorage();
     const upload = multer({
       storage,
-      limits: { fileSize: 10 * 1024 * 1024 } // Limit file size to 10MB
+      limits: { fileSize: 32 * 1024 * 1024 } // Default global limit (10MB)
     }).any();
 
     upload(request, response, async (err) => {
@@ -95,6 +97,53 @@ export function fileUploader(
             data: { missingFiles, uploadedFileKeys }
           })
         );
+      }
+
+      // Validate each uploaded file
+      for (const file of uploadedFiles) {
+        const fileOption = filesOptions.find(
+          (option) => option.key === file.fieldname
+        );
+
+        if (!fileOption) continue;
+
+        // MIME Type Validation
+        if (
+          fileOption.mimeTypes &&
+          !fileOption.mimeTypes.includes(file.mimetype)
+        ) {
+          return next(
+            new WebError({
+              statusCode: 400,
+              errorCode: 'invalid-mime-type',
+              message: `Invalid file type for ${file.fieldname}`,
+              data: { expected: fileOption.mimeTypes, received: file.mimetype }
+            })
+          );
+        }
+
+        // Max File Size Validation
+        if (fileOption.maxSize) {
+          const maxSizeInBytes = bytes(fileOption.maxSize);
+          if (file.size > maxSizeInBytes) {
+            return next(
+              new WebError({
+                statusCode: 400,
+                errorCode: 'file-too-large',
+                message: `File ${file.originalname} exceeds the allowed size`,
+                data: { maxSize: fileOption.maxSize, receivedSize: file.size }
+              })
+            );
+          }
+        }
+
+        // No Extension Handling
+        if (fileOption.noExtension) {
+          file.originalname = path.basename(
+            file.originalname,
+            path.extname(file.originalname)
+          );
+        }
       }
 
       request.body.files = uploadedFiles;
