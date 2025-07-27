@@ -12,6 +12,7 @@ export * from './envAssert';
 export * from './createSortedObject';
 export * from './jwt';
 export * from './hmac';
+export * from './tlsConfig';
 
 // Networking
 export * from './createHttpServer';
