@@ -17,7 +17,6 @@ export * from './hmac';
 export * from './createHttpServer';
 export * from './request';
 export * from './tlsConfig';
-export * from './tlsRequest';
 export * from './sendPush';
 export * from './sendEmail';
 
