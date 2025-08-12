@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from 'express';
 import { Schema } from 'express-validator';
 import { validate as validateMiddleware } from 'middleware/validate';
@@ -20,7 +21,7 @@ export async function validate(
         resolve();
         return;
       }
-      validationChain[position](request, undefined, next);
+      (validationChain[position] as any)(request, undefined, next);
     };
     next();
   });
