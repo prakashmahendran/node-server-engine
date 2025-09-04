@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { EngineError } from 'entities/EngineError';
 import { reportDebug } from 'utils';
+import { tlsRequest } from 'utils/tlsRequest';
 
 const namespace = 'engine:middleware:userResolver';
 
@@ -15,7 +16,7 @@ export async function userResolver(
     throw new EngineError({
       message: 'Could not resolve user as the request is missing his ID'
     });
-  const user = { user: 'ram', id };
+  const user = await getUserById(id);
   if (!user)
     throw new EngineError({
       message: 'Could not resolve user as it could not be fetched',
@@ -32,4 +33,21 @@ export async function userResolver(
   };
 
   next();
+}
+
+/**
+ * Call the GET /user/{id} endpoint using TLS
+ */
+export async function getUserById(userId: number): Promise<unknown> {
+  const userServiceUrl = process.env.USER_SERVICE_URL;
+  if (!userServiceUrl) {
+    throw new Error('USER_SERVICE_URL is not defined in environment variables');
+  }
+
+  const response = await tlsRequest<unknown>({
+    method: 'GET',
+    url: `${userServiceUrl}/${userId}`
+  });
+
+  return response.data;
 }
