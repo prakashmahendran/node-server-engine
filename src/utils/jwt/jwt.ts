@@ -6,7 +6,6 @@ import {
   VerifyOptions,
   sign
 } from 'jsonwebtoken';
-import fs from 'fs';
 import { UserTokenPayload } from './jwt.types';
 import { TokenIssuer } from 'const';
 import { EngineError } from 'entities/EngineError';
@@ -15,6 +14,7 @@ import { WebError } from 'entities/WebError';
 import { assertEnvironment } from 'utils/checkEnvironment';
 import { envAssert } from 'utils/envAssert';
 import { reportDebug } from 'utils/report';
+import { getSecretOrFile } from 'utils';
 
 export let keySet: KeySet | undefined;
 
@@ -125,7 +125,8 @@ export async function jwtVerify(
   }
   assertEnvironment({
     ACCESS_TOKEN_AUDIENCE: envAssert.isString(),
-    ACCESS_TOKEN_ISSUER: envAssert.isString()
+    ACCESS_TOKEN_ISSUER: envAssert.isString(),
+    ACCESS_TOKEN_EXPIRATION_TIME: envAssert.isString()
   });
   let options: VerifyOptions | undefined;
 
@@ -165,16 +166,16 @@ export async function jwtVerify(
 export function generateJwtToken(user: unknown) {
   const signOptions = {
     algorithm: 'ES256' as const, // or 'ES256' as Algorithm
-    expiresIn: '1h',
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRATION_TIME
+      ? parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME, 10)
+      : undefined,
     issuer: process.env.ACCESS_TOKEN_ISSUER,
     audience: process.env.ACCESS_TOKEN_AUDIENCE,
     keyid: Object.keys(keySet?.getKeys() ?? {})[0]
   };
 
-  const privateKey = fs.readFileSync(
-    process.env.PRIVATE_KEY_PATH ?? 'keys/private-key.pem',
-    'utf8'
-  );
+  const privateKey = getSecretOrFile('PRIVATE_KEY_PATH');
+
   const token = sign({ user }, privateKey, signOptions);
 
   return token;

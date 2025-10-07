@@ -1,27 +1,30 @@
-import fs from 'fs';
 import https, { Agent } from 'https';
 import { validateTlsConfig } from './tlsConfig.validate';
 import { EngineError } from 'entities/EngineError';
+import { getSecretOrFile } from 'utils';
 
 let httpsAgent: Agent | undefined;
-
 export function getHttpsAgent(): Agent {
   if (httpsAgent) return httpsAgent;
 
   validateTlsConfig();
 
-  const key = fs.readFileSync(
-    process.env.TLS_REQUEST_KEY ?? process.env.TLS_SERVER_KEY!,
-    'utf-8'
+  // Always pass env var *names*, not their values
+  const key = getSecretOrFile(
+    process.env.TLS_REQUEST_KEY ? 'TLS_REQUEST_KEY' : 'TLS_SERVER_KEY'
   );
-  const cert = fs.readFileSync(
-    process.env.TLS_REQUEST_CERT ?? process.env.TLS_SERVER_CERT!,
-    'utf-8'
+
+  const cert = getSecretOrFile(
+    process.env.TLS_REQUEST_CERT ? 'TLS_REQUEST_CERT' : 'TLS_SERVER_CERT'
   );
-  const ca = fs.readFileSync(
-    process.env.TLS_REQUEST_CA ?? process.env.TLS_CA!,
-    'utf-8'
-  );
+
+  // CA is optional → only load if env var is set
+  const ca = process.env.TLS_REQUEST_CA
+    ? getSecretOrFile('TLS_REQUEST_CA')
+    : process.env.TLS_CA
+      ? getSecretOrFile('TLS_CA')
+      : undefined;
+
   const passphrase =
     process.env.TLS_REQUEST_KEY_PASSPHRASE ??
     process.env.TLS_SERVER_KEY_PASSPHRASE;
@@ -32,6 +35,12 @@ export function getHttpsAgent(): Agent {
     });
   }
 
-  httpsAgent = new https.Agent({ key, cert, ca, passphrase });
+  httpsAgent = new https.Agent({
+    key,
+    cert,
+    ca,
+    passphrase
+  });
+
   return httpsAgent;
 }

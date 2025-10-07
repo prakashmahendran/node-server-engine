@@ -1,8 +1,6 @@
-import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import { AddressInfo } from 'net';
-import path from 'path';
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { ValidatorSpec } from 'envalid';
 import express, { Application } from 'express';
@@ -203,8 +201,8 @@ export class Server {
 
     this.handleSignal();
 
-    // Watch TSL config files changing
-    this.watchTlsCaFileChange();
+    // Load TSL config files
+    this.loadTls();
   }
 
   /** Graceful shutdown */
@@ -344,27 +342,11 @@ export class Server {
     );
   }
 
-  /** Watch the TLS certificate change event */
-  private watchTlsCaFileChange(): void {
-    [
-      'TLS_REQUEST_KEY',
-      'TLS_REQUEST_CERT',
-      'TLS_REQUEST_CA',
-      'TLS_SERVER_KEY',
-      'TLS_SERVER_CERT',
-      'TLS_CA'
-    ].forEach((key) => {
-      const file = process.env[key];
-      if (file)
-        fs.watch(path.resolve(file), (event) => {
-          if (event !== 'change') return;
-          reportInfo(`Reloading TLS config [${file} changed]`);
-          loadTlsConfig();
-          (this.httpServer as https.Server).setSecureContext(
-            tlsConfig as TlsConfig
-          );
-        });
-    });
+  /** Load TLS Config */
+  private loadTls(): void {
+    reportInfo(`Loading TLS config`);
+    loadTlsConfig();
+    (this.httpServer as https.Server).setSecureContext(tlsConfig as TlsConfig);
   }
 
   /** Executes a recurring job */
