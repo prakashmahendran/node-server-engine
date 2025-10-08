@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # allows committing version bump back
+      contents: write # required to push tags/commits
       id-token: write
 
     steps:
@@ -25,13 +25,17 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
 
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Install dependencies
         run: npm ci
 
       - name: Bump version
         id: version_bump
         run: |
-          # bump patch version (e.g., 1.0.0 → 1.0.1)
           NEW_VERSION=$(npm version patch -m "chore(release): %s [skip ci]")
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
