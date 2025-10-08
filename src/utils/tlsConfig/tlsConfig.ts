@@ -16,15 +16,9 @@ export function loadTlsConfig(): void {
 
   if (process.env.TLS_REQUEST_KEY || process.env.TLS_SERVER_KEY) {
     // Fetch TLS secrets using unified utility
-    const key = getSecretOrFile(
-      process.env.TLS_REQUEST_KEY ?? process.env.TLS_SERVER_KEY!
-    );
-    const cert = getSecretOrFile(
-      process.env.TLS_REQUEST_CERT ?? process.env.TLS_SERVER_CERT!
-    );
-    const ca = getSecretOrFile(
-      process.env.TLS_REQUEST_CA ?? process.env.TLS_CA!
-    );
+    const key = getSecretOrFile('TLS_SERVER_KEY');
+    const cert = getSecretOrFile('TLS_SERVER_CERT');
+    const ca = getSecretOrFile('TLS_CA');
 
     // Passphrase is read directly from env variables
     const passphrase =
