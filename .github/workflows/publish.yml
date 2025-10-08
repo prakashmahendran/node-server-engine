@@ -1,0 +1,48 @@
+name: Bump version & Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # allows committing version bump back
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # required for tagging
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version
+        id: version_bump
+        run: |
+          # bump patch version (e.g., 1.0.0 → 1.0.1)
+          NEW_VERSION=$(npm version patch -m "chore(release): %s [skip ci]")
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Push updated package.json and tag
+        run: |
+          git push origin main --follow-tags
+
+      - name: Build package
+        run: npm run build --if-present
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
