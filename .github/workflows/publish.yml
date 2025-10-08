@@ -1,4 +1,4 @@
-name: Bump version & Publish to npm
+name: Publish to npm
 
 on:
   push:
@@ -39,9 +39,9 @@ jobs:
           NEW_VERSION=$(npm version patch -m "chore(release): %s [skip ci]")
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Push updated package.json and tag
+      - name: Push version tag only
         run: |
-          git push origin main --follow-tags
+          git push origin "v$(node -p "require('./package.json').version")"
 
       - name: Build package
         run: npm run build --if-present
