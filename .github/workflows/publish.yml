@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # required to push tags/commits
+      contents: write
       id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # required for tagging
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,15 +36,19 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # - name: Test
-      #   run: npm run test
-
-      - name: Bump version (no git tag)
-        run: npm version patch --no-git-tag-version
-
-      - name: Push version tag only
+      # Auto-increment version (no tag)
+      - name: Bump version
+        id: bump
         run: |
-          git push origin "v$(node -p "require('./package.json').version")"
+          NEW_VERSION=$(npm version patch --no-git-tag-version)
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      # Commit and push version bump
+      - name: Commit version bump
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore(release): bump to ${{ steps.bump.outputs.version }} [skip ci]" || echo "No changes to commit"
+          git push origin main || echo "Push skipped (branch protection may apply)"
 
       - name: Build package
         run: npm run build --if-present
