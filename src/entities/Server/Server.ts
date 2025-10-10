@@ -355,9 +355,16 @@ export class Server {
 
   /** Load TLS Config */
   private loadTls(): void {
-    reportInfo(`Loading TLS config`);
-    loadTlsConfig();
-    (this.httpServer as https.Server).setSecureContext(tlsConfig as TlsConfig);
+    try {
+      reportInfo('Loading TLS config');
+      loadTlsConfig();
+      (this.httpServer as https.Server).setSecureContext(
+        tlsConfig as TlsConfig
+      );
+      reportInfo('TLS config loaded successfully');
+    } catch (err) {
+      reportError(`TLS load failed: ${err}`);
+    }
   }
 
   /** Executes a recurring job */
