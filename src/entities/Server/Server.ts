@@ -118,6 +118,11 @@ export class Server {
       })
     );
 
+    this.app.get('/test1', (req, res) => {
+      console.log('Test endpoint hit');
+      res.status(200).json({ status: 'ok' });
+    });
+
     this.registerMiddleware(this.app);
     this.httpServer = createHttpServer(this.app);
 
