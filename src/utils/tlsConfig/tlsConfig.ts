@@ -14,6 +14,12 @@ export function loadTlsConfig(): void {
   validateTlsConfig();
   tlsConfig = undefined;
 
+  const runningInCloudRun = !!process.env.K_SERVICE || !!process.env.K_REVISION;
+  if (runningInCloudRun) {
+    console.log('[loadTlsConfig] Skipping TLS config load (Cloud Run)');
+    return;
+  }
+
   if (process.env.TLS_REQUEST_KEY || process.env.TLS_SERVER_KEY) {
     // Fetch TLS secrets using unified utility
     const key = getSecretOrFile('TLS_SERVER_KEY');

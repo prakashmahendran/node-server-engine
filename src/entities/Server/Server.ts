@@ -110,6 +110,22 @@ export class Server {
     // Create the primary express core that serves the business logic
     this.app = express();
 
+    // small request logger + memory snapshot on response finish
+    this.app.use((req, res, next) => {
+      const start = Date.now();
+      console.log(
+        `[REQ START] ${req.method} ${req.originalUrl} ip=${req.ip} nodeEnv=${process.env.NODE_ENV}`
+      );
+      res.on('finish', () => {
+        const time = Date.now() - start;
+        const mem = process.memoryUsage();
+        console.log(
+          `[REQ END] ${req.method} ${req.originalUrl} status=${res.statusCode} timeMs=${time} rss=${mem.rss} heapUsed=${mem.heapUsed}`
+        );
+      });
+      next();
+    });
+
     this.app.use(
       cors({
         origin: process.env.CORS_ORIGIN ?? '*',
@@ -154,12 +170,23 @@ export class Server {
 
   private setupGlobalErrorLogging(): void {
     process.on('uncaughtException', (err) => {
-      console.error('💥 Uncaught Exception:', err);
+      console.error(
+        '💥 uncaughtException:',
+        err && err.stack ? err.stack : err
+      );
     });
-
     process.on('unhandledRejection', (reason) => {
-      console.error('💥 Unhandled Promise Rejection:', reason);
+      console.error(
+        '💥 unhandledRejection:',
+        reason && (reason as any).stack ? (reason as any).stack : reason
+      );
     });
+    process.on('beforeExit', (code) =>
+      console.error('process.beforeExit', code)
+    );
+    process.on('exit', (code) => console.error('process.exit', code));
+    process.on('SIGKILL', () => console.error('SIGKILL received')); // usually cannot catch SIGKILL
+    process.on('SIGTERM', () => console.error('SIGTERM received'));
   }
 
   /** Start the server */

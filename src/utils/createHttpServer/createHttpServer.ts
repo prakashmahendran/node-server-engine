@@ -9,19 +9,28 @@ import { getSecretOrFile } from 'utils';
 
 /**
  * Create and configure an HTTP/HTTPS server.
- * Supports local files in dev and GCP secrets in prod.
+ * Always uses HTTP in Cloud Run (TLS is terminated by the platform).
  */
 export const createHttpServer = (
   handler?: Application | RequestListener
 ): Server | SecureServer => {
   validateHttpEnvironment();
 
-  if (process.env.TLS_SERVER_KEY && process.env.TLS_SERVER_CERT) {
+  // Cloud Run and similar managed environments handle TLS externally.
+  // Detect Cloud Run by K_SERVICE or K_REVISION.
+  const runningInCloudRun = !!process.env.K_SERVICE || !!process.env.K_REVISION;
+
+  if (
+    !runningInCloudRun &&
+    process.env.TLS_SERVER_KEY &&
+    process.env.TLS_SERVER_CERT
+  ) {
     const key = getSecretOrFile('TLS_SERVER_KEY');
     const cert = getSecretOrFile('TLS_SERVER_CERT');
     const ca = process.env.TLS_CA ? getSecretOrFile('TLS_CA') : undefined;
     const passphrase = process.env.TLS_SERVER_KEY_PASSPHRASE;
 
+    console.log('[createHttpServer] Starting HTTPS server (local mode)');
     return createSecureServer(
       {
         key,
@@ -34,6 +43,9 @@ export const createHttpServer = (
       handler
     );
   } else {
+    console.log(
+      '[createHttpServer] Starting HTTP server (Cloud Run or no TLS)'
+    );
     return createServer(handler);
   }
 };
