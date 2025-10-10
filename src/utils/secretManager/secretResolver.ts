@@ -9,7 +9,6 @@ import { secretCache } from './secretLoader';
 export const getSecretOrFile = (name: string): string => {
   if (process.env.NODE_ENV === 'production') {
     const secretValue = secretCache[name];
-    console.log('SecrrtCj', secretCache);
 
     if (!secretValue) {
       throw new EngineError({
