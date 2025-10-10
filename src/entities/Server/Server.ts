@@ -374,16 +374,22 @@ export class Server {
 
   /** Call shutdown if signal gets sent to the process */
   private handleSignal(): void {
-    shutdownSignals.forEach((signal) =>
-      process.on(signal, () => {
-        (async (): Promise<void> => {
-          reportInfo(`Received shutdown signal [${signal}]`);
-          await this.shutdown();
-        })().catch((error) => {
-          reportError(error);
+    const supportedSignals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
+
+    supportedSignals.forEach((signal) => {
+      try {
+        process.on(signal, () => {
+          (async (): Promise<void> => {
+            reportInfo(`Received shutdown signal [${signal}]`);
+            await this.shutdown();
+          })().catch((error) => {
+            reportError(error);
+          });
         });
-      })
-    );
+      } catch (err) {
+        reportError(`Signal handler registration failed for ${signal}: ${err}`);
+      }
+    });
   }
 
   /** Load TLS Config */
