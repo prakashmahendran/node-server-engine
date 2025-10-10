@@ -175,11 +175,12 @@ export class Server {
         err && err.stack ? err.stack : err
       );
     });
-    process.on('unhandledRejection', (reason) => {
-      console.error(
-        '💥 unhandledRejection:',
-        reason && (reason as any).stack ? (reason as any).stack : reason
-      );
+    process.on('unhandledRejection', (reason: unknown) => {
+      if (reason instanceof Error) {
+        console.error('💥 unhandledRejection:', reason.stack || reason.message);
+      } else {
+        console.error('💥 unhandledRejection:', reason);
+      }
     });
     process.on('beforeExit', (code) =>
       console.error('process.beforeExit', code)
