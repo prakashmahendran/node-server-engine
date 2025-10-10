@@ -147,8 +147,19 @@ export class Server {
     }
   }
 
+  private setupGlobalErrorLogging(): void {
+    process.on('uncaughtException', (err) => {
+      console.error('💥 Uncaught Exception:', err);
+    });
+
+    process.on('unhandledRejection', (reason) => {
+      console.error('💥 Unhandled Promise Rejection:', reason);
+    });
+  }
+
   /** Start the server */
   public async init(): Promise<void> {
+    this.setupGlobalErrorLogging();
     reportDebug({ namespace, message: `Starting Server` });
     // Fetch the keys for JWT authentication
     // Ignore in test environment as we do symmetrical token signing
