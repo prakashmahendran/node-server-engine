@@ -55,6 +55,19 @@ export function authTlsMiddleware(
   options: EndpointAuthParams<EndpointAuthType.TLS> = {}
 ): void {
   const socket = request.socket as TLSSocket;
+
+  reportDebug({
+    namespace,
+    message: 'TLS socket auth state',
+    data: {
+      authorized: socket?.authorized,
+      authorizationError: (
+        socket as TLSSocket & { authorizationError?: string }
+      )?.authorizationError,
+      peerCert: socket?.getPeerCertificate?.()
+    }
+  });
+
   // Check if the client's tls certificate is valid
   if (!socket?.authorized) {
     throw new WebError({
