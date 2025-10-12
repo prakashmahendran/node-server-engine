@@ -1,6 +1,8 @@
+import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import { AddressInfo } from 'net';
+import path from 'path';
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { ValidatorSpec } from 'envalid';
 import express, { Application } from 'express';
@@ -109,23 +111,6 @@ export class Server {
 
     // Create the primary express core that serves the business logic
     this.app = express();
-
-    // small request logger + memory snapshot on response finish
-    this.app.use((req, res, next) => {
-      const start = Date.now();
-      console.log(
-        `[REQ START] ${req.method} ${req.originalUrl} ip=${req.ip} nodeEnv=${process.env.NODE_ENV}`
-      );
-      res.on('finish', () => {
-        const time = Date.now() - start;
-        const mem = process.memoryUsage();
-        console.log(
-          `[REQ END] ${req.method} ${req.originalUrl} status=${res.statusCode} timeMs=${time} rss=${mem.rss} heapUsed=${mem.heapUsed}`
-        );
-      });
-      next();
-    });
-
     this.app.use(
       cors({
         origin: process.env.CORS_ORIGIN ?? '*',
@@ -133,12 +118,6 @@ export class Server {
         allowedHeaders: ['Content-Type', 'Authorization']
       })
     );
-
-    this.app.get('/test1', (req, res) => {
-      console.log('Test endpoint hit');
-      res.status(200).json({ status: 'ok' });
-    });
-
     this.registerMiddleware(this.app);
     this.httpServer = createHttpServer(this.app);
 
@@ -245,8 +224,8 @@ export class Server {
 
     this.handleSignal();
 
-    // Load TSL config files
-    this.loadTls();
+    // Watch TSL config files changing
+    this.watchTlsCaFileChange();
   }
 
   /** Graceful shutdown */
@@ -374,36 +353,41 @@ export class Server {
 
   /** Call shutdown if signal gets sent to the process */
   private handleSignal(): void {
-    const supportedSignals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
-
-    supportedSignals.forEach((signal) => {
-      try {
-        process.on(signal, () => {
-          (async (): Promise<void> => {
-            reportInfo(`Received shutdown signal [${signal}]`);
-            await this.shutdown();
-          })().catch((error) => {
-            reportError(error);
-          });
+    shutdownSignals.forEach((signal) =>
+      process.on(signal, () => {
+        (async (): Promise<void> => {
+          reportInfo(`Received shutdown signal [${signal}]`);
+          await this.shutdown();
+        })().catch((error) => {
+          reportError(error);
         });
-      } catch (err) {
-        reportError(`Signal handler registration failed for ${signal}: ${err}`);
-      }
-    });
+      })
+    );
   }
 
-  /** Load TLS Config */
-  private loadTls(): void {
-    try {
-      reportInfo('Loading TLS config');
-      loadTlsConfig();
-      (this.httpServer as https.Server).setSecureContext(
-        tlsConfig as TlsConfig
-      );
-      reportInfo('TLS config loaded successfully');
-    } catch (err) {
-      reportError(`TLS load failed: ${err}`);
-    }
+  /** Watch the TLS certificate change event */
+  private watchTlsCaFileChange(): void {
+    [
+      'TLS_REQUEST_KEY',
+      'TLS_REQUEST_KEY_PASSPHRASE',
+      'TLS_REQUEST_CERT',
+      'TLS_REQUEST_CA',
+      'TLS_SERVER_KEY',
+      'TLS_SERVER_KEY_PASSPHRASE',
+      'TLS_SERVER_CERT',
+      'TLS_CA'
+    ].forEach((key) => {
+      const file = process.env[key];
+      if (file)
+        fs.watch(path.resolve(file), (event) => {
+          if (event !== 'change') return;
+          reportInfo(`Reloading TLS config [${file} changed]`);
+          loadTlsConfig();
+          (this.httpServer as https.Server).setSecureContext(
+            tlsConfig as TlsConfig
+          );
+        });
+    });
   }
 
   /** Executes a recurring job */

@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { createServer, RequestListener, Server } from 'http';
 import {
   createServer as createSecureServer,
@@ -5,47 +6,29 @@ import {
 } from 'https';
 import { Application } from 'express';
 import { validateHttpEnvironment } from './createHttpServer.validate';
-import { getSecretOrFile } from 'utils';
 
-/**
- * Create and configure an HTTP/HTTPS server.
- * Always uses HTTP in Cloud Run (TLS is terminated by the platform).
- */
-export const createHttpServer = (
+/** Create and configure an http/https server */
+export function createHttpServer(
   handler?: Application | RequestListener
-): Server | SecureServer => {
+): Server | SecureServer {
+  // Validate the environment variables
   validateHttpEnvironment();
-
-  // Cloud Run and similar managed environments handle TLS externally.
-  // Detect Cloud Run by K_SERVICE or K_REVISION.
-  const runningInCloudRun = !!process.env.K_SERVICE || !!process.env.K_REVISION;
-
-  if (
-    !runningInCloudRun &&
-    process.env.TLS_SERVER_KEY &&
-    process.env.TLS_SERVER_CERT
-  ) {
-    const key = getSecretOrFile('TLS_SERVER_KEY');
-    const cert = getSecretOrFile('TLS_SERVER_CERT');
-    const ca = process.env.TLS_CA ? getSecretOrFile('TLS_CA') : undefined;
-    const passphrase = process.env.TLS_SERVER_KEY_PASSPHRASE;
-
-    console.log('[createHttpServer] Starting HTTPS server (local mode)');
+  // Create a https server if env var are specified
+  if (process.env.TLS_SERVER_KEY && process.env.TLS_SERVER_CERT) {
     return createSecureServer(
       {
-        key,
-        cert,
-        ca,
-        passphrase,
+        key: fs.readFileSync(process.env.TLS_SERVER_KEY),
+        passphrase: process.env.TLS_SERVER_KEY_PASSPHRASE,
+        cert: fs.readFileSync(process.env.TLS_SERVER_CERT),
+        ca: process.env.TLS_CA
+          ? fs.readFileSync(process.env.TLS_CA)
+          : undefined,
         requestCert: true,
         rejectUnauthorized: false
       },
       handler
     );
   } else {
-    console.log(
-      '[createHttpServer] Starting HTTP server (Cloud Run or no TLS)'
-    );
     return createServer(handler);
   }
-};
+}
