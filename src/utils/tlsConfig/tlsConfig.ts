@@ -29,8 +29,11 @@ export function loadTlsConfig(): void {
         (process.env.TLS_REQUEST_CA ?? process.env.TLS_CA) as string,
         'utf-8'
       ),
-      passphrase: (process.env.TLS_REQUEST_KEY_PASSPHRASE ??
-        process.env.TLS_SERVER_KEY_PASSPHRASE) as string
+      passphrase: fs.readFileSync(
+        (process.env.TLS_REQUEST_KEY_PASSPHRASE ??
+          process.env.TLS_SERVER_KEY_PASSPHRASE) as string,
+        'utf-8'
+      )
     } as TlsConfig;
     httpsAgent = new https.Agent({
       key: tlsConfig.key,

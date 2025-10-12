@@ -14,11 +14,17 @@ export function createHttpServer(
   // Validate the environment variables
   validateHttpEnvironment();
   // Create a https server if env var are specified
-  if (process.env.TLS_SERVER_KEY && process.env.TLS_SERVER_CERT) {
+  if (
+    process.env.TLS_SERVER_KEY &&
+    process.env.TLS_SERVER_CERT &&
+    process.env.TLS_SERVER_KEY_PASSPHRASE
+  ) {
     return createSecureServer(
       {
         key: fs.readFileSync(process.env.TLS_SERVER_KEY),
-        passphrase: process.env.TLS_SERVER_KEY_PASSPHRASE,
+        passphrase: fs
+          .readFileSync(process.env.TLS_SERVER_KEY_PASSPHRASE, 'utf8')
+          .trim(),
         cert: fs.readFileSync(process.env.TLS_SERVER_CERT),
         ca: process.env.TLS_CA
           ? fs.readFileSync(process.env.TLS_CA)
