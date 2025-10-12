@@ -24,7 +24,7 @@ export function createHttpServer(
           ? fs.readFileSync(process.env.TLS_CA)
           : undefined,
         requestCert: true,
-        rejectUnauthorized: true
+        rejectUnauthorized: false
       },
       handler
     );
