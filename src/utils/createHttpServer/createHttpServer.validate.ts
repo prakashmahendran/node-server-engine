@@ -10,7 +10,7 @@ export function validateHttpEnvironment(): void {
     assertEnvironment({ TLS_SERVER_CERT: envAssert.isPath() });
     // Optional variables
     if (process.env.TLS_SERVER_KEY_PASSPHRASE) {
-      assertEnvironment({ TLS_SERVER_KEY_PASSPHRASE: envAssert.isPath() });
+      assertEnvironment({ TLS_SERVER_KEY_PASSPHRASE: envAssert.isString() });
     }
     if (process.env.TLS_CA) assertEnvironment({ TLS_CA: envAssert.isPath() });
   }

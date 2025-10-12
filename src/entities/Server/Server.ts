@@ -366,11 +366,9 @@ export class Server {
   private watchTlsCaFileChange(): void {
     [
       'TLS_REQUEST_KEY',
-      'TLS_REQUEST_KEY_PASSPHRASE',
       'TLS_REQUEST_CERT',
       'TLS_REQUEST_CA',
       'TLS_SERVER_KEY',
-      'TLS_SERVER_KEY_PASSPHRASE',
       'TLS_SERVER_CERT',
       'TLS_CA'
     ].forEach((key) => {
