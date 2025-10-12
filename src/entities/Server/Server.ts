@@ -164,14 +164,11 @@ export class Server {
     process.on('beforeExit', (code) =>
       console.error('process.beforeExit', code)
     );
-    process.on('exit', (code) => console.error('process.exit', code));
-    process.on('SIGKILL', () => console.error('SIGKILL received')); // usually cannot catch SIGKILL
-    process.on('SIGTERM', () => console.error('SIGTERM received'));
   }
 
   /** Start the server */
   public async init(): Promise<void> {
-    this.setupGlobalErrorLogging();
+    // this.setupGlobalErrorLogging();
     reportDebug({ namespace, message: `Starting Server` });
     // Fetch the keys for JWT authentication
     // Ignore in test environment as we do symmetrical token signing
