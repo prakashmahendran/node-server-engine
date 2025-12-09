@@ -70,6 +70,8 @@ export class Server {
   private wss?: WebSocketServer;
   /** Abort controller that handles signals for the server */
   private abortController = new AbortController();
+  /** File system watchers for TLS certificate changes */
+  private fileWatchers: Array<fs.FSWatcher> = [];
 
   /** Create a server */
   public constructor(config: ServerOptions) {
@@ -147,29 +149,34 @@ export class Server {
     }
   }
 
+  /**
+   * Setup global error handlers for uncaught exceptions and unhandled rejections
+   */
   private setupGlobalErrorLogging(): void {
     process.on('uncaughtException', (err) => {
-      console.error(
-        '💥 uncaughtException:',
-        err && err.stack ? err.stack : err
-      );
+      reportError(err);
+      console.error('💥 uncaughtException:', err?.stack || err);
+      // Give time for logs to flush before exiting
+      setTimeout(() => process.exit(1), 1000);
     });
+    
     process.on('unhandledRejection', (reason: unknown) => {
+      reportError(reason instanceof Error ? reason : new Error(String(reason)));
       if (reason instanceof Error) {
         console.error('💥 unhandledRejection:', reason.stack || reason.message);
       } else {
         console.error('💥 unhandledRejection:', reason);
       }
+      // Give time for logs to flush before exiting
+      setTimeout(() => process.exit(1), 1000);
     });
-    process.on('beforeExit', (code) =>
-      console.error('process.beforeExit', code)
-    );
   }
 
   /** Start the server */
   public async init(): Promise<void> {
-    // this.setupGlobalErrorLogging();
+    this.setupGlobalErrorLogging();
     reportDebug({ namespace, message: `Starting Server` });
+    
     // Fetch the keys for JWT authentication
     // Ignore in test environment as we do symmetrical token signing
     if (process.env.NODE_ENV !== 'test' && !this.auth.noFetch)
@@ -231,23 +238,31 @@ export class Server {
 
     // Stop listening to HTTP requests
     await Promise.all(
-      [this.httpServer, this.secondaryHttpServer].map((server) => {
-        // Ignore if the server was already stopped
-        // We have observed cases where SIGTERM was thrown multiple times
-        if (!server.listening) return;
-        const { port } = server.address() as AddressInfo;
-        server.on('close', (error: unknown) => {
-          if (error) {
-            reportError(error);
-            process.exit(1);
-          } else {
-            reportInfo({
-              message: `Stopped listening to requests on port ${port}`
+      [this.httpServer, this.secondaryHttpServer].map(
+        (server) =>
+          new Promise<void>((resolve, reject) => {
+            // Ignore if the server was already stopped
+            // We have observed cases where SIGTERM was thrown multiple times
+            if (!server.listening) {
+              resolve();
+              return;
+            }
+            
+            const { port } = server.address() as AddressInfo;
+            
+            server.close((error) => {
+              if (error) {
+                reportError(error);
+                reject(error);
+              } else {
+                reportInfo({
+                  message: `Stopped listening to requests on port ${port}`
+                });
+                resolve();
+              }
             });
-          }
-        });
-        server.close();
-      })
+          })
+      )
     );
 
     // Close all socket connections
@@ -272,6 +287,19 @@ export class Server {
           socket.terminate();
         }
       });
+      
+      // Close the WebSocket server itself
+      await new Promise<void>((resolve, reject) => {
+        this.wss?.close((error) => {
+          if (error) {
+            reportError(error);
+            reject(error);
+          } else {
+            reportInfo({ message: 'WebSocket server closed' });
+            resolve();
+          }
+        });
+      });
     }
 
     // Run all the shutdown callback
@@ -290,6 +318,9 @@ export class Server {
 
     // Abort all the cronjob
     if (this.abortController) this.abortController.abort();
+
+    // Close all file watchers
+    this.fileWatchers.forEach((watcher) => watcher.close());
 
     // Stop the keyset timers
     shutdownKeySets();
@@ -349,14 +380,28 @@ export class Server {
 
   /** Call shutdown if signal gets sent to the process */
   private handleSignal(): void {
+    let isShuttingDown = false;
+    
     shutdownSignals.forEach((signal) =>
       process.on(signal, () => {
-        (async (): Promise<void> => {
-          reportInfo(`Received shutdown signal [${signal}]`);
-          await this.shutdown();
-        })().catch((error) => {
-          reportError(error);
-        });
+        // Prevent multiple shutdown attempts
+        if (isShuttingDown) {
+          reportInfo(`Already shutting down, ignoring ${signal}`);
+          return;
+        }
+        
+        isShuttingDown = true;
+        reportInfo(`Received shutdown signal [${signal}]`);
+        
+        this.shutdown()
+          .then(() => {
+            reportInfo('Graceful shutdown completed successfully');
+            process.exit(0);
+          })
+          .catch((error) => {
+            reportError(error);
+            process.exit(1);
+          });
       })
     );
   }
@@ -372,8 +417,8 @@ export class Server {
       'TLS_CA'
     ].forEach((key) => {
       const file = process.env[key];
-      if (file)
-        fs.watch(path.resolve(file), (event) => {
+      if (file) {
+        const watcher = fs.watch(path.resolve(file), (event) => {
           if (event !== 'change') return;
           reportInfo(`Reloading TLS config [${file} changed]`);
           loadTlsConfig();
@@ -381,6 +426,8 @@ export class Server {
             tlsConfig as TlsConfig
           );
         });
+        this.fileWatchers.push(watcher);
+      }
     });
   }
 

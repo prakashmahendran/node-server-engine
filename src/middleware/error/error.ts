@@ -12,7 +12,6 @@ export function error(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ): void {
-  reportDebug({ namespace, message: 'Received error', data: { error } });
   reportError(error, request);
   if (error instanceof WebError) {
     response.status(error.statusCode).json({

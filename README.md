@@ -112,6 +112,76 @@ For development dependencies:
 npm install --save-dev backend-test-tools
 ```
 
+## Logging
+
+The server provides structured logging with automatic format detection. In local development, logs are colorized and human-readable. In production (GCP, Kubernetes), logs are JSON formatted for log aggregation systems.
+
+### Log Format
+
+Logs automatically detect the environment:
+- **Local Development**: Colorized, concise format with time (HH:MM:SS)
+- **Production**: JSON structured logs for cloud log aggregation
+
+### Environment Variables
+
+| Variable | Values | Description | Default |
+|----------|--------|-------------|---------|
+| `LOG_FORMAT` | `local`, `json` | Force specific log format | Auto-detect |
+| `DETAILED_LOGS` | `true`, `false` | Show stack traces and verbose details | `false` |
+| `DEBUG` | `namespace:*` | Enable debug logs for specific namespaces | Off |
+
+### Examples
+
+**Default Local Format** (clean, concise):
+```
+[21:16:15] INFO     SERVER_RUNNING
+[21:16:15] INFO     Connected to database successfully
+[21:16:15] DEBUG    POST /auth/login [200] 154ms
+[21:20:15] DEBUG    GET /users [304] 10ms
+[21:20:15] WARNING  No bearer token found [unauthorized 401] GET /users
+```
+
+**Detailed Logs** (`DETAILED_LOGS=true`):
+```
+[21:16:15] DEBUG    POST /auth/login [200] 154ms
+Data:
+{
+  "responseTime": "154ms",
+  "contentLength": "1012",
+  "httpVersion": "1.1"
+}
+
+[21:20:15] WARNING  No bearer token found [unauthorized 401] GET /users
+Stack Trace:
+Error: No bearer token found
+    at middleware (/path/to/authJwt.ts:31:13)
+    ...
+  src/middleware/authJwt/authJwt.ts:31
+```
+
+**Production Format** (`LOG_FORMAT=json`):
+```json
+{"severity":"INFO","message":"SERVER_RUNNING","timestamp":"2025-12-09T21:16:15.028Z","serviceContext":{"service":"my-service","version":"1.0.0"}}
+{"severity":"DEBUG","message":"POST /auth/login [200] 154ms","timestamp":"2025-12-09T21:16:15.182Z"}
+```
+
+### Usage in Code
+
+```javascript
+import { reportInfo, reportError, reportDebug } from 'node-server-engine';
+
+// Info logging
+reportInfo('Server started successfully');
+reportInfo({ message: 'User login', data: { userId: '123' } });
+
+// Error logging
+reportError(error);
+reportError(error, request); // Include HTTP request context
+
+// Debug logging (requires DEBUG env var)
+reportDebug({ namespace: 'app:auth', message: 'Token validated' });
+```
+
 ## Entities
 
 ### Server

@@ -43,67 +43,68 @@ function getSeverityColor(severity?: string): string {
 }
 
 /**
+ * Format timestamp as HH:MM:SS
+ */
+function formatTime(): string {
+  const now = new Date();
+  return now.toTimeString().split(' ')[0];
+}
+
+/**
  * Format log entry for human-readable local development output
  */
 function formatLocalLog(entry: FullLogEntry): string {
-  const timestamp = new Date().toISOString();
+  const time = formatTime();
   const severity = entry.severity || 'INFO';
   const severityColor = getSeverityColor(severity);
+  const showDetailedLogs = process.env.DETAILED_LOGS === 'true';
   
   const parts: string[] = [];
   
   // Timestamp and severity
   parts.push(
-    `${colors.gray}[${timestamp}]${colors.reset} ${severityColor}${severity.padEnd(8)}${colors.reset}`
+    `${colors.gray}[${time}]${colors.reset} ${severityColor}${severity.padEnd(8)}${colors.reset}`
   );
-  
-  // File location
-  if (entry.fileName) {
-    parts.push(`${colors.dim}${entry.fileName}:${entry.lineNumber || '?'}${colors.reset}`);
-  }
   
   // Message
   if (entry.message) {
-    parts.push(`${colors.bright}${entry.message}${colors.reset}`);
+    parts.push(`${entry.message}`);
   }
   
   let output = parts.join(' ');
   
-  // Error details
-  if (entry.errorType) {
-    output += `\n  ${colors.red}Error Type:${colors.reset} ${entry.errorType}`;
+  // Error details (compact format)
+  if (entry.errorType || entry.errorCode || entry.statusCode) {
+    const errorParts: string[] = [];
+    if (entry.errorCode) errorParts.push(`${colors.red}${entry.errorCode}${colors.reset}`);
+    if (entry.statusCode) {
+      const statusColor = entry.statusCode >= 500 ? colors.red : entry.statusCode >= 400 ? colors.yellow : colors.green;
+      errorParts.push(`${statusColor}${entry.statusCode}${colors.reset}`);
+    }
+    if (errorParts.length > 0) {
+      output += ` ${colors.dim}[${errorParts.join(' ')}]${colors.reset}`;
+    }
   }
   
-  if (entry.errorCode) {
-    output += `\n  ${colors.red}Error Code:${colors.reset} ${entry.errorCode}`;
+  // HTTP request context (compact)
+  if (entry.context?.httpRequest) {
+    const req = entry.context.httpRequest;
+    output += ` ${colors.dim}${req.method} ${req.url}${colors.reset}`;
   }
   
-  if (entry.statusCode) {
-    const statusColor = entry.statusCode >= 500 ? colors.red : entry.statusCode >= 400 ? colors.yellow : colors.green;
-    output += `\n  ${colors.cyan}Status:${colors.reset} ${statusColor}${entry.statusCode}${colors.reset}`;
-  }
-  
-  // Stack trace
-  if (entry.stack_trace) {
+  // Stack trace (only in detailed mode)
+  if (showDetailedLogs && entry.stack_trace) {
     output += `\n${colors.gray}Stack Trace:${colors.reset}\n${colors.dim}${entry.stack_trace}${colors.reset}`;
   }
   
-  // Additional data
-  if (entry.data && Object.keys(entry.data).length > 0) {
+  // Additional data (only in detailed mode or if no message)
+  if (showDetailedLogs && entry.data && Object.keys(entry.data).length > 0) {
     output += `\n${colors.cyan}Data:${colors.reset}\n${colors.dim}${JSON.stringify(entry.data, null, 2)}${colors.reset}`;
   }
   
-  // HTTP request context
-  if (entry.context?.httpRequest) {
-    const req = entry.context.httpRequest;
-    output += `\n${colors.magenta}Request:${colors.reset}`;
-    output += `\n  ${colors.dim}${req.method} ${req.url}${colors.reset}`;
-    if (req.userAgent) {
-      output += `\n  ${colors.dim}User-Agent: ${req.userAgent}${colors.reset}`;
-    }
-    if (req.remoteIp) {
-      output += `\n  ${colors.dim}IP: ${req.remoteIp}${colors.reset}`;
-    }
+  // File location (only in detailed mode)
+  if (showDetailedLogs && entry.fileName) {
+    output += `\n  ${colors.dim}${entry.fileName}:${entry.lineNumber || '?'}${colors.reset}`;
   }
   
   return output;
