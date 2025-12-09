@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.5.0...v1.5.1) (2025-12-09)
+
+### ♻️ Code Refactoring
+
+* modernize codebase with latest JavaScript/TypeScript patterns ([7cebb71](https://github.com/prakashmahendran/node-server-engine/commit/7cebb7148b957cfdded14a121baaf655027adb9b))
+
 ## [1.5.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.4.9...v1.5.0) (2025-12-09)
 
 ### ✨ Features
