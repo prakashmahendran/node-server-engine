@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.1.0...v1.1.1) (2025-12-09)
+
+### 🐛 Bug Fixes
+
+* add npmignore file to explicitly control published files ([93cf89b](https://github.com/prakashmahendran/node-server-engine/commit/93cf89b45f4a456b7c364a6ed9a3cc8eb75dcff0))
+
 ## [1.1.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.0.0...v1.1.0) (2025-12-09)
 
 ### ✨ Features
