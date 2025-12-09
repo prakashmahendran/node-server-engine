@@ -252,26 +252,25 @@ export class Server {
 
     // Close all socket connections
     if (this.wss) {
-      // First ask then to close gracefully
+      // First ask them to close gracefully
       this.wss.clients.forEach((socket) => {
         socket.close();
       });
+      
       // Hard terminate all connections still open after a defined time
       const socketKillTimeout = process.env.WEBSOCKET_CLOSE_TIMEOUT
-        ? parseInt(process.env.WEBSOCKET_CLOSE_TIMEOUT)
+        ? parseInt(process.env.WEBSOCKET_CLOSE_TIMEOUT, 10)
         : 5000;
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          (this.wss as WebSocketServer).clients.forEach((socket) => {
-            if (
-              socket.readyState === socket.CLOSING ||
-              socket.readyState === socket.OPEN
-            ) {
-              socket.terminate();
-            }
-          });
-          resolve();
-        }, socketKillTimeout);
+        
+      await setTimeoutPromise(socketKillTimeout);
+      
+      this.wss.clients.forEach((socket) => {
+        if (
+          socket.readyState === socket.CLOSING ||
+          socket.readyState === socket.OPEN
+        ) {
+          socket.terminate();
+        }
       });
     }
 

@@ -4,6 +4,7 @@ import { Sequelize as SequelizeInterface } from './Sequelize.types';
 import { validateSequelizeEnvironment } from './Sequelize.validate';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
+import { reportInfo, reportError } from 'utils/report';
 
 export let sequelizeClient: undefined | Sequelize;
 
@@ -40,10 +41,8 @@ export function init(): void {
   sequelizeClient = createSequelizeClient();
   sequelizeClient
     .authenticate()
-    .then(() => console.log('Connected to database.'))
-    .catch((err: Error) =>
-      console.error('Unable to connect to the database:', err)
-    );
+    .then(() => reportInfo({ message: 'Connected to database successfully' }))
+    .catch((err: Error) => reportError(err));
   LifecycleController.register(sequelize);
 }
 

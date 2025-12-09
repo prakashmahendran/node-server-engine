@@ -78,40 +78,53 @@ export function reportError(
   return output(logEntry);
 }
 
-export let NAMESPACE_SELECTORS: undefined | Array<RegExp>;
+export let NAMESPACE_SELECTORS: Array<RegExp> | undefined;
 
-/** Generate the namespace selectors based on the debug variable */
+/**
+ * Generate the namespace selectors based on the DEBUG environment variable
+ */
 function initNamespaceSelector(): void {
-  if (process.env.DEBUG)
+  if (process.env.DEBUG) {
     NAMESPACE_SELECTORS = process.env.DEBUG.split(',').map(
-      (namespace) => new RegExp('^' + namespace.replace(/\*/g, '.*?') + '$')
+      (namespace) => new RegExp(`^${namespace.replace(/\*/g, '.*?')}$`)
     );
+  }
 }
 
-/** Reset the namespace selectors */
+/**
+ * Reset the namespace selectors
+ */
 export function resetNamespaceSelector(): void {
   NAMESPACE_SELECTORS = undefined;
 }
 
 let debugNamespace: string | undefined;
 
-/** Log a message for debugging purpose, based on a namespace specified in an environment variable */
+/**
+ * Log a message for debugging purposes, based on a namespace specified in an environment variable
+ * @param data - Debug log entry data
+ * @returns The full log entry if namespace matches, undefined otherwise
+ */
 export function reportDebug(data: DebugLogEntry): FullLogEntry | undefined {
-  if (!NAMESPACE_SELECTORS) initNamespaceSelector();
+  if (!NAMESPACE_SELECTORS) {
+    initNamespaceSelector();
+  }
+  
   let { namespace } = data;
-  const isEngineReport = namespace ? namespace.startsWith('engine') : false;
+  const isEngineReport = namespace?.startsWith('engine') ?? false;
 
-  if (debugNamespace && !isEngineReport) {
-    namespace = debugNamespace + ':' + namespace;
+  if (debugNamespace && !isEngineReport && namespace) {
+    namespace = `${debugNamespace}:${namespace}`;
   }
 
   const match =
     namespace &&
     NAMESPACE_SELECTORS &&
     NAMESPACE_SELECTORS.some((selector) => selector.test(namespace));
-  if (!match) return;
+    
+  if (!match) return undefined;
 
-  // Generate a prefix with the right most part of the namespace
+  // Generate a prefix with the rightmost part of the namespace
   const spaces = namespace.split(':');
   const prefix = spaces[spaces.length - 1];
 
@@ -122,12 +135,17 @@ export function reportDebug(data: DebugLogEntry): FullLogEntry | undefined {
   });
 }
 
-/** Specify a global debugging namespace */
+/**
+ * Specify a global debugging namespace
+ * @param globalNamespace - The namespace to set globally
+ */
 reportDebug.setNameSpace = function (globalNamespace: string): void {
   debugNamespace = globalNamespace;
 };
 
-/** Remove any defined global namespace */
+/**
+ * Remove any defined global namespace
+ */
 reportDebug.clearNamespace = function (): void {
   debugNamespace = undefined;
 };
