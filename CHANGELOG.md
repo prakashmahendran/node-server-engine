@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.4.9...v1.5.0) (2025-12-09)
+
+### ✨ Features
+
+* update sequlize ([c7d173f](https://github.com/prakashmahendran/node-server-engine/commit/c7d173f843c0119f8646386b68cfd2cd0463eac8))
+
 ## [1.1.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.1.0...v1.1.1) (2025-12-09)
 
 ### 🐛 Bug Fixes
