@@ -2,7 +2,34 @@
 
 Framework used to develop Node backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.
 
+[![npm version](https://img.shields.io/npm/v/node-server-engine.svg)](https://www.npmjs.com/package/node-server-engine)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
+## Features
+
+- 🚀 **Express-based** - Built on the popular Express.js framework
+- 🔒 **Multiple Auth Methods** - JWT, mTLS, HMAC, and Static token authentication
+- 🔌 **WebSocket Support** - Built-in WebSocket server with message handling
+- 📊 **Database Integration** - Sequelize ORM with migrations support
+- 📡 **Pub/Sub** - Google Cloud Pub/Sub integration
+- 🔔 **Push Notifications** - Built-in push notification support
+- 🌐 **i18n** - Internationalization with translation management
+- 🔍 **ElasticSearch** - Full-text search integration
+- 📝 **API Documentation** - Swagger/OpenAPI documentation support
+- 📤 **File Uploads** - Single and chunked file upload middleware
+- 🧪 **TypeScript** - Written in TypeScript with full type definitions
+- ✅ **Modern Tooling** - ESLint, Prettier, and automated versioning
+
+## Requirements
+
+- **Node.js** 18.x or higher
+- **npm** 9.x or higher
+- **TypeScript** 5.x (if contributing)
+
 - [Node Server Engine](#node-server-engine)
+  - [Features](#features)
+  - [Requirements](#requirements)
   - [Install](#install)
   - [Entities](#entities)
     - [Server](#server)
@@ -71,12 +98,18 @@ Framework used to develop Node backend services. This package ships with a lot o
 
 ## Install
 
-To start a new service, it is **highly recomended** that you clone it from [our template](https://github.com/prakashmahendran/node-server-template). It will already include all the necessary tools and boilerplate.
+To start a new service, it is **highly recommended** that you clone it from [our template](https://github.com/prakashmahendran/node-server-template). It will already include all the necessary tools and boilerplate.
 
 If you need to install it manually:
 
 ```bash
-npm i node-server-engine
+npm install node-server-engine
+```
+
+For development dependencies:
+
+```bash
+npm install --save-dev backend-test-tools
 ```
 
 ## Entities
@@ -1238,3 +1271,122 @@ await wait(600);
 ```
 
 <!-- markdownlint-enable MD033 -->
+
+## Development
+
+### Prerequisites
+
+- Node.js 18.x or higher
+- npm 9.x or higher
+- Git
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/prakashmahendran/node-server-engine.git
+cd node-server-engine
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run coverage
+```
+
+### Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run build` | Compile TypeScript and generate distribution files |
+| `npm run lint` | Check code for linting errors |
+| `npm run lint:fix` | Automatically fix linting errors |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check code formatting without modifying files |
+| `npm test` | Run all tests with coverage |
+| `npm run test:file` | Run a specific test file |
+| `npm run coverage` | Generate HTML coverage report |
+| `npm run coverage:ci` | Generate coverage summary for CI |
+
+### Commit Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation.
+
+**Format:** `type(scope): subject`
+
+**Types:**
+- `feat`: New feature (triggers minor version bump)
+- `fix`: Bug fix (triggers patch version bump)
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, semicolons, etc.)
+- `refactor`: Code refactoring without feature changes
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+- `ci`: CI/CD changes
+
+**Examples:**
+```bash
+git commit -m "feat(endpoints): add support for GraphQL endpoints"
+git commit -m "fix(auth): resolve JWT token validation issue"
+git commit -m "docs(readme): update installation instructions"
+```
+
+**Breaking Changes:** Add `BREAKING CHANGE:` in the commit body to trigger a major version bump:
+```bash
+git commit -m "feat(api): redesign authentication flow" -m "BREAKING CHANGE: AuthType enum values changed"
+```
+
+### Automated Versioning
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated version management and package publishing.
+
+**How it works:**
+1. Commits are analyzed based on conventional commit format
+2. Version number is automatically determined (major.minor.patch)
+3. Changelog is generated from commit messages
+4. Git tag is created
+5. Package is published to npm
+6. GitHub release is created
+
+**When releases happen:**
+- Automatically on every push to `main` branch
+- Only if there are release-worthy commits (feat, fix, perf, BREAKING CHANGE)
+- Releases are skipped for commits with `[skip ci]` in the message
+
+## Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+1. **Fork the repository** and create your branch from `main`
+2. **Follow the commit convention** described above
+3. **Write or update tests** for your changes
+4. **Ensure all tests pass** before submitting
+5. **Update documentation** if needed
+6. **Submit a pull request** with a clear description
+
+### Code Style
+
+- This project uses ESLint and Prettier for code consistency
+- Run `npm run lint:fix` and `npm run format` before committing
+- Husky pre-commit hooks will automatically check your code
+
+## License
+
+ISC © Ram
+
+## Support
+
+- 📫 **Issues:** [GitHub Issues](https://github.com/prakashmahendran/node-server-engine/issues)
+- 📖 **Documentation:** [README](https://github.com/prakashmahendran/node-server-engine#readme)
+- 💬 **Discussions:** [GitHub Discussions](https://github.com/prakashmahendran/node-server-engine/discussions)
+
+---
+
+**Made with ❤️ for the Node.js community**
