@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.5.1...v1.6.0) (2025-12-09)
+
+### ✨ Features
+
+* add human-readable log formatting for local development ([4a21133](https://github.com/prakashmahendran/node-server-engine/commit/4a2113332434c1349ce3da2950356c2e69a43066))
+
 ## [1.5.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.5.0...v1.5.1) (2025-12-09)
 
 ### ♻️ Code Refactoring
