@@ -155,18 +155,14 @@ export class Server {
   private setupGlobalErrorLogging(): void {
     process.on('uncaughtException', (err) => {
       reportError(err);
-      console.error('💥 uncaughtException:', err?.stack || err);
+      reportInfo('💥 Uncaught exception - process will exit');
       // Give time for logs to flush before exiting
       setTimeout(() => process.exit(1), 1000);
     });
     
     process.on('unhandledRejection', (reason: unknown) => {
       reportError(reason instanceof Error ? reason : new Error(String(reason)));
-      if (reason instanceof Error) {
-        console.error('💥 unhandledRejection:', reason.stack || reason.message);
-      } else {
-        console.error('💥 unhandledRejection:', reason);
-      }
+      reportInfo('💥 Unhandled rejection - process will exit');
       // Give time for logs to flush before exiting
       setTimeout(() => process.exit(1), 1000);
     });

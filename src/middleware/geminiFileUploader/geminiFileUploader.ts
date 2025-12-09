@@ -61,8 +61,7 @@ export async function geminiFileUploader(
       next();
     });
   } catch (error) {
-    console.error(error);
-    reportError(`Failed to upload or process file`);
+    reportError(error);
     next(error);
   }
 }
