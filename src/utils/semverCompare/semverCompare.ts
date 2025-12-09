@@ -19,9 +19,9 @@ export function semverCompare(v1: string, v2: string): 1 | -1 | 0 {
       data: { v1, v2 }
     });
   const [
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     [_1, major1, minor1, patch1, preType1, preVersion1],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     [_2, major2, minor2, patch2, preType2, preVersion2]
   ] = [match1, match2].map((group) =>
     // We parse to int the parts that can be

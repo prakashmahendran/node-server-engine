@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json && shx mv dist/src/* dist && rimraf dist/src && tsc-alias -p tsconfig.build.json && npx babel src --out-dir dist --source-maps --extensions \".ts\" --ignore \"**/*.test.ts\" --copy-files --no-copy-ignored",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "prepublish": "npm run build",
@@ -15,18 +16,22 @@
     "coverage": "nyc report --report-dir=./.test-coverage --reporter=html --reporter=text",
     "coverage:ci": "nyc report --reporter=text-summary",
     "test:ci": "npm run test -- --reporter spec",
-    "test:compose": "docker-compose up --abort-on-container-exit --build"
+    "test:compose": "docker-compose up --abort-on-container-exit --build",
+    "prepare": "husky"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && npm run test && npm run coverage"
-    }
-  },
-  "lint-staged": {
-    "*.js": "eslint",
-    "*.ts": "eslint"
-  },
-  "keywords": [],
+  "keywords": [
+    "node",
+    "express",
+    "server",
+    "backend",
+    "framework",
+    "rest-api",
+    "typescript",
+    "microservices",
+    "jwt",
+    "websocket",
+    "sequelize"
+  ],
   "author": "Ram",
   "license": "ISC",
   "repository": {
@@ -154,6 +159,10 @@
     "nyc": "^17.1.0",
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
+    "semantic-release": "^24.2.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
     "shx": "^0.3.4",
     "sinon": "^19.0.2",
     "sinon-chai": "^3.5.0",
