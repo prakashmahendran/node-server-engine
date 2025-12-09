@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.0...v1.7.1) (2025-12-09)
+
+### 🐛 Bug Fixes
+
+* add catch error logs ([8f9f6d7](https://github.com/prakashmahendran/node-server-engine/commit/8f9f6d762384c5af24b1c8f521bb1b8f9fefc8d5))
+
 ## [1.7.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.6.0...v1.7.0) (2025-12-09)
 
 ### ✨ Features
