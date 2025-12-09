@@ -6,7 +6,8 @@ function checkPermission(requiredActions: string | string[]) {
     const user = req.user;
 
     if (!user || !user.permissions) {
-      return res.status(403).json({ message: 'User does not have permissions' });
+      res.status(403).json({ message: 'User does not have permissions' });
+      return;
     }
 
     // Normalize input to an array of strings
@@ -23,7 +24,8 @@ function checkPermission(requiredActions: string | string[]) {
     );
 
     if (!hasPermission) {
-      return res.status(403).json({ message: 'Permission denied' });
+      res.status(403).json({ message: 'Permission denied' });
+      return;
     }
 
     next();

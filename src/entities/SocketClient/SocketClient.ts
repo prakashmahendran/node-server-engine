@@ -233,6 +233,7 @@ export class SocketClient {
         tokenId: this.tokenId as string,
         audience: this.audience as Array<string>
       };
+    return undefined;
   }
 
   /** Process an incoming message */
