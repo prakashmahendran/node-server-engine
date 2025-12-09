@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.0.0...v1.1.0) (2025-12-09)
+
+### ✨ Features
+
+* update documentation ([d62f8e9](https://github.com/prakashmahendran/node-server-engine/commit/d62f8e987142a8e3554164051bb6a6e739b77f8c))
+
 ## 1.0.0 (2025-12-09)
 
 ### ✨ Features
