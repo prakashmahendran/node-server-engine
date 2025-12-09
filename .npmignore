@@ -1,0 +1,72 @@
+# Source files
+src/
+test/
+
+# Configuration files
+.github/
+.husky/
+.vscode/
+tsconfig.json
+tsconfig.dev.json
+tsconfig.build.json
+eslint.config.mjs
+babel.config.json
+nodemon.json
+jsconfig.json
+.nvmrc
+.prettierrc
+.prettierignore
+.editorconfig
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Test and coverage
+.test-coverage/
+.nyc_output/
+coverage/
+
+# Environment files
+.env
+.env.*
+env/
+
+# Build artifacts
+*.log
+*.tgz
+
+# Development files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.travis.yml
+.gitlab-ci.yml
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys and certificates (never publish secrets!)
+keys/
+certs/
+*.pem
+*.key
+*.crt
+
+# Uploads directory (if exists)
+uploads/
