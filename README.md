@@ -679,6 +679,47 @@ The server engine standardizes the way errors are handled and reported. The erro
 
 Errors are a crucial part of the application, they are what helps us to properly debug the program and offer support when need, as well as what exposes issues to the client.
 
+#### Log Output Formats
+
+The engine automatically adapts log output based on the environment:
+
+**Local Development (Readable Format)**
+- Colorized output with severity levels
+- Formatted timestamps and file locations
+- Pretty-printed data objects
+- Stack traces with proper formatting
+- HTTP request context when available
+
+**Production/GCP (JSON Format)**
+- Structured JSON for log aggregation
+- Google Cloud Error Reporting integration
+- Kubernetes pod information
+- Service context metadata
+
+**Control Log Format**
+
+You can override the automatic detection:
+
+```bash
+# Force readable local format (useful for local Docker)
+LOG_FORMAT=local npm start
+
+# Force JSON format (useful for local testing)
+LOG_FORMAT=json npm start
+```
+
+**Example Local Output:**
+```
+[2025-12-10T10:30:45.123Z] ERROR    src/endpoints/users.ts:42 User not found
+  Error Code: user-not-found
+  Status: 404
+Data:
+  {
+    "userId": "abc-123",
+    "requestId": "req-456"
+  }
+```
+
 By standard, the client receives the following body when an error happens.
 
 ```javascript
