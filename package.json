@@ -1,5 +1,5 @@
 {
-  "name": "@prakashmahendran/node-server-engine",
+  "name": "node-server-engine",
   "version": "1.4.9",
   "description": "Framework used to develop backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.",
   "main": "dist/index.js",
@@ -42,9 +42,6 @@
     "url": "https://github.com/prakashmahendran/node-server-engine/issues"
   },
   "homepage": "https://github.com/prakashmahendran/node-server-engine#readme",
-  "publishConfig": {
-    "access": "public"
-  },
   "dependencies": {
     "@babel/runtime": "^7.26.0",
     "@elastic/elasticsearch": "^8.17.0",
