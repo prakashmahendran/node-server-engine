@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.6.0...v1.7.0) (2025-12-09)
+
+### ✨ Features
+
+* fix logging ([3ce6196](https://github.com/prakashmahendran/node-server-engine/commit/3ce61961441db2637c1a33605a3102d7f15252b7))
+
 ## [1.6.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.5.1...v1.6.0) (2025-12-09)
 
 ### ✨ Features
