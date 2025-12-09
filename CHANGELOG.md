@@ -1,3 +1,9 @@
+## [1.7.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.1...v1.7.2) (2025-12-09)
+
+### 🐛 Bug Fixes
+
+* remove unused packages ([caa872d](https://github.com/prakashmahendran/node-server-engine/commit/caa872dd91ad726f30635028ad4b6949b290c48b))
+
 ## [1.7.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.0...v1.7.1) (2025-12-09)
 
 ### 🐛 Bug Fixes
