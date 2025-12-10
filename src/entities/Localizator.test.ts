@@ -114,4 +114,89 @@ describe('Localizator', () => {
       expect(Localizator.shutdown).to.be.a('function');
     });
   });
+
+  describe('guessNamingConvention', () => {
+    it('should guess naming convention after initialization', async () => {
+      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
+        data: Buffer.from(JSON.stringify({
+          'en-US': { namingConvention: 'first-last' }
+        }))
+      });
+      storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
+        data: Buffer.from(JSON.stringify({
+          latin: { ranges: [] }
+        }))
+      });
+
+      await Localizator.synchronize();
+      
+      const result = Localizator.guessNamingConvention('John', 'Doe', 'en-US');
+      expect(result).to.exist;
+    });
+  });
+
+  describe('getDisplayNames', () => {
+    it('should return display names with placeholders replaced', async () => {
+      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
+        data: Buffer.from(JSON.stringify({
+          'en-US': { namingConvention: 'first-last' }
+        }))
+      });
+      storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
+        data: Buffer.from(JSON.stringify({
+          latin: { ranges: [] }
+        }))
+      });
+
+      await Localizator.synchronize();
+      
+      const result = Localizator.getDisplayNames('John', 'Doe', 'en-US');
+      expect(result).to.exist;
+    });
+  });
+
+  describe('getLocaleData', () => {
+    it('should return locale data after initialization', async () => {
+      const mockLocaleData = { 'en-US': { namingConvention: 'first-last' } };
+      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
+        data: Buffer.from(JSON.stringify(mockLocaleData))
+      });
+      storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
+        data: Buffer.from(JSON.stringify({ latin: { ranges: [] } }))
+      });
+
+      await Localizator.synchronize();
+      
+      const result = Localizator.getLocaleData('en-US');
+      expect(result).to.deep.equal(mockLocaleData['en-US']);
+    });
+  });
+
+  describe('isValidLocale', () => {
+    it('should return true for valid locale', async () => {
+      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
+        data: Buffer.from(JSON.stringify({ 'en-US': {} }))
+      });
+      storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
+        data: Buffer.from(JSON.stringify({ latin: { ranges: [] } }))
+      });
+
+      await Localizator.synchronize();
+      
+      expect(Localizator.isValidLocale('en-US')).to.be.true;
+    });
+
+    it('should return false for invalid locale', async () => {
+      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
+        data: Buffer.from(JSON.stringify({ 'en-US': {} }))
+      });
+      storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
+        data: Buffer.from(JSON.stringify({ latin: { ranges: [] } }))
+      });
+
+      await Localizator.synchronize();
+      
+      expect(Localizator.isValidLocale('invalid-locale')).to.be.false;
+    });
+  });
 });

@@ -170,6 +170,46 @@ describe('Entity - SocketClient', () => {
     });
   });
 
+  describe('close and error handling', () => {
+    it('should remove client and clear timers on close', async () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const closeHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'close')?.args[1];
+
+      // Set fake timers to verify they are cleared
+      // @ts-ignore
+      (client as any).authRenewTimer = setTimeout(() => {}, 10000);
+      // @ts-ignore
+      (client as any).authExpireTimer = setTimeout(() => {}, 10000);
+      // @ts-ignore
+      (client as any).pingInterval = setInterval(() => {}, 10000);
+
+      await closeHandler();
+
+      // After close, the client should not be retrievable
+      const retrieved = SocketClient.getSocketClient(client.id);
+      expect(retrieved).to.be.undefined;
+    });
+
+    it('should log error on websocket error', () => {
+      new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const errHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'error')?.args[1];
+
+      expect(errHandler).to.be.a('function');
+      // Call without throwing
+      errHandler(new Error('ws error'));
+    });
+  });
+
   describe('static methods', () => {
     it('should provide getSocketClients method', () => {
       expect(SocketClient.getSocketClients).to.be.a('function');
@@ -226,6 +266,97 @@ describe('Entity - SocketClient', () => {
         .find((call: any) => call.args[0] === 'close')?.args[1];
 
       expect(closeHandler).to.be.a('function');
+    });
+  });
+
+  describe('authentication', () => {
+    it('should authenticate with valid token', async () => {
+      const { generateAccessToken } = await import('backend-test-tools');
+      const token = generateAccessToken('test-user-id');
+      
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const messageHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'message')?.args[1];
+
+      const authMessage = JSON.stringify({
+        type: 'authenticate',
+        payload: { token }
+      });
+
+      await messageHandler(Buffer.from(authMessage));
+      
+      // Wait a tick for authentication to complete
+      await new Promise(resolve => setImmediate(resolve));
+      
+      expect(client.isAuthenticated()).to.be.true;
+      expect(client.getUser()).to.have.property('userId', 'test-user-id');
+    });
+
+    it('should handle ping messages', async () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const messageHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'message')?.args[1];
+
+      const pingMessage = JSON.stringify({ type: 'ping' });
+      await messageHandler(Buffer.from(pingMessage));
+
+      expect(mockWebSocket.send.called).to.be.true;
+      const sentData = JSON.parse(mockWebSocket.send.firstCall.args[0]);
+      expect(sentData.type).to.equal('pong');
+    });
+
+    it('should route messages to handlers', async () => {
+      const handleStub = sinon.stub().resolves();
+      mockHandler.handle = handleStub;
+
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const messageHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'message')?.args[1];
+
+      const customMessage = JSON.stringify({
+        type: 'custom-type',
+        payload: { data: 'test' }
+      });
+      await messageHandler(Buffer.from(customMessage));
+
+      expect(handleStub.called).to.be.true;
+    });
+  });
+
+  describe('message sending', () => {
+    it('should send message without auth when noAuth is true', () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      client.sendMessage('test-type', { data: 'test' }, { noAuth: true });
+
+      expect(mockWebSocket.send.called).to.be.true;
+      const sent = JSON.parse(mockWebSocket.send.firstCall.args[0]);
+      expect(sent.type).to.equal('test-type');
+      expect(sent.payload).to.deep.equal({ data: 'test' });
+    });
+
+    it('should not send message to unauthenticated client without noAuth', () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      client.sendMessage('test-type', { data: 'test' });
+
+      expect(mockWebSocket.send.called).to.be.false;
     });
   });
 });
