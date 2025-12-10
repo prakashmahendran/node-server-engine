@@ -3,30 +3,99 @@ import { faker } from '@faker-js/faker';
 import validator from 'validator';
 import sinon from 'sinon';
 import { Readable, PassThrough } from 'stream';
-import { Storage } from './Storage';
+import { GoogleCloudStorage } from './GoogleCloudStorage';
 import { WebError } from 'entities/WebError';
 
-describe('Storage', function () {
+describe('GoogleCloudStorage', function () {
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(function () {
     sandbox = sinon.createSandbox();
+    // Reset cloudStorage instance before each test
+    GoogleCloudStorage.cloudStorage = null;
   });
 
   afterEach(function () {
     sandbox.restore();
   });
 
+  describe('init', function () {
+    it('should initialize with custom config', function () {
+      const config = {
+        projectId: 'test-project',
+        keyFilename: '/path/to/key.json'
+      };
+
+      GoogleCloudStorage.init(config);
+
+      expect(GoogleCloudStorage.cloudStorage).to.not.be.null;
+    });
+
+    it('should initialize with environment variables', function () {
+      process.env.GC_PROJECT = 'env-project';
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = '/env/key.json';
+
+      GoogleCloudStorage.init();
+
+      expect(GoogleCloudStorage.cloudStorage).to.not.be.null;
+
+      delete process.env.GC_PROJECT;
+      delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    });
+
+    it('should initialize with credentials object', function () {
+      const config = {
+        projectId: 'test-project',
+        credentials: {
+          client_email: 'test@example.com',
+          private_key: 'private-key'
+        }
+      };
+
+      GoogleCloudStorage.init(config);
+
+      expect(GoogleCloudStorage.cloudStorage).to.not.be.null;
+    });
+
+    it('should initialize with custom API endpoint', function () {
+      const config = {
+        projectId: 'test-project',
+        apiEndpoint: 'http://localhost:9000'
+      };
+
+      GoogleCloudStorage.init(config);
+
+      expect(GoogleCloudStorage.cloudStorage).to.not.be.null;
+    });
+  });
+
+  describe('getStorageInstance', function () {
+    it('should return existing instance', function () {
+      GoogleCloudStorage.init({ projectId: 'test-project' });
+      const instance1 = GoogleCloudStorage.getStorageInstance();
+      const instance2 = GoogleCloudStorage.getStorageInstance();
+
+      expect(instance1).to.equal(instance2);
+    });
+
+    it('should auto-initialize if not initialized', function () {
+      const instance = GoogleCloudStorage.getStorageInstance();
+
+      expect(instance).to.not.be.null;
+      expect(GoogleCloudStorage.cloudStorage).to.not.be.null;
+    });
+  });
+
   describe('generateFileDestination', function () {
     it('should generate path info for a regular file', function () {
-      const path = Storage.generateFileDestination();
+      const path = GoogleCloudStorage.generateFileDestination();
       // eslint-disable-next-line import/no-named-as-default-member
       expect(validator.isUUID(path)).to.be.true;
     });
 
     it('should add a path to a file', function () {
       const directory = `${faker.lorem.word()}`;
-      const path = Storage.generateFileDestination({
+      const path = GoogleCloudStorage.generateFileDestination({
         directory
       });
 
@@ -35,7 +104,7 @@ describe('Storage', function () {
 
     it('should add a path to a file but remove appended slash', function () {
       const directory = `${faker.lorem.word()}`;
-      const path = Storage.generateFileDestination({
+      const path = GoogleCloudStorage.generateFileDestination({
         directory: '/' + directory
       });
       expect(path.startsWith(directory)).to.be.true;
@@ -44,7 +113,7 @@ describe('Storage', function () {
     it('should not append an extension if specified', function () {
       const directory = `${faker.lorem.word()}`;
       const mimeType = 'image/png';
-      const path = Storage.generateFileDestination({
+      const path = GoogleCloudStorage.generateFileDestination({
         directory,
         mime: mimeType,
         noExtension: true
@@ -59,7 +128,7 @@ describe('Storage', function () {
     it('should append an extension if specified', function () {
       const directory = `${faker.lorem.word()}`;
       const mimeType = 'image/png';
-      const path = Storage.generateFileDestination({
+      const path = GoogleCloudStorage.generateFileDestination({
         directory,
         mime: mimeType
       });
@@ -71,7 +140,7 @@ describe('Storage', function () {
     });
 
     it('should handle root directory', function () {
-      const path = Storage.generateFileDestination({
+      const path = GoogleCloudStorage.generateFileDestination({
         directory: '/'
       });
       // eslint-disable-next-line import/no-named-as-default-member
@@ -87,13 +156,17 @@ describe('Storage', function () {
       ];
 
       mimeTypes.forEach(({ mime, ext }) => {
-        const path = Storage.generateFileDestination({ mime });
+        const path = GoogleCloudStorage.generateFileDestination({ mime });
         expect(path.endsWith(`.${ext}`)).to.be.true;
       });
     });
   });
 
   describe('upload', function () {
+    beforeEach(function () {
+      GoogleCloudStorage.init({ projectId: 'test-project' });
+    });
+
     it('should upload file successfully with random destination', async function () {
       const testBucket = 'test-bucket';
       const testData = Buffer.from('test file content');
@@ -112,11 +185,11 @@ describe('Storage', function () {
         ])
       };
 
-      const bucketStub = sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      const bucketStub = sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
-      const result = await Storage.upload(readStream, testBucket);
+      const result = await GoogleCloudStorage.upload(readStream, testBucket);
 
       expect(bucketStub.calledWith(testBucket)).to.be.true;
       expect(result).to.have.property('id', 'test-file-id');
@@ -141,11 +214,11 @@ describe('Storage', function () {
       };
 
       const fileStub = sandbox.stub().returns(mockFile);
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: fileStub
       } as any);
 
-      await Storage.upload(readStream, testBucket, { fileName });
+      await GoogleCloudStorage.upload(readStream, testBucket, { fileName });
 
       // When no directory is specified, it defaults to '/', so path will be just the fileName
       expect(fileStub.calledWith(sinon.match(fileName))).to.be.true;
@@ -170,11 +243,11 @@ describe('Storage', function () {
       };
 
       const fileStub = sandbox.stub().returns(mockFile);
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: fileStub
       } as any);
 
-      await Storage.upload(readStream, testBucket, { fileName, directory });
+      await GoogleCloudStorage.upload(readStream, testBucket, { fileName, directory });
 
       expect(fileStub.calledWith(`${directory}/${fileName}`)).to.be.true;
     });
@@ -190,12 +263,12 @@ describe('Storage', function () {
         createWriteStream: sandbox.stub().returns(new PassThrough())
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
       try {
-        await Storage.upload(readStream, testBucket, {}, {}, { maxSize });
+        await GoogleCloudStorage.upload(readStream, testBucket, {}, {}, { maxSize });
         expect.fail('Should have thrown WebError');
       } catch (error) {
         expect(error).to.be.instanceOf(WebError);
@@ -218,12 +291,12 @@ describe('Storage', function () {
         createWriteStream: sandbox.stub().returns(new PassThrough())
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
       try {
-        await Storage.upload(readStream, testBucket);
+        await GoogleCloudStorage.upload(readStream, testBucket);
         expect.fail('Should have thrown error');
       } catch (error) {
         expect((error as Error).message).to.equal(errorMessage);
@@ -251,17 +324,21 @@ describe('Storage', function () {
       mockFile.exists.onFirstCall().resolves([true]);
       mockFile.exists.onSecondCall().resolves([false]);
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
-      await Storage.upload(readStream, testBucket);
+      await GoogleCloudStorage.upload(readStream, testBucket);
 
       expect(mockFile.exists.callCount).to.equal(2);
     });
   });
 
   describe('get', function () {
+    beforeEach(function () {
+      GoogleCloudStorage.init({ projectId: 'test-project' });
+    });
+
     it('should download file and return data with metadata', async function () {
       const testBucket = 'test-bucket';
       const testPath = 'path/to/file.txt';
@@ -278,11 +355,11 @@ describe('Storage', function () {
         download: sandbox.stub().resolves([testData])
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
-      const result = await Storage.get(testBucket, testPath);
+      const result = await GoogleCloudStorage.get(testBucket, testPath);
 
       expect(result.data).to.deep.equal(testData);
       expect(result.metadata).to.deep.equal(testMetadata);
@@ -297,12 +374,12 @@ describe('Storage', function () {
         download: sandbox.stub().rejects(new Error('File not found'))
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
       try {
-        await Storage.get(testBucket, testPath);
+        await GoogleCloudStorage.get(testBucket, testPath);
         expect.fail('Should have thrown error');
       } catch (error) {
         expect((error as Error).message).to.include('File not found');
@@ -311,6 +388,10 @@ describe('Storage', function () {
   });
 
   describe('download', function () {
+    beforeEach(function () {
+      GoogleCloudStorage.init({ projectId: 'test-project' });
+    });
+
     it('should return read stream with metadata', async function () {
       const testBucket = 'test-bucket';
       const testPath = 'path/to/file.txt';
@@ -326,11 +407,11 @@ describe('Storage', function () {
         createReadStream: sandbox.stub().returns(mockStream)
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
-      const result = await Storage.download(testBucket, testPath);
+      const result = await GoogleCloudStorage.download(testBucket, testPath);
 
       expect(result.stream).to.equal(mockStream);
       expect(result.metadata).to.deep.equal(testMetadata);
@@ -345,12 +426,12 @@ describe('Storage', function () {
         createReadStream: sandbox.stub()
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
       try {
-        await Storage.download(testBucket, testPath);
+        await GoogleCloudStorage.download(testBucket, testPath);
         expect.fail('Should have thrown error');
       } catch (error) {
         expect((error as Error).message).to.include('Metadata error');
@@ -359,6 +440,10 @@ describe('Storage', function () {
   });
 
   describe('getFileStream', function () {
+    beforeEach(function () {
+      GoogleCloudStorage.init({ projectId: 'test-project' });
+    });
+
     it('should return read stream for file', function () {
       const testBucket = 'test-bucket';
       const testPath = 'path/to/file.txt';
@@ -368,11 +453,11 @@ describe('Storage', function () {
         createReadStream: sandbox.stub().returns(mockStream)
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
-      const stream = Storage.getFileStream(testBucket, testPath);
+      const stream = GoogleCloudStorage.getFileStream(testBucket, testPath);
 
       expect(stream).to.equal(mockStream);
       expect(mockFile.createReadStream.calledOnce).to.be.true;
@@ -383,17 +468,21 @@ describe('Storage', function () {
       const paths = ['file.txt', 'dir/file.txt', 'deep/nested/path/file.pdf'];
 
       paths.forEach((testPath) => {
+        sandbox.restore();
+        GoogleCloudStorage.cloudStorage = null;
+        GoogleCloudStorage.init({ projectId: 'test-project' });
+        sandbox = sinon.createSandbox();
+
         const mockStream = new PassThrough();
         const fileStub = sandbox.stub().returns({
           createReadStream: sandbox.stub().returns(mockStream)
         });
 
-        sandbox.restore();
-        sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+        sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
           file: fileStub
         } as any);
 
-        Storage.getFileStream(testBucket, testPath);
+        GoogleCloudStorage.getFileStream(testBucket, testPath);
 
         expect(fileStub.calledWith(testPath)).to.be.true;
       });
@@ -401,6 +490,10 @@ describe('Storage', function () {
   });
 
   describe('delete', function () {
+    beforeEach(function () {
+      GoogleCloudStorage.init({ projectId: 'test-project' });
+    });
+
     it('should delete file successfully', async function () {
       const testBucket = 'test-bucket';
       const testPath = 'path/to/file.txt';
@@ -410,11 +503,11 @@ describe('Storage', function () {
       };
 
       const fileStub = sandbox.stub().returns(mockFile);
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: fileStub
       } as any);
 
-      await Storage.delete(testBucket, testPath);
+      await GoogleCloudStorage.delete(testBucket, testPath);
 
       expect(fileStub.calledWith(testPath)).to.be.true;
       expect(mockFile.delete.calledOnce).to.be.true;
@@ -428,12 +521,12 @@ describe('Storage', function () {
         delete: sandbox.stub().rejects(new Error('Delete failed'))
       };
 
-      sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+      sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
         file: sandbox.stub().returns(mockFile)
       } as any);
 
       try {
-        await Storage.delete(testBucket, testPath);
+        await GoogleCloudStorage.delete(testBucket, testPath);
         expect.fail('Should have thrown error');
       } catch (error) {
         expect((error as Error).message).to.include('Delete failed');
@@ -445,17 +538,21 @@ describe('Storage', function () {
       const paths = ['file1.txt', 'dir/file2.txt', 'deep/file3.pdf'];
 
       for (const testPath of paths) {
+        sandbox.restore();
+        GoogleCloudStorage.cloudStorage = null;
+        GoogleCloudStorage.init({ projectId: 'test-project' });
+        sandbox = sinon.createSandbox();
+
         const mockFile = {
           delete: sandbox.stub().resolves()
         };
 
         const fileStub = sandbox.stub().returns(mockFile);
-        sandbox.restore();
-        sandbox.stub(Storage.cloudStorage, 'bucket').returns({
+        sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
           file: fileStub
         } as any);
 
-        await Storage.delete(testBucket, testPath);
+        await GoogleCloudStorage.delete(testBucket, testPath);
 
         expect(fileStub.calledWith(testPath)).to.be.true;
         expect(mockFile.delete.calledOnce).to.be.true;

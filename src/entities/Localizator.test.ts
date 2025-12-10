@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { Localizator } from './Localizator';
-import * as Storage from 'entities/Storage';
+import { GoogleCloudStorage } from 'entities/Storage';
 
 describe('Localizator', () => {
   let storageGetStub: sinon.SinonStub;
@@ -12,7 +12,7 @@ describe('Localizator', () => {
     originalEnv = process.env.LOCALES_BUCKET;
     process.env.LOCALES_BUCKET = 'test-locales-bucket';
     
-    storageGetStub = sinon.stub(Storage.Storage, 'get');
+    storageGetStub = sinon.stub(GoogleCloudStorage, 'get');
     // Don't stub setInterval - let it run and we'll clear it in afterEach
   });
 

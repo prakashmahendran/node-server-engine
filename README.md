@@ -8,18 +8,21 @@ Framework used to develop Node backend services. This package ships with a lot o
 
 ## Features
 
-- 🚀 **Express-based** - Built on the popular Express.js framework
+- 🚀 **Express-based** - Built on the popular Express.js framework (v4.22)
 - 🔒 **Multiple Auth Methods** - JWT, mTLS, HMAC, and Static token authentication
-- 🔌 **WebSocket Support** - Built-in WebSocket server with message handling
-- 📊 **Database Integration** - Sequelize ORM with migrations support
-- 📡 **Pub/Sub** - Google Cloud Pub/Sub integration
+- 🔌 **WebSocket Support** - Built-in WebSocket server with message handling (ws v8.18)
+- 📊 **Database Integration** - Sequelize ORM with migrations support (v6.37)
+- 📡 **Pub/Sub** - Google Cloud Pub/Sub integration (v4.11)
 - 🔔 **Push Notifications** - Built-in push notification support
 - 🌐 **i18n** - Internationalization with translation management
-- 🔍 **ElasticSearch** - Full-text search integration
+- 🔍 **ElasticSearch** - Full-text search integration (v9.2) with auto-migrations
+- 💾 **Redis** - Advanced Redis client with retry logic, TLS support (ioredis v5.8)
 - 📝 **API Documentation** - Swagger/OpenAPI documentation support
-- 📤 **File Uploads** - Single and chunked file upload middleware
+- 📤 **File Uploads** - Single and chunked file upload middleware with validation
 - 🧪 **TypeScript** - Written in TypeScript with full type definitions
 - ✅ **Modern Tooling** - ESLint, Prettier, and automated versioning
+- 🛡️ **Permission System** - Role-based access control with case-insensitive matching
+- 🔐 **Security** - HMAC authentication, TLS/mTLS support, input validation
 
 ## Requirements
 
@@ -866,6 +869,275 @@ The client is configured with:
 
 ---
 
+### GoogleCloudStorage
+
+The GoogleCloudStorage entity provides a simple, generic wrapper for Google Cloud Storage operations. It handles file uploads, downloads, streaming, and deletion with built-in size validation and automatic file path generation.
+
+Based on [@google-cloud/storage](https://cloud.google.com/nodejs/docs/reference/storage/latest) v7.14.0.
+
+```javascript
+import { GoogleCloudStorage } from 'node-server-engine';
+import fs from 'fs';
+
+// Initialize with configuration
+GoogleCloudStorage.init({
+  projectId: 'my-project',
+  keyFilename: '/path/to/keyfile.json'
+});
+
+// Or use environment variables (GC_PROJECT, GOOGLE_APPLICATION_CREDENTIALS)
+GoogleCloudStorage.init();
+
+// Upload a file
+const fileStream = fs.createReadStream('photo.jpg');
+const result = await GoogleCloudStorage.upload(
+  fileStream,
+  'my-bucket',
+  { directory: 'photos', mime: 'image/jpeg' },
+  { metadata: { contentType: 'image/jpeg' } },
+  { maxSize: '5MB' }
+);
+console.log(result.name); // photos/uuid.jpeg
+
+// Download file as Buffer
+const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
+console.log(metadata.size); // File size in bytes
+fs.writeFileSync('downloaded.jpg', data);
+
+// Stream a file (for large files)
+const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/video.mp4');
+stream.pipe(res); // Stream to HTTP response
+
+// Get file stream directly (fastest, no metadata)
+const stream = GoogleCloudStorage.getFileStream('my-bucket', 'audio/song.mp3');
+stream.pipe(res);
+
+// Delete a file
+await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
+
+// Generate unique file paths
+const path = GoogleCloudStorage.generateFileDestination({
+  directory: 'uploads/images',
+  mime: 'image/jpeg'
+});
+// Result: 'uploads/images/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpeg'
+```
+
+#### Features
+
+- **Auto-initialization**: Automatically initializes on first use if not manually initialized
+- **Flexible Configuration**: Supports config object, environment variables, or credentials
+- **File Upload**: Stream-based uploads with size validation
+- **Multiple Download Methods**: Full download, streaming, or direct stream access
+- **Path Generation**: Automatic UUID-based file naming with directory and extension support
+- **Size Validation**: Built-in file size limits with human-readable formats (5MB, 100KB, etc.)
+- **Error Handling**: Detailed error reporting with context
+- **No Project Dependencies**: Generic implementation works with any Google Cloud Storage bucket
+
+#### API Methods
+
+##### `init(config?)`
+
+Initialize Google Cloud Storage with configuration. Optional - will auto-initialize with environment variables if not called.
+
+```javascript
+GoogleCloudStorage.init({
+  projectId: 'my-project-id',
+  keyFilename: '/path/to/service-account-key.json',
+  // Or use credentials directly
+  credentials: {
+    client_email: 'service@project.iam.gserviceaccount.com',
+    private_key: '-----BEGIN PRIVATE KEY-----\n...'
+  },
+  // For local emulator
+  apiEndpoint: 'http://localhost:9000'
+});
+```
+
+##### `upload(stream, bucket, destinationOptions?, storageOptions?, uploaderOptions?)`
+
+Upload a file to Google Cloud Storage.
+
+**Parameters:**
+- `stream` (Readable): Node.js readable stream of file content
+- `bucket` (string): Bucket name
+- `destinationOptions` (object, optional):
+  - `directory` (string): Subdirectory path (e.g., 'uploads/images')
+  - `fileName` (string): Specific filename (if not provided, generates UUID)
+  - `mime` (string): MIME type for extension detection
+  - `noExtension` (boolean): Don't append file extension
+- `storageOptions` (object, optional): Google Cloud Storage write stream options
+- `uploaderOptions` (object, optional):
+  - `maxSize` (string): Maximum file size (e.g., '5MB', '100KB', '1GB')
+
+**Returns:** Promise\<StorageUploadedFile> - Metadata of uploaded file
+
+**Example:**
+```javascript
+const fileStream = fs.createReadStream('document.pdf');
+const result = await GoogleCloudStorage.upload(
+  fileStream,
+  'documents-bucket',
+  { directory: 'legal/contracts', mime: 'application/pdf' },
+  { metadata: { contentType: 'application/pdf' } },
+  { maxSize: '10MB' }
+);
+```
+
+##### `get(bucket, path)`
+
+Download a file and return its content as a Buffer along with metadata.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Promise\<{data: Buffer, metadata: StorageUploadedFile}>
+
+**Example:**
+```javascript
+const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
+console.log(metadata.contentType); // 'image/jpeg'
+console.log(data.length); // File size in bytes
+```
+
+##### `download(bucket, path)`
+
+Get a readable stream for a file along with its metadata. Use this for large files or when you need to stream content.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Promise\<{stream: Readable, metadata: StorageUploadedFile}>
+
+**Example:**
+```javascript
+const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/large-video.mp4');
+console.log(metadata.size); // File size
+stream.pipe(response); // Stream to HTTP response
+```
+
+##### `getFileStream(bucket, path)`
+
+Get a readable stream for a file without fetching metadata. Fastest option when metadata is not needed.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Readable - Node.js readable stream
+
+**Example:**
+```javascript
+const stream = GoogleCloudStorage.getFileStream('my-bucket', 'audio/song.mp3');
+stream.pipe(response); // Direct streaming
+```
+
+##### `delete(bucket, path)`
+
+Delete a file from Google Cloud Storage.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Promise\<void>
+
+**Example:**
+```javascript
+await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
+```
+
+##### `generateFileDestination(options?)`
+
+Generate a unique file path with optional directory and extension.
+
+**Parameters:**
+- `options` (object, optional):
+  - `directory` (string): Subdirectory path
+  - `mime` (string): MIME type for extension detection
+  - `noExtension` (boolean): Don't append extension
+
+**Returns:** string - Generated file path
+
+**Examples:**
+```javascript
+// UUID only
+GoogleCloudStorage.generateFileDestination();
+// → 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+
+// With directory and MIME type
+GoogleCloudStorage.generateFileDestination({
+  directory: 'uploads/images',
+  mime: 'image/jpeg'
+});
+// → 'uploads/images/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpeg'
+
+// Without extension
+GoogleCloudStorage.generateFileDestination({
+  directory: 'data',
+  noExtension: true
+});
+// → 'data/a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+```
+
+#### Environment Variables
+
+| Variable                        | Description                          | Required |
+| ------------------------------- | ------------------------------------ | -------- |
+| GC_PROJECT                      | Google Cloud Project ID              | ✗*       |
+| GOOGLE_APPLICATION_CREDENTIALS  | Path to service account key file     | ✗*       |
+
+\* Not required if you call `init()` with a config object
+
+#### Error Handling
+
+The entity throws `WebError` with appropriate status codes:
+
+- **413 (Payload Too Large)**: File exceeds `maxSize` limit
+- Other errors are passed through from Google Cloud Storage SDK
+
+**Example:**
+```javascript
+try {
+  await GoogleCloudStorage.upload(stream, 'bucket', {}, {}, { maxSize: '1MB' });
+} catch (error) {
+  if (error.statusCode === 413) {
+    console.log('File too large!');
+  }
+}
+```
+
+#### Usage in Template Projects
+
+In your node-server-template endpoints:
+
+```javascript
+import { GoogleCloudStorage } from 'node-server-engine';
+import { Endpoint, Method } from 'node-server-engine';
+
+new Endpoint({
+  path: '/upload',
+  method: Method.POST,
+  files: [{ key: 'file', maxSize: '5MB', required: true }],
+  async handler(req, res) {
+    const file = req.files[0];
+    const stream = Readable.from(file.buffer);
+    
+    const result = await GoogleCloudStorage.upload(
+      stream,
+      process.env.UPLOAD_BUCKET,
+      { directory: 'user-uploads', mime: file.mimetype }
+    );
+    
+    res.json({ path: result.name, url: result.mediaLink });
+  }
+});
+```
+
+---
+
 ### Translation Manager
 
 The translation manager exposes translation related utilities.
@@ -1145,56 +1417,93 @@ The file's data will be available at `req.body.fileUri req.body.mimeType  req.bo
 
 ### Check Permission Middleware
 
-/!\ **Must be used in combination with AuthType.JWT**
+⚠️ **Must be used in combination with AuthType.JWT**
 
-Checks if the user has at least one of the required permissions. The permissions are case-insensitive.
+Role-based access control middleware that checks if the authenticated user has at least one of the required permissions. All permission checks are **case-insensitive** for maximum flexibility.
+
+#### Features
+
+- ✅ Single or multiple permission checking
+- ✅ Case-insensitive permission matching
+- ✅ Integration with JWT authentication
+- ✅ Clear error messages for debugging
+- ✅ TypeScript support
+
+#### Basic Usage
 
 ```javascript
 import { Endpoint, middleware, AuthType, Method } from 'node-server-engine';
 
+// Single permission check
+new Endpoint({
+  path: '/users',
+  method: Method.GET,
+  authType: AuthType.JWT,
+  middleware: [middleware.checkPermission('users:read')],
+  handler: (req, res) => {
+    res.json({ message: 'User list' });
+  }
+});
+
+// Multiple permissions (user needs at least ONE)
 new Endpoint({
   path: '/admin',
   method: Method.GET,
   authType: AuthType.JWT,
-  middleware: [middleware.checkPermission(['admin', 'superuser'])],
+  middleware: [middleware.checkPermission(['admin', 'superuser', 'moderator'])],
   handler: (req, res) => {
-    res.json({ message: 'Access granted' });
+    res.json({ message: 'Admin access granted' });
   }
 });
 ```
 
+#### User Object Structure
+
+The middleware expects `req.user` to contain a `permissions` array:
+
 ```typescript
-import { Request, Response, NextFunction } from 'express';
+interface User {
+  id: string;
+  permissions: string[]; // e.g., ['users:read', 'users:write', 'admin']
+}
+```
 
-// Middleware to check if the user has at least one of the required permissions (case-insensitive)
-export const checkPermission = (requiredActions: string | string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
+#### Examples
 
-    if (!user || !user.permissions) {
-      return res
-        .status(403)
-        .json({ message: 'User does not have permissions' });
-    }
+```javascript
+// Case-insensitive matching
+checkPermission('ADMIN')  // Matches: 'admin', 'Admin', 'ADMIN'
+checkPermission(['READ', 'write'])  // Matches any case variation
 
-    const requiredActionsArray = Array.isArray(requiredActions)
-      ? requiredActions
-      : [requiredActions];
+// Namespace-style permissions
+checkPermission('users:read')
+checkPermission(['users:write', 'users:delete'])
 
-    const requiredActionsLower = requiredActionsArray.map((action) =>
-      action.toLowerCase()
-    );
+// Role-based permissions
+checkPermission(['admin', 'moderator'])
+```
 
-    const hasPermission = user.permissions.some((permission: string) =>
-      requiredActionsLower.includes(permission.toLowerCase())
-    );
+#### Response Codes
 
-    if (!hasPermission) {
-      return res.status(403).json({ message: 'Permission denied' });
-    }
+- **200**: Permission granted, request proceeds
+- **403**: Permission denied
+  - No user authenticated
+  - User has no permissions array
+  - User lacks required permission(s)
 
-    next();
-  };
+#### Error Responses
+
+```json
+{
+  "message": "User does not have permissions"
+}
+```
+
+```json
+{
+  "message": "Permission denied"
+}
+```
 };
 ```
 

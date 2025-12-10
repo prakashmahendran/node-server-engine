@@ -1,2 +1,2 @@
-export * from './Storage';
-export * from './Storage.types';
+export * from './GoogleCloudStorage';
+export * from './GoogleCloudStorage.types';

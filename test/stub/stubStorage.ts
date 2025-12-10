@@ -4,17 +4,17 @@ import { CreateWriteStreamOptions } from '@google-cloud/storage';
 import { faker } from '@faker-js/faker';
 import { stub } from 'sinon';
 import { StubbedStorage } from './stubStorage.types';
-import { Storage } from 'entities/Storage/Storage';
+import { GoogleCloudStorage } from 'entities/Storage';
 import {
   UploadDestinationOptions,
   StorageUploadedFile
-} from 'entities/Storage/Storage.types';
+} from 'entities/Storage';
 
 /** Create a stub for the Storage entity */
 export function stubStorage(
   uploadOverride: Partial<StorageUploadedFile> = {}
 ): StubbedStorage {
-  const upload = stub(Storage, 'upload').callsFake(
+  const upload = stub(GoogleCloudStorage, 'upload').callsFake(
     async (
       readStream: Readable,
       bucket: string,
@@ -22,7 +22,7 @@ export function stubStorage(
       storageOptions: CreateWriteStreamOptions = {}
     ) => {
       readStream.resume(); // Pause the stream
-      const path = Storage.generateFileDestination(destinationOptions);
+      const path = GoogleCloudStorage.generateFileDestination(destinationOptions);
       return {
         kind: 'storage#object',
         id: `${bucket}/${path}/${randomUUID()}`,
