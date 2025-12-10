@@ -1,3 +1,9 @@
+## [1.10.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.0...v1.10.1) (2025-12-10)
+
+### 🐛 Bug Fixes
+
+* lint issues ([b821efd](https://github.com/prakashmahendran/node-server-engine/commit/b821efd91c2384ddbdc50e21b4eabb4e733c08b0))
+
 ## [1.10.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.9.0...v1.10.0) (2025-12-10)
 
 ### ✨ Features
