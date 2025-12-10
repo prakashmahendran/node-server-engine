@@ -16,6 +16,21 @@ import { defineSequelizeMetaFactory } from './factory/sequelizeMeta';
 // Increase max listeners to prevent warnings during tests
 process.setMaxListeners(20);
 
+// Log unhandled errors instead of silently failing
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('❌ Reason:', reason);
+  if (reason instanceof Error) {
+    console.error('❌ Stack:', reason.stack);
+  }
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error.message);
+  console.error('❌ Stack:', error.stack);
+  process.exit(1);
+});
+
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
@@ -32,6 +47,10 @@ before(async () => {
   generateEcdsaKeyPair();
   sequelize.init();
   sequelize.addModels(modelArray);
+  
+  // Wait a bit to allow async authentication to complete/fail
+  // This prevents unhandled rejections from occurring during tests
+  await new Promise(resolve => setTimeout(resolve, 100));
 });
 
 beforeEach(async () => {

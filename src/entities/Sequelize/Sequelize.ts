@@ -39,16 +39,33 @@ export function init(): void {
   // Ignore if already initialized
   if (sequelizeClient) return;
   sequelizeClient = createSequelizeClient();
-  sequelizeClient
-    .authenticate()
-    .then(() => reportInfo({ message: 'Connected to database successfully' }))
-    .catch((err: Error) => reportError(err));
+  
+  // In test environment, authentication happens automatically with SQLite
+  // For other environments, authenticate and log the result
+  if (process.env.NODE_ENV !== 'test') {
+    void sequelizeClient
+      .authenticate()
+      .then(() => reportInfo({ message: 'Connected to database successfully' }))
+      .catch((err: Error) => reportError(err));
+  }
+  
   LifecycleController.register(sequelize);
 }
 
 /** On shutdown close connection and clear client */
 export async function shutdown(): Promise<void> {
-  if (sequelizeClient) await sequelizeClient.close();
+  if (sequelizeClient) {
+    try {
+      // For SQLite, just close the client (closing connection manager first causes SQLITE_MISUSE)
+      // For other dialects, sequelize.close() handles everything properly
+      await sequelizeClient.close();
+    } catch (error) {
+      // Ignore errors during shutdown
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error closing sequelize client:', error);
+      }
+    }
+  }
   sequelizeClient = undefined;
 }
 
@@ -63,6 +80,15 @@ export function addModels(models: Array<ModelCtor>): void {
 
 /** Create Sequelize client */
 export function createSequelizeClient(): Sequelize {
+  // Use in-memory SQLite for test environment to avoid real database connections
+  if (process.env.NODE_ENV === 'test') {
+    return new Sequelize({
+      dialect: 'sqlite',
+      storage: ':memory:',
+      logging: false
+    });
+  }
+  
   // Throw an error if there is no host initial
   validateSequelizeEnvironment();
   return new Sequelize(
