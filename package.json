@@ -45,7 +45,7 @@
   "homepage": "https://github.com/prakashmahendran/node-server-engine#readme",
   "dependencies": {
     "@babel/runtime": "^7.26.0",
-    "@elastic/elasticsearch": "^8.17.0",
+    "@elastic/elasticsearch": "^9.2.0",
     "@google-cloud/pubsub": "^4.9.0",
     "@google-cloud/secret-manager": "^6.1.0",
     "@google-cloud/storage": "^7.14.0",
@@ -76,7 +76,7 @@
     "sequelize-typescript": "^2.1.6",
     "swagger-ui-express": "^5.0.1",
     "validator": "^13.12.0",
-    "ws": "^8.18.0",
+    "ws": "^8.18.3",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {

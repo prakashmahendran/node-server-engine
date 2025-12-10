@@ -477,29 +477,86 @@ new Endpoint({
 
 ### Socket Client
 
-The socket server start if the [Server](#server)'s webSocket option is not undefined.
+The WebSocket server starts automatically if the [Server](#server)'s `webSocket` option is provided.
 
-Each time a new socket connection is established, a new instance of `SocketClient` is created.
+Each WebSocket connection creates a new `SocketClient` instance with built-in authentication, message routing, and connection management.
+
+#### Features
+
+- **JWT Authentication**: Secure token-based authentication with automatic renewal
+- **Message Routing**: Type-based message handlers similar to HTTP endpoints
+- **Connection Health**: Built-in ping/pong mechanism with configurable intervals
+- **Lifecycle Callbacks**: Hooks for initialization, authentication, and shutdown
+- **Error Handling**: Automatic error formatting and client notification
 
 #### Socket Client Options
 
-Options can be set for SocketClient when setting up a Server instance.
+Options can be set when configuring the Server's webSocket:
+
+```javascript
+import { Server, MessageHandler } from 'node-server-engine';
+
+const server = new Server({
+  webSocket: {
+    client: {
+      handlers: [messageHandler1, messageHandler2],
+      initCallbacks: (client) => {
+        console.log(`Client ${client.id} connected`);
+      },
+      authCallbacks: (client) => {
+        const user = client.getUser();
+        console.log(`User ${user.userId} authenticated`);
+      },
+      shutdownCallbacks: (client) => {
+        console.log(`Client ${client.id} disconnected`);
+      }
+    }
+  }
+});
+```
 
 | Parameter         | Type                                       | Description                                                             | Default      |
 | ----------------- | ------------------------------------------ | ----------------------------------------------------------------------- | ------------ |
 | handlers          | Array\<[MessageHandler](#message-handler)> | A list of message handlers to use                                       | **required** |
-| authCallbacks     | Array\<function>                           | Callbacks called when a client successfully authenticates on the socket | []           |
-| initCallbacks     | Array\<function>                           | Callbacks called when the socket client is created                      | []           |
-| shutdownCallbacks | Array\<function>                           | Callbacks called when the socket client is destroyed                    | []           |
+| authCallbacks     | Function \| Array\<Function>               | Callbacks called when a client successfully authenticates               | []           |
+| initCallbacks     | Function \| Array\<Function>               | Callbacks called when the socket client is created                      | []           |
+| shutdownCallbacks | Function \| Array\<Function>               | Callbacks called when the socket client is destroyed                    | []           |
 
-#### Properties
+#### Client Properties & Methods
 
-| Property      | Type    | Description                                                                                                            |
-| ------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| id            | String  | A unique identifier for the connection                                                                                 |
-| ws            | Object  | The socket being used. Instance of [WebSocket](https://github.com/websockets/ws/blob/master/doc/ws.md#class-websocket) |
-| authenticated | Boolean | Flag indicating that the current user is authenticated                                                                 |
-| userId        | String  | Id of the current user **(available when authenticated)**                                                              |
+| Property/Method   | Type                        | Description                                                               |
+| ----------------- | --------------------------- | ------------------------------------------------------------------------- |
+| id                | String                      | Unique identifier for the connection                                      |
+| establishedAt     | Date                        | Timestamp when connection was established                                 |
+| isAuthenticated() | () => Boolean               | Check if client is authenticated                                          |
+| getUser()         | () => SocketUser \| undefined | Get authenticated user data (userId, deviceId, tokenId, audience)         |
+| sendMessage()     | (type, payload, options)    | Send a message to the client                                              |
+
+#### Client Authentication
+
+Clients authenticate by sending a message:
+
+```javascript
+// Client-side
+websocket.send(JSON.stringify({
+  type: 'authenticate',
+  payload: { token: 'your-jwt-token' }
+}));
+
+// Server will:
+// 1. Verify the JWT token
+// 2. Extract user information (userId, deviceId, audience)
+// 3. Set authentication status
+// 4. Trigger authCallbacks
+// 5. Send renewal reminder 1 minute before token expiration
+```
+
+#### Environment Variables
+
+| Variable            | Description                                     | Default |
+| ------------------- | ----------------------------------------------- | ------- |
+| WS_PING_INTERVAL    | Interval between ping checks (seconds)          | 30      |
+| WEBSOCKET_CLOSE_TIMEOUT | Timeout for graceful close (milliseconds)   | 3000    |
 
 ---
 
@@ -532,24 +589,64 @@ new Server({
 
 ### Redis
 
-The server engine exposes a Redis client that is configured to work with the standard environment variables that are used in our services.
+The server engine exposes a Redis client configured for production use with automatic reconnection, retry logic, and optional TLS support.
 
-It is a pre-configured instance of [ioredis](https://github.com/luin/ioredis). See the package documentation for more details.
+It is a pre-configured instance of [ioredis](https://github.com/luin/ioredis) v5.8.2. See the package documentation for more details.
 
 ```javascript
 import { Redis } from 'node-server-engine';
 
-await Redis.set(key, value);
+// Initialize (automatically called by Server, or manually)
+Redis.init();
+
+// Use Redis commands
+await Redis.set('key', 'value');
+const value = await Redis.get('key');
+await Redis.del('key');
+await Redis.expire('key', 3600);
+
+// Get underlying client for advanced use
+const client = Redis.getClient();
+
+// Shutdown when done
+await Redis.shutdown();
 ```
 
-It can be configured through environment variables
+#### Features
 
-| env            | description                                                                        | default |
-| -------------- | ---------------------------------------------------------------------------------- | ------- |
-| REDIS_HOST     | Host to which to connecto to                                                       |         |
-| REDIS_PORT     | Port on which redis is served                                                      |         |
-| REDIS_PASSWORD | Password used to authenticate with the server                                      |         |
-| REDIS_CLUSTER  | Flag indicating that redis is configured as a cluster and not as a single instance | false   |
+- **Automatic Reconnection**: Exponential backoff retry strategy (up to 2s delay)
+- **Error Recovery**: Reconnects on READONLY, ECONNRESET, and ETIMEDOUT errors
+- **Connection Management**: Event listeners for connect, ready, error, close, reconnecting
+- **TLS Support**: Automatic TLS configuration when `TLS_CA` is provided
+- **Test Mode**: Lazy connection in test environments to prevent connection attempts
+
+#### Environment Variables
+
+| Variable        | Description                            | Default | Required |
+| --------------- | -------------------------------------- | ------- | -------- |
+| REDIS_HOST      | Redis server hostname or IP            | -       | ✓        |
+| REDIS_PORT      | Redis server port                      | 6379    | ✗        |
+| REDIS_USERNAME  | Username for authentication            | -       | ✗        |
+| REDIS_PASSWORD  | Password for authentication            | -       | ✗        |
+| TLS_CA          | TLS certificate authority for SSL/TLS  | -       | ✗        |
+
+#### Configuration Options
+
+You can customize Redis client creation:
+
+```javascript
+import { createRedisClient } from 'node-server-engine';
+
+const client = createRedisClient({
+  db: 2,                    // Database index (default: 0)
+  lazyConnect: true,        // Don't connect until first command
+  enableReadyCheck: false,  // Disable ready check
+  redis: {                  // Override any ioredis options
+    connectTimeout: 10000,
+    commandTimeout: 5000
+  }
+});
+```
 
 ---
 
@@ -679,25 +776,93 @@ await Localizator.shutdown();
 
 ### ElasticSearch
 
-The ElasticSearch exposes a service related to data searching.
+The ElasticSearch entity provides a managed client for Elasticsearch with automatic migrations, connection management, and TLS support.
+
+Based on [@elastic/elasticsearch](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html) v9.2.0.
 
 ```javascript
 import { ElasticSearch } from 'node-server-engine';
 
-// The synchronize init should be called first to initialize the data
+// Initialize (runs migrations automatically)
 await ElasticSearch.init();
 
-// This should be call when the program shuts down.
+// Get the client for operations
+const client = ElasticSearch.getClient();
+
+// Use Elasticsearch operations
+await client.index({
+  index: 'products',
+  id: '123',
+  document: { name: 'Product', price: 99.99 }
+});
+
+const result = await client.search({
+  index: 'products',
+  query: { match: { name: 'Product' } }
+});
+
+// Shutdown when done
 await ElasticSearch.shutdown();
 ```
 
-| env                           | description                                    | default      |
-| ----------------------------- | ---------------------------------------------- | ------------ |
-| ELASTIC_SEARCH_MIGRATION_PATH | The path link to Elastic Search migration data | **required** |
-| ELASTIC_SEARCH_HOST           | The elastic search host url                    | **required** |
-| ELASTIC_SEARCH_USERNAME       | The elastic search user name                   | **required** |
-| ELASTIC_SEARCH_PASSWORD       | The elastic search password                    | **required** |
-| TLS_CA                        | CA for ssl config when available               |              |
+#### Features
+
+- **Automatic Migrations**: Tracks and runs migrations on startup
+- **Connection Verification**: Pings cluster on initialization
+- **TLS Support**: Optional SSL/TLS configuration
+- **Retry Logic**: Built-in retry mechanism with configurable attempts
+- **Test Mode**: Auto-flushes indices in test environment
+- **Error Handling**: Detailed error reporting with context
+
+#### Migration System
+
+Create migration files in your specified migration directory:
+
+```javascript
+// migrations/001-create-products-index.ts
+import { Client } from '@elastic/elasticsearch';
+
+export async function migrate(client: Client): Promise<void> {
+  await client.indices.create({
+    index: 'products',
+    settings: {
+      number_of_shards: 1,
+      number_of_replicas: 1
+    },
+    mappings: {
+      properties: {
+        name: { type: 'text' },
+        price: { type: 'double' },
+        createdAt: { type: 'date' }
+      }
+    }
+  });
+}
+```
+
+Migrations are:
+- Run automatically on `init()`
+- Tracked in the `migrations` index
+- Executed once per file
+- Run in alphabetical order
+
+#### Environment Variables
+
+| Variable                       | Description                                | Required |
+| ------------------------------ | ------------------------------------------ | -------- |
+| ELASTIC_SEARCH_HOST            | Elasticsearch cluster URL                  | ✓        |
+| ELASTIC_SEARCH_USERNAME        | Username for authentication                | ✓        |
+| ELASTIC_SEARCH_PASSWORD        | Password for authentication                | ✓        |
+| ELASTIC_SEARCH_MIGRATION_PATH  | Absolute path to migrations directory      | ✓        |
+| TLS_CA                         | TLS certificate authority for SSL/TLS      | ✗        |
+
+#### Configuration
+
+The client is configured with:
+- **Max Retries**: 3 attempts
+- **Request Timeout**: 30 seconds
+- **Sniff on Start**: Disabled (use with clusters)
+- **TLS**: Enabled when `TLS_CA` is provided
 
 ---
 
