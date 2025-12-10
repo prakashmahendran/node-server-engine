@@ -1,3 +1,14 @@
+## [1.9.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.8.0...v1.9.0) (2025-12-10)
+
+### ✨ Features
+
+* add s3 and unit test for storage ([e650bcd](https://github.com/prakashmahendran/node-server-engine/commit/e650bcddec69e4d51714455b9ac5ef23be8cac65))
+
+### 🐛 Bug Fixes
+
+* unit test ([808a094](https://github.com/prakashmahendran/node-server-engine/commit/808a0943b3394ae1f0e70e61c3452511e4064a0b))
+* unit test ([68fb500](https://github.com/prakashmahendran/node-server-engine/commit/68fb5003e5abb6748810ed670c8e354d9c19444a))
+
 ## [1.8.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.4...v1.8.0) (2025-12-10)
 
 ### ✨ Features
