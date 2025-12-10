@@ -1,3 +1,15 @@
+## [1.10.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.9.0...v1.10.0) (2025-12-10)
+
+### ✨ Features
+
+* unit test coverage ([2dd1971](https://github.com/prakashmahendran/node-server-engine/commit/2dd1971eda021e06c452ebfd3b3b452997548741))
+
+### 🐛 Bug Fixes
+
+* rebuild sqllite3 ([421cf5a](https://github.com/prakashmahendran/node-server-engine/commit/421cf5a36c6d71dcbe2a107b2b127cd718cd79e2))
+* unit test coverage ([ae37665](https://github.com/prakashmahendran/node-server-engine/commit/ae3766574a7d4be28d83869ece255976bdb6c94d))
+* unit test fix ([b25e68b](https://github.com/prakashmahendran/node-server-engine/commit/b25e68b7f397528d30c9a4adcf9ba483f7d89373))
+
 ## [1.9.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.8.0...v1.9.0) (2025-12-10)
 
 ### ✨ Features
