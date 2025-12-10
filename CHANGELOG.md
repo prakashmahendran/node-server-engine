@@ -1,3 +1,9 @@
+## [1.7.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.3...v1.7.4) (2025-12-10)
+
+### 🐛 Bug Fixes
+
+* unit test ([a0ade0d](https://github.com/prakashmahendran/node-server-engine/commit/a0ade0d7785d5821d9b745287ff64cac7d194294))
+
 ## [1.7.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.2...v1.7.3) (2025-12-09)
 
 ### 🐛 Bug Fixes
