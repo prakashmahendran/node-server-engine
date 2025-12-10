@@ -358,6 +358,48 @@ describe('Entity - SocketClient', () => {
 
       expect(mockWebSocket.send.called).to.be.false;
     });
+
+    it('should getUser return undefined when not authenticated', () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      expect(client.getUser()).to.be.undefined;
+    });
+
+    it('should handle invalid message format', async () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const messageHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'message')?.args[1];
+
+      await messageHandler(Buffer.from('not-json'));
+      // Should not throw, just log error
+    });
+
+    it('should handle pong event', () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [mockHandler]
+      });
+
+      const pongHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'pong')?.args[1];
+
+      expect(pongHandler).to.be.a('function');
+      pongHandler(); // Should not throw
+    });
+
+    it('should handle invalid handler type', () => {
+      expect(() => {
+        new SocketClient(mockWebSocket, mockRequest, {
+          handlers: [{ handle: () => {} } as any]
+        });
+      }).to.throw();
+    });
   });
 });
 
