@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { Localizator } from './Localizator';
-import { GoogleCloudStorage } from 'entities/Storage';
+import { GoogleCloudStorage } from 'entities';
 
 describe('Localizator', () => {
   let storageGetStub: sinon.SinonStub;

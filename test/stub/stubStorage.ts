@@ -4,11 +4,11 @@ import { CreateWriteStreamOptions } from '@google-cloud/storage';
 import { faker } from '@faker-js/faker';
 import { stub } from 'sinon';
 import { StubbedStorage } from './stubStorage.types';
-import { GoogleCloudStorage } from 'entities/Storage';
+import { GoogleCloudStorage } from 'entities/GoogleCloudStorage';
 import {
   UploadDestinationOptions,
   StorageUploadedFile
-} from 'entities/Storage';
+} from 'entities/GoogleCloudStorage';
 
 /** Create a stub for the Storage entity */
 export function stubStorage(

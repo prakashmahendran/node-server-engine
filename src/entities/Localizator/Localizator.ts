@@ -7,7 +7,7 @@ import {
 } from './Localizator.types';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
-import { GoogleCloudStorage } from 'entities/Storage';
+import { GoogleCloudStorage } from 'entities/GoogleCloudStorage';
 import { assertEnvironment } from 'utils/checkEnvironment';
 import { envAssert } from 'utils/envAssert';
 import { reportError, reportDebug } from 'utils/report';

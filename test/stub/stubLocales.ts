@@ -1,8 +1,8 @@
 import { randomBytes } from 'crypto';
 import { faker } from '@faker-js/faker';
 import sinon, { SinonStub } from 'sinon';
-import { GoogleCloudStorage } from 'entities/Storage';
-import { StorageUploadedFile } from 'entities/Storage';
+import { GoogleCloudStorage } from 'entities/GoogleCloudStorage';
+import { StorageUploadedFile } from 'entities/GoogleCloudStorage';
 
 /**
  * Locales server stubbing

@@ -653,6 +653,177 @@ const client = createRedisClient({
 
 ---
 
+### AWSS3
+
+The AWSS3 entity is a generic wrapper around AWS S3 (and S3-compatible services like MinIO, LocalStack). It supports uploads, downloads, streaming, metadata, and deletion with size validation and UUID-based path generation.
+
+Based on @aws-sdk/client-s3 v3.
+
+```javascript
+import { AWSS3 } from 'node-server-engine';
+import fs from 'fs';
+
+// Initialize with configuration (optional; otherwise uses environment variables)
+AWSS3.init({
+  region: 'us-east-1',
+  accessKeyId: 'YOUR_ACCESS_KEY',
+  secretAccessKey: 'YOUR_SECRET_KEY',
+  // For S3-compatible services
+  // endpoint: 'http://localhost:4566',
+  // forcePathStyle: true
+});
+
+// Or rely on environment variables and auto-init
+// AWSS3.init();
+
+// Upload a file
+const fileStream = fs.createReadStream('photo.jpg');
+const uploaded = await AWSS3.upload(
+  fileStream,
+  'my-bucket',
+  { directory: 'photos', mime: 'image/jpeg' },
+  { maxSize: '5MB' },
+  { userId: '123' } // optional metadata
+);
+console.log(uploaded.Key); // photos/<uuid>.jpeg
+
+// Download entire file into memory
+const { data, metadata } = await AWSS3.get('my-bucket', uploaded.Key);
+console.log(metadata.ContentLength);
+
+// Stream a large file
+const { stream } = await AWSS3.download('my-bucket', uploaded.Key);
+stream.pipe(res);
+
+// Get a fast stream without metadata
+const s = await AWSS3.getFileStream('my-bucket', uploaded.Key);
+s.pipe(res);
+
+// Metadata only
+const head = await AWSS3.getMetadata('my-bucket', uploaded.Key);
+
+// Delete
+await AWSS3.delete('my-bucket', uploaded.Key);
+
+// Generate unique destination path
+const key = AWSS3.generateFileDestination({ directory: 'uploads/images', mime: 'image/png' });
+```
+
+#### Features
+
+- Auto-initialization via environment variables
+- Stream-based upload with `maxSize` validation
+- Full download, streaming download, or stream-only access
+- UUID-based file naming with directory and extension inference from MIME
+- S3-compatible (supports custom `endpoint` and `forcePathStyle`)
+
+#### API Methods
+
+##### `init(config?)`
+
+Initialize the S3 client explicitly; otherwise it will lazy-init using environment variables.
+
+```javascript
+AWSS3.init({
+  region: 'us-east-1',
+  accessKeyId: '...',
+  secretAccessKey: '...',
+  sessionToken: '...', // optional
+  endpoint: 'http://localhost:9000', // optional (MinIO/LocalStack)
+  forcePathStyle: true // optional (S3-compatible)
+});
+```
+
+##### `upload(stream, bucket, destinationOptions?, uploaderOptions?, metadata?)`
+
+Uploads content from a readable stream.
+
+- `destinationOptions`: `{ directory?, fileName?, mime?, noExtension? }`
+- `uploaderOptions`: `{ maxSize?: string }` e.g. `5MB`, `100KB`
+- `metadata`: key/value pairs stored as object metadata
+
+Returns `Promise<S3UploadedFile>` with keys like `Bucket`, `Key`, `ETag`, `Location`.
+
+##### `get(bucket, key)`
+
+Downloads the full file into memory as `Buffer` and returns `{ data, metadata }`.
+
+##### `download(bucket, key)`
+
+Returns `{ stream, metadata }` for streaming large files efficiently.
+
+##### `getFileStream(bucket, key)`
+
+Returns a `Readable` stream without fetching metadata.
+
+##### `getMetadata(bucket, key)`
+
+Returns file metadata via a HEAD request.
+
+##### `delete(bucket, key)`
+
+Deletes the object.
+
+##### `generateFileDestination(options?)`
+
+Generates a unique key using UUID with optional directory and extension (from `mime`).
+
+#### Environment Variables
+
+| Variable | Description | Required |
+| --- | --- | --- |
+| `AWS_REGION` | AWS region (e.g., `us-east-1`) | ✗* |
+| `AWS_ACCESS_KEY_ID` | Access key ID | ✗* |
+| `AWS_SECRET_ACCESS_KEY` | Secret access key | ✗* |
+| `AWS_SESSION_TOKEN` | Session token (temporary creds) | ✗ |
+| `AWS_S3_ENDPOINT` | Custom S3-compatible endpoint (MinIO/LocalStack) | ✗ |
+| `AWS_S3_FORCE_PATH_STYLE` | Use path-style addressing (`true`/`false`) | ✗ |
+
+\* Not required if you call `init()` with a config object.
+
+#### Error Handling
+
+- Throws `WebError` with status `413` when `maxSize` is exceeded during upload
+- Other errors bubble up from AWS SDK v3 commands
+
+**Example:**
+```javascript
+try {
+  await AWSS3.upload(stream, 'bucket', {}, { maxSize: '1MB' });
+} catch (e) {
+  if (e.statusCode === 413) {
+    console.log('File too large');
+  }
+}
+```
+
+#### Usage in Template Projects
+
+```javascript
+import { AWSS3, Endpoint, Method } from 'node-server-engine';
+import { Readable } from 'stream';
+
+new Endpoint({
+  path: '/upload-s3',
+  method: Method.POST,
+  files: [{ key: 'file', maxSize: '10MB', required: true }],
+  async handler(req, res) {
+    const file = req.files[0];
+    const stream = Readable.from(file.buffer);
+
+    const result = await AWSS3.upload(
+      stream,
+      process.env.S3_UPLOAD_BUCKET,
+      { directory: 'user-uploads', mime: file.mimetype }
+    );
+
+    res.json({ key: result.Key, url: result.Location });
+  }
+});
+```
+
+---
+
 ### Sequelize
 
 The server engine exposes an SQL ORM that is configured to work with the standard environment variables that are used in our services.
