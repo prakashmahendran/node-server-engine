@@ -6,12 +6,12 @@ describe('Entity - ValidationError', () => {
   describe('constructor', () => {
     it('should create error from validation result', () => {
       const mockReq: any = { body: {} };
-      const result = validationResult(mockReq).withDefaults({
-        formatter: (error) => ({ type: 'field', value: '', msg: error.msg, path: 'email', location: 'body' })
-      });
+      const result = validationResult(mockReq);
       
       // Manually add errors for testing
       (result as any).errors = [{ type: 'field', msg: 'Invalid email', path: 'email', location: 'body' }];
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => [{ type: 'field', msg: 'Invalid email', path: 'email', location: 'body' }];
       
       const error = new ValidationError(result);
       
@@ -25,6 +25,8 @@ describe('Entity - ValidationError', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
       (result as any).errors = [{ type: 'field', msg: 'Invalid', path: 'name', location: 'body' }];
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => [{ type: 'field', msg: 'Invalid', path: 'name', location: 'body' }];
       
       const error = new ValidationError(result);
       
@@ -43,7 +45,10 @@ describe('Entity - ValidationError', () => {
     it('should handle missing required field', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Name is required', path: 'name', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Name is required', path: 'name', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -54,7 +59,10 @@ describe('Entity - ValidationError', () => {
     it('should handle invalid field format', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Invalid email format', path: 'email', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Invalid email format', path: 'email', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -65,7 +73,10 @@ describe('Entity - ValidationError', () => {
     it('should include error message in hint', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Too long', path: 'password', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Too long', path: 'password', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -77,10 +88,13 @@ describe('Entity - ValidationError', () => {
     it('should handle array of validation errors', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [
+      const errors = [
         { type: 'field', msg: 'Invalid format', path: 'email', location: 'body' },
         { type: 'field', msg: 'Must be positive', path: 'age', location: 'body' }
       ];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -93,7 +107,10 @@ describe('Entity - ValidationError', () => {
     it('should be instance of Error', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Test', path: 'field', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Test', path: 'field', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -103,7 +120,10 @@ describe('Entity - ValidationError', () => {
     it('should be instance of ValidationError', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Test', path: 'field', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Test', path: 'field', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -115,7 +135,10 @@ describe('Entity - ValidationError', () => {
     it('should validate email', () => {
       const mockReq: any = { body: { email: 'not-an-email' } };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Invalid email', path: 'email', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Invalid email', path: 'email', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -125,7 +148,10 @@ describe('Entity - ValidationError', () => {
     it('should validate number range', () => {
       const mockReq: any = { body: { age: -5 } };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Age must be between 0 and 120', path: 'age', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Age must be between 0 and 120', path: 'age', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -135,7 +161,10 @@ describe('Entity - ValidationError', () => {
     it('should validate enum values', () => {
       const mockReq: any = { body: { status: 'invalid' } };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Status must be one of: active, inactive, pending', path: 'status', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Status must be one of: active, inactive, pending', path: 'status', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       
@@ -147,7 +176,10 @@ describe('Entity - ValidationError', () => {
     it('should serialize to JSON', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Test', path: 'name', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Test', path: 'name', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       const json = JSON.stringify(error);
@@ -158,7 +190,10 @@ describe('Entity - ValidationError', () => {
     it('should include hint and data in JSON', () => {
       const mockReq: any = { body: {} };
       const result = validationResult(mockReq);
-      (result as any).errors = [{ type: 'field', msg: 'Invalid', path: 'email', location: 'body' }];
+      const errors = [{ type: 'field', msg: 'Invalid', path: 'email', location: 'body' }];
+      (result as any).errors = errors;
+      (result as any).isEmpty = () => false;
+      (result as any).array = () => errors;
       
       const error = new ValidationError(result);
       const parsed = JSON.parse(JSON.stringify(error));

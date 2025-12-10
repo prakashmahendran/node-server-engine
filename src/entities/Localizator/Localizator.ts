@@ -8,7 +8,7 @@ import {
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
 import { Storage } from 'entities/Storage';
-import { checkEnvironment } from 'utils/checkEnvironment';
+import { assertEnvironment } from 'utils/checkEnvironment';
 import { envAssert } from 'utils/envAssert';
 import { reportError, reportDebug } from 'utils/report';
 
@@ -23,7 +23,7 @@ let interval: NodeJS.Timeout | string | number | undefined;
 /** Service handling contextual localization */
 export const Localizator = {
   async init(): Promise<void> {
-    checkEnvironment({ LOCALES_BUCKET: envAssert.isString() });
+    assertEnvironment({ LOCALES_BUCKET: envAssert.isString() });
     await Localizator.synchronize();
     // Keep synchronizing
     interval = setInterval(() => {
@@ -134,6 +134,6 @@ export const Localizator = {
 
   /** Cleanup the instance */
   shutdown(): void {
-    if (interval) clearTimeout(interval);
+    if (interval) clearInterval(interval);
   }
 };

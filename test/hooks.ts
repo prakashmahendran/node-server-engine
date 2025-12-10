@@ -40,5 +40,9 @@ beforeEach(async () => {
 
 afterEach(async () => {
   sinon.restore();
-  await sequelize.shutdown();
 });
+
+// Don't shutdown sequelize in after() - causes issues with async operations
+// after(async () => {
+//   await sequelize.shutdown();
+// });

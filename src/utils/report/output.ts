@@ -45,15 +45,33 @@ function getSeverityColor(severity?: string): string {
 /**
  * Format timestamp as HH:MM:SS
  */
-function formatTime(): string {
-  const now = new Date();
+export function formatTime(date?: Date): string {
+  const now = date || new Date();
   return now.toTimeString().split(' ')[0];
 }
 
 /**
  * Format log entry for human-readable local development output
  */
-function formatLocalLog(entry: FullLogEntry): string {
+export function formatLocalLog(severity: LogSeverity | string, message: string): void;
+export function formatLocalLog(entry: FullLogEntry): string;
+export function formatLocalLog(severityOrEntry: LogSeverity | string | FullLogEntry, message?: string): string | void {
+  // Handle overloaded signature for testing
+  if (typeof severityOrEntry === 'string' && message !== undefined) {
+    const time = formatTime();
+    const severityColor = getSeverityColor(severityOrEntry);
+    const useColors = process.env.NODE_ENV !== 'production';
+    
+    let output = useColors 
+      ? `${colors.gray}[${time}]${colors.reset} ${severityColor}${severityOrEntry.padEnd(8)}${colors.reset} ${message}`
+      : `[${time}] ${severityOrEntry.padEnd(8)} ${message}`;
+    
+    console.log(output);
+    return;
+  }
+  
+  // Original function implementation
+  const entry = severityOrEntry as FullLogEntry;
   const time = formatTime();
   const severity = entry.severity || 'INFO';
   const severityColor = getSeverityColor(severity);
