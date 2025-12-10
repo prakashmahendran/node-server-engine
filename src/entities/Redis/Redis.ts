@@ -1,4 +1,4 @@
-import { Redis as RedisClient } from 'ioredis';
+import { Redis as RedisClient, RedisOptions } from 'ioredis';
 import { RedisInterface, RedisCreateOptions } from './Redis.types';
 import { validateRedisEnvironment } from './Redis.validate';
 import { EngineError } from 'entities/EngineError';
@@ -10,7 +10,7 @@ export let redisClient: undefined | RedisClient;
 /**
  * Factory function to create a new Redis instance (exported for testing)
  */
-export function createRedisInstance(config: any): RedisClient {
+export function createRedisInstance(config: RedisOptions): RedisClient {
   return new RedisClient(config);
 }
 
@@ -135,7 +135,7 @@ export function createRedisClient(
       message: 'Host required to initialize Redis connection'
     });
 
-  const config: any = {
+  const config: RedisOptions = {
     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
     host: process.env.REDIS_HOST,
     username: process.env.REDIS_USERNAME,

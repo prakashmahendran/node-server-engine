@@ -1,6 +1,6 @@
 import { readdirSync } from 'fs';
 import path from 'path';
-import { Client } from '@elastic/elasticsearch';
+import { Client, ClientOptions } from '@elastic/elasticsearch';
 import { ElasticSearchMigration } from './ElasticSearch.types';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
@@ -35,7 +35,7 @@ export const ElasticSearch = {
       data: { host: process.env.ELASTIC_SEARCH_HOST }
     });
 
-    const config: any = {
+    const config: ClientOptions = {
       node: process.env.ELASTIC_SEARCH_HOST,
       auth: {
         username: process.env.ELASTIC_SEARCH_USERNAME as string,

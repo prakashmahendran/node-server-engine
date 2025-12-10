@@ -62,7 +62,7 @@ export function formatLocalLog(severityOrEntry: LogSeverity | string | FullLogEn
     const severityColor = getSeverityColor(severityOrEntry);
     const useColors = process.env.NODE_ENV !== 'production';
     
-    let output = useColors 
+    const output = useColors 
       ? `${colors.gray}[${time}]${colors.reset} ${severityColor}${severityOrEntry.padEnd(8)}${colors.reset} ${message}`
       : `[${time}] ${severityOrEntry.padEnd(8)} ${message}`;
     
