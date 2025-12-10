@@ -1,3 +1,13 @@
+## [1.8.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.4...v1.8.0) (2025-12-10)
+
+### ✨ Features
+
+* update Redis implementation with modern features ([d68e0e4](https://github.com/prakashmahendran/node-server-engine/commit/d68e0e473c7d33c4edc508ae718026866119b13a))
+
+### 🐛 Bug Fixes
+
+* cover utils test ([ff63fa5](https://github.com/prakashmahendran/node-server-engine/commit/ff63fa548f9c71b6958812a279622eea8f4e8779))
+
 ## [1.7.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.3...v1.7.4) (2025-12-10)
 
 ### 🐛 Bug Fixes
