@@ -17,4 +17,12 @@ describe('Entities - Socket Client - Utils - Parse Message', () => {
   it('should throw an error if the input is not an object when parsed', () => {
     expect(() => parseMessage(JSON.stringify([faker.lorem.word()]))).to.throw;
   });
+
+  it('should throw an error on malformed JSON', () => {
+    expect(() => parseMessage('not valid json')).to.throw();
+  });
+
+  it('should throw an error on empty string', () => {
+    expect(() => parseMessage('')).to.throw();
+  });
 });

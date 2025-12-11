@@ -11,6 +11,7 @@ export * from './userResolver';
 export * from './fileUploader';
 export * from './metrics';
 export * from './requestMetrics';
+export * from './requestLogger';
 export * from './version';
 export * from './geminiFileUploader';
 export * from './checkPermission';

@@ -12,5 +12,5 @@ export class SequelizeMeta extends Model {
     type: DataType.STRING,
     allowNull: false
   })
-  version!: string;
+  version: string = '';
 }

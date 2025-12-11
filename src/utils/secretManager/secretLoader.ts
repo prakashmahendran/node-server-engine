@@ -1,5 +1,6 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { EngineError } from 'entities/EngineError';
+import { reportDebug } from 'utils/report';
 
 // Cache to store preloaded secrets
 export const secretCache: { [key: string]: string } = {};
@@ -13,7 +14,10 @@ export const initializeSecrets = async (
   secretEnvVars: string[]
 ): Promise<void> => {
   if (process.env.NODE_ENV !== 'production') {
-    console.log('Development mode → using local files for secrets');
+    reportDebug({
+      namespace: 'engine:secretManager',
+      message: 'Development mode → using local files for secrets'
+    });
     return; // No need to preload anything
   }
 

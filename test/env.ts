@@ -48,5 +48,6 @@ process.env = {
   SQL_TYPE: 'mysql',
   DEFAULT_MESSAGE_AUDIENCE: audience,
   GOOGLE_AI_KEY: 'AIKEY',
+  ACCESS_TOKEN_EXPIRATION_TIME: '2000',
   ...process.env
 };

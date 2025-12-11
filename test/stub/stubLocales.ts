@@ -1,8 +1,8 @@
 import { randomBytes } from 'crypto';
 import { faker } from '@faker-js/faker';
 import sinon, { SinonStub } from 'sinon';
-import { Storage } from 'entities/Storage/Storage';
-import { StorageUploadedFile } from 'entities/Storage/Storage.types';
+import { GoogleCloudStorage } from 'entities/GoogleCloudStorage';
+import { StorageUploadedFile } from 'entities/GoogleCloudStorage';
 
 /**
  * Locales server stubbing
@@ -10,7 +10,7 @@ import { StorageUploadedFile } from 'entities/Storage/Storage.types';
  */
 export function stubLocales(): SinonStub {
   return sinon
-    .stub(Storage, 'get')
+    .stub(GoogleCloudStorage, 'get')
     .callsFake(async (bucket: string, path: string) => {
       let content;
 

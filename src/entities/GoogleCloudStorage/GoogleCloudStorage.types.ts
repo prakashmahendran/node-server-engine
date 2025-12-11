@@ -1,5 +1,20 @@
 import { Readable } from 'stream';
 
+/** Google Cloud Storage initialization configuration */
+export interface GoogleCloudStorageConfig {
+  /** Google Cloud Project ID */
+  projectId?: string;
+  /** Path to service account key file */
+  keyFilename?: string;
+  /** Service account credentials object */
+  credentials?: {
+    client_email?: string;
+    private_key?: string;
+  };
+  /** Custom API endpoint (useful for emulators) */
+  apiEndpoint?: string;
+}
+
 /** Options to set where an uploaded file is stored in the bucket */
 export interface UploadDestinationOptions {
   /** Directory of the bucket in which the file is stored. Defaults to the root directory */

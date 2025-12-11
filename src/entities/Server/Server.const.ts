@@ -1,27 +1,13 @@
 import { json, urlencoded, ErrorRequestHandler, RequestHandler } from 'express';
-import morgan from 'morgan';
 import {
   metrics,
   error,
   fourOhFour,
   healthCheck,
   version,
-  swaggerDocs
+  swaggerDocs,
+  requestLogger
 } from 'middleware';
-
-const ACCESS_LOG = JSON.stringify({
-  method: ':method',
-  status: ':status',
-  url: ':url',
-  'http-version': ':http-version',
-  ip: ':remote-addr',
-  'user-agent': ':user-agent',
-  'content-length': ':res[content-length]',
-  referrer: ':referrer',
-  'response-time': ':response-time',
-  severity: 'DEBUG',
-  message: ':method :url [:status]'
-});
 
 // Default middleware that are applied first thing on the primary port, before the business logic endpoints
 export const defaultMiddleware: Array<RequestHandler> = [
@@ -47,10 +33,10 @@ export const secondaryMiddleware: Array<RequestHandler> = [
   swaggerDocs()
 ];
 
-// Add morgan logging to default middleware chain when reporting is not silenced
+// Add request logging to middleware chain when reporting is not silenced
 if (!process.env.SILENCE_REPORT) {
-  defaultMiddleware.unshift(morgan(ACCESS_LOG));
-  secondaryMiddleware.unshift(morgan(ACCESS_LOG));
+  defaultMiddleware.unshift(requestLogger());
+  secondaryMiddleware.unshift(requestLogger());
 }
 
 export const shutdownSignals = ['SIGTERM', 'SIGUSR2', 'SIGINT'];

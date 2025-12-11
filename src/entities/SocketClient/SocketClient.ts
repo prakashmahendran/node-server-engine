@@ -61,10 +61,13 @@ export class SocketClient {
 
   /**
    * Create a WS client
+   * @param webSocket - The WebSocket instance
+   * @param _request - The incoming HTTP request (reserved for future use)
+   * @param options - Socket client configuration options
    */
   public constructor(
     webSocket: WS,
-    request: IncomingMessage,
+    _request: IncomingMessage,
     options: SocketClientOptions
   ) {
     this.id = randomUUID();
@@ -233,6 +236,7 @@ export class SocketClient {
         tokenId: this.tokenId as string,
         audience: this.audience as Array<string>
       };
+    return undefined;
   }
 
   /** Process an incoming message */

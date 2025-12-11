@@ -2,7 +2,37 @@
 
 Framework used to develop Node backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.
 
+[![npm version](https://img.shields.io/npm/v/node-server-engine.svg)](https://www.npmjs.com/package/node-server-engine)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
+## Features
+
+- 🚀 **Express-based** - Built on the popular Express.js framework (v4.22)
+- 🔒 **Multiple Auth Methods** - JWT, mTLS, HMAC, and Static token authentication
+- 🔌 **WebSocket Support** - Built-in WebSocket server with message handling (ws v8.18)
+- 📊 **Database Integration** - Sequelize ORM with migrations support (v6.37)
+- 📡 **Pub/Sub** - Google Cloud Pub/Sub integration (v4.11)
+- 🔔 **Push Notifications** - Built-in push notification support
+- 🌐 **i18n** - Internationalization with translation management
+- 🔍 **ElasticSearch** - Full-text search integration (v9.2) with auto-migrations
+- 💾 **Redis** - Advanced Redis client with retry logic, TLS support (ioredis v5.8)
+- 📝 **API Documentation** - Swagger/OpenAPI documentation support
+- 📤 **File Uploads** - Single and chunked file upload middleware with validation
+- 🧪 **TypeScript** - Written in TypeScript with full type definitions
+- ✅ **Modern Tooling** - ESLint, Prettier, and automated versioning
+- 🛡️ **Permission System** - Role-based access control with case-insensitive matching
+- 🔐 **Security** - HMAC authentication, TLS/mTLS support, input validation
+
+## Requirements
+
+- **Node.js** 18.x or higher
+- **npm** 9.x or higher
+- **TypeScript** 5.x (if contributing)
+
 - [Node Server Engine](#node-server-engine)
+  - [Features](#features)
+  - [Requirements](#requirements)
   - [Install](#install)
   - [Entities](#entities)
     - [Server](#server)
@@ -71,12 +101,88 @@ Framework used to develop Node backend services. This package ships with a lot o
 
 ## Install
 
-To start a new service, it is **highly recomended** that you clone it from [our template](https://github.com/prakashmahendran/node-server-template). It will already include all the necessary tools and boilerplate.
+To start a new service, it is **highly recommended** that you clone it from [our template](https://github.com/prakashmahendran/node-server-template). It will already include all the necessary tools and boilerplate.
 
 If you need to install it manually:
 
 ```bash
-npm i node-server-engine
+npm install node-server-engine
+```
+
+For development dependencies:
+
+```bash
+npm install --save-dev backend-test-tools
+```
+
+## Logging
+
+The server provides structured logging with automatic format detection. In local development, logs are colorized and human-readable. In production (GCP, Kubernetes), logs are JSON formatted for log aggregation systems.
+
+### Log Format
+
+Logs automatically detect the environment:
+- **Local Development**: Colorized, concise format with time (HH:MM:SS)
+- **Production**: JSON structured logs for cloud log aggregation
+
+### Environment Variables
+
+| Variable | Values | Description | Default |
+|----------|--------|-------------|---------|
+| `LOG_FORMAT` | `local`, `json` | Force specific log format | Auto-detect |
+| `DETAILED_LOGS` | `true`, `false` | Show stack traces and verbose details | `false` |
+| `DEBUG` | `namespace:*` | Enable debug logs for specific namespaces | Off |
+
+### Examples
+
+**Default Local Format** (clean, concise):
+```
+[21:16:15] INFO     SERVER_RUNNING
+[21:16:15] INFO     Connected to database successfully
+[21:16:15] DEBUG    POST /auth/login [200] 154ms
+[21:20:15] DEBUG    GET /users [304] 10ms
+[21:20:15] WARNING  No bearer token found [unauthorized 401] GET /users
+```
+
+**Detailed Logs** (`DETAILED_LOGS=true`):
+```
+[21:16:15] DEBUG    POST /auth/login [200] 154ms
+Data:
+{
+  "responseTime": "154ms",
+  "contentLength": "1012",
+  "httpVersion": "1.1"
+}
+
+[21:20:15] WARNING  No bearer token found [unauthorized 401] GET /users
+Stack Trace:
+Error: No bearer token found
+    at middleware (/path/to/authJwt.ts:31:13)
+    ...
+  src/middleware/authJwt/authJwt.ts:31
+```
+
+**Production Format** (`LOG_FORMAT=json`):
+```json
+{"severity":"INFO","message":"SERVER_RUNNING","timestamp":"2025-12-09T21:16:15.028Z","serviceContext":{"service":"my-service","version":"1.0.0"}}
+{"severity":"DEBUG","message":"POST /auth/login [200] 154ms","timestamp":"2025-12-09T21:16:15.182Z"}
+```
+
+### Usage in Code
+
+```javascript
+import { reportInfo, reportError, reportDebug } from 'node-server-engine';
+
+// Info logging
+reportInfo('Server started successfully');
+reportInfo({ message: 'User login', data: { userId: '123' } });
+
+// Error logging
+reportError(error);
+reportError(error, request); // Include HTTP request context
+
+// Debug logging (requires DEBUG env var)
+reportDebug({ namespace: 'app:auth', message: 'Token validated' });
 ```
 
 ## Entities
@@ -374,29 +480,86 @@ new Endpoint({
 
 ### Socket Client
 
-The socket server start if the [Server](#server)'s webSocket option is not undefined.
+The WebSocket server starts automatically if the [Server](#server)'s `webSocket` option is provided.
 
-Each time a new socket connection is established, a new instance of `SocketClient` is created.
+Each WebSocket connection creates a new `SocketClient` instance with built-in authentication, message routing, and connection management.
+
+#### Features
+
+- **JWT Authentication**: Secure token-based authentication with automatic renewal
+- **Message Routing**: Type-based message handlers similar to HTTP endpoints
+- **Connection Health**: Built-in ping/pong mechanism with configurable intervals
+- **Lifecycle Callbacks**: Hooks for initialization, authentication, and shutdown
+- **Error Handling**: Automatic error formatting and client notification
 
 #### Socket Client Options
 
-Options can be set for SocketClient when setting up a Server instance.
+Options can be set when configuring the Server's webSocket:
+
+```javascript
+import { Server, MessageHandler } from 'node-server-engine';
+
+const server = new Server({
+  webSocket: {
+    client: {
+      handlers: [messageHandler1, messageHandler2],
+      initCallbacks: (client) => {
+        console.log(`Client ${client.id} connected`);
+      },
+      authCallbacks: (client) => {
+        const user = client.getUser();
+        console.log(`User ${user.userId} authenticated`);
+      },
+      shutdownCallbacks: (client) => {
+        console.log(`Client ${client.id} disconnected`);
+      }
+    }
+  }
+});
+```
 
 | Parameter         | Type                                       | Description                                                             | Default      |
 | ----------------- | ------------------------------------------ | ----------------------------------------------------------------------- | ------------ |
 | handlers          | Array\<[MessageHandler](#message-handler)> | A list of message handlers to use                                       | **required** |
-| authCallbacks     | Array\<function>                           | Callbacks called when a client successfully authenticates on the socket | []           |
-| initCallbacks     | Array\<function>                           | Callbacks called when the socket client is created                      | []           |
-| shutdownCallbacks | Array\<function>                           | Callbacks called when the socket client is destroyed                    | []           |
+| authCallbacks     | Function \| Array\<Function>               | Callbacks called when a client successfully authenticates               | []           |
+| initCallbacks     | Function \| Array\<Function>               | Callbacks called when the socket client is created                      | []           |
+| shutdownCallbacks | Function \| Array\<Function>               | Callbacks called when the socket client is destroyed                    | []           |
 
-#### Properties
+#### Client Properties & Methods
 
-| Property      | Type    | Description                                                                                                            |
-| ------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| id            | String  | A unique identifier for the connection                                                                                 |
-| ws            | Object  | The socket being used. Instance of [WebSocket](https://github.com/websockets/ws/blob/master/doc/ws.md#class-websocket) |
-| authenticated | Boolean | Flag indicating that the current user is authenticated                                                                 |
-| userId        | String  | Id of the current user **(available when authenticated)**                                                              |
+| Property/Method   | Type                        | Description                                                               |
+| ----------------- | --------------------------- | ------------------------------------------------------------------------- |
+| id                | String                      | Unique identifier for the connection                                      |
+| establishedAt     | Date                        | Timestamp when connection was established                                 |
+| isAuthenticated() | () => Boolean               | Check if client is authenticated                                          |
+| getUser()         | () => SocketUser \| undefined | Get authenticated user data (userId, deviceId, tokenId, audience)         |
+| sendMessage()     | (type, payload, options)    | Send a message to the client                                              |
+
+#### Client Authentication
+
+Clients authenticate by sending a message:
+
+```javascript
+// Client-side
+websocket.send(JSON.stringify({
+  type: 'authenticate',
+  payload: { token: 'your-jwt-token' }
+}));
+
+// Server will:
+// 1. Verify the JWT token
+// 2. Extract user information (userId, deviceId, audience)
+// 3. Set authentication status
+// 4. Trigger authCallbacks
+// 5. Send renewal reminder 1 minute before token expiration
+```
+
+#### Environment Variables
+
+| Variable            | Description                                     | Default |
+| ------------------- | ----------------------------------------------- | ------- |
+| WS_PING_INTERVAL    | Interval between ping checks (seconds)          | 30      |
+| WEBSOCKET_CLOSE_TIMEOUT | Timeout for graceful close (milliseconds)   | 3000    |
 
 ---
 
@@ -429,24 +592,235 @@ new Server({
 
 ### Redis
 
-The server engine exposes a Redis client that is configured to work with the standard environment variables that are used in our services.
+The server engine exposes a Redis client configured for production use with automatic reconnection, retry logic, and optional TLS support.
 
-It is a pre-configured instance of [ioredis](https://github.com/luin/ioredis). See the package documentation for more details.
+It is a pre-configured instance of [ioredis](https://github.com/luin/ioredis) v5.8.2. See the package documentation for more details.
 
 ```javascript
 import { Redis } from 'node-server-engine';
 
-await Redis.set(key, value);
+// Initialize (automatically called by Server, or manually)
+Redis.init();
+
+// Use Redis commands
+await Redis.set('key', 'value');
+const value = await Redis.get('key');
+await Redis.del('key');
+await Redis.expire('key', 3600);
+
+// Get underlying client for advanced use
+const client = Redis.getClient();
+
+// Shutdown when done
+await Redis.shutdown();
 ```
 
-It can be configured through environment variables
+#### Features
 
-| env            | description                                                                        | default |
-| -------------- | ---------------------------------------------------------------------------------- | ------- |
-| REDIS_HOST     | Host to which to connecto to                                                       |         |
-| REDIS_PORT     | Port on which redis is served                                                      |         |
-| REDIS_PASSWORD | Password used to authenticate with the server                                      |         |
-| REDIS_CLUSTER  | Flag indicating that redis is configured as a cluster and not as a single instance | false   |
+- **Automatic Reconnection**: Exponential backoff retry strategy (up to 2s delay)
+- **Error Recovery**: Reconnects on READONLY, ECONNRESET, and ETIMEDOUT errors
+- **Connection Management**: Event listeners for connect, ready, error, close, reconnecting
+- **TLS Support**: Automatic TLS configuration when `TLS_CA` is provided
+- **Test Mode**: Lazy connection in test environments to prevent connection attempts
+
+#### Environment Variables
+
+| Variable        | Description                            | Default | Required |
+| --------------- | -------------------------------------- | ------- | -------- |
+| REDIS_HOST      | Redis server hostname or IP            | -       | ✓        |
+| REDIS_PORT      | Redis server port                      | 6379    | ✗        |
+| REDIS_USERNAME  | Username for authentication            | -       | ✗        |
+| REDIS_PASSWORD  | Password for authentication            | -       | ✗        |
+| TLS_CA          | TLS certificate authority for SSL/TLS  | -       | ✗        |
+
+#### Configuration Options
+
+You can customize Redis client creation:
+
+```javascript
+import { createRedisClient } from 'node-server-engine';
+
+const client = createRedisClient({
+  db: 2,                    // Database index (default: 0)
+  lazyConnect: true,        // Don't connect until first command
+  enableReadyCheck: false,  // Disable ready check
+  redis: {                  // Override any ioredis options
+    connectTimeout: 10000,
+    commandTimeout: 5000
+  }
+});
+```
+
+---
+
+### AWSS3
+
+The AWSS3 entity is a generic wrapper around AWS S3 (and S3-compatible services like MinIO, LocalStack). It supports uploads, downloads, streaming, metadata, and deletion with size validation and UUID-based path generation.
+
+Based on @aws-sdk/client-s3 v3.
+
+```javascript
+import { AWSS3 } from 'node-server-engine';
+import fs from 'fs';
+
+// Initialize with configuration (optional; otherwise uses environment variables)
+AWSS3.init({
+  region: 'us-east-1',
+  accessKeyId: 'YOUR_ACCESS_KEY',
+  secretAccessKey: 'YOUR_SECRET_KEY',
+  // For S3-compatible services
+  // endpoint: 'http://localhost:4566',
+  // forcePathStyle: true
+});
+
+// Or rely on environment variables and auto-init
+// AWSS3.init();
+
+// Upload a file
+const fileStream = fs.createReadStream('photo.jpg');
+const uploaded = await AWSS3.upload(
+  fileStream,
+  'my-bucket',
+  { directory: 'photos', mime: 'image/jpeg' },
+  { maxSize: '5MB' },
+  { userId: '123' } // optional metadata
+);
+console.log(uploaded.Key); // photos/<uuid>.jpeg
+
+// Download entire file into memory
+const { data, metadata } = await AWSS3.get('my-bucket', uploaded.Key);
+console.log(metadata.ContentLength);
+
+// Stream a large file
+const { stream } = await AWSS3.download('my-bucket', uploaded.Key);
+stream.pipe(res);
+
+// Get a fast stream without metadata
+const s = await AWSS3.getFileStream('my-bucket', uploaded.Key);
+s.pipe(res);
+
+// Metadata only
+const head = await AWSS3.getMetadata('my-bucket', uploaded.Key);
+
+// Delete
+await AWSS3.delete('my-bucket', uploaded.Key);
+
+// Generate unique destination path
+const key = AWSS3.generateFileDestination({ directory: 'uploads/images', mime: 'image/png' });
+```
+
+#### Features
+
+- Auto-initialization via environment variables
+- Stream-based upload with `maxSize` validation
+- Full download, streaming download, or stream-only access
+- UUID-based file naming with directory and extension inference from MIME
+- S3-compatible (supports custom `endpoint` and `forcePathStyle`)
+
+#### API Methods
+
+##### `init(config?)`
+
+Initialize the S3 client explicitly; otherwise it will lazy-init using environment variables.
+
+```javascript
+AWSS3.init({
+  region: 'us-east-1',
+  accessKeyId: '...',
+  secretAccessKey: '...',
+  sessionToken: '...', // optional
+  endpoint: 'http://localhost:9000', // optional (MinIO/LocalStack)
+  forcePathStyle: true // optional (S3-compatible)
+});
+```
+
+##### `upload(stream, bucket, destinationOptions?, uploaderOptions?, metadata?)`
+
+Uploads content from a readable stream.
+
+- `destinationOptions`: `{ directory?, fileName?, mime?, noExtension? }`
+- `uploaderOptions`: `{ maxSize?: string }` e.g. `5MB`, `100KB`
+- `metadata`: key/value pairs stored as object metadata
+
+Returns `Promise<S3UploadedFile>` with keys like `Bucket`, `Key`, `ETag`, `Location`.
+
+##### `get(bucket, key)`
+
+Downloads the full file into memory as `Buffer` and returns `{ data, metadata }`.
+
+##### `download(bucket, key)`
+
+Returns `{ stream, metadata }` for streaming large files efficiently.
+
+##### `getFileStream(bucket, key)`
+
+Returns a `Readable` stream without fetching metadata.
+
+##### `getMetadata(bucket, key)`
+
+Returns file metadata via a HEAD request.
+
+##### `delete(bucket, key)`
+
+Deletes the object.
+
+##### `generateFileDestination(options?)`
+
+Generates a unique key using UUID with optional directory and extension (from `mime`).
+
+#### Environment Variables
+
+| Variable | Description | Required |
+| --- | --- | --- |
+| `AWS_REGION` | AWS region (e.g., `us-east-1`) | ✗* |
+| `AWS_ACCESS_KEY_ID` | Access key ID | ✗* |
+| `AWS_SECRET_ACCESS_KEY` | Secret access key | ✗* |
+| `AWS_SESSION_TOKEN` | Session token (temporary creds) | ✗ |
+| `AWS_S3_ENDPOINT` | Custom S3-compatible endpoint (MinIO/LocalStack) | ✗ |
+| `AWS_S3_FORCE_PATH_STYLE` | Use path-style addressing (`true`/`false`) | ✗ |
+
+\* Not required if you call `init()` with a config object.
+
+#### Error Handling
+
+- Throws `WebError` with status `413` when `maxSize` is exceeded during upload
+- Other errors bubble up from AWS SDK v3 commands
+
+**Example:**
+```javascript
+try {
+  await AWSS3.upload(stream, 'bucket', {}, { maxSize: '1MB' });
+} catch (e) {
+  if (e.statusCode === 413) {
+    console.log('File too large');
+  }
+}
+```
+
+#### Usage in Template Projects
+
+```javascript
+import { AWSS3, Endpoint, Method } from 'node-server-engine';
+import { Readable } from 'stream';
+
+new Endpoint({
+  path: '/upload-s3',
+  method: Method.POST,
+  files: [{ key: 'file', maxSize: '10MB', required: true }],
+  async handler(req, res) {
+    const file = req.files[0];
+    const stream = Readable.from(file.buffer);
+
+    const result = await AWSS3.upload(
+      stream,
+      process.env.S3_UPLOAD_BUCKET,
+      { directory: 'user-uploads', mime: file.mimetype }
+    );
+
+    res.json({ key: result.Key, url: result.Location });
+  }
+});
+```
 
 ---
 
@@ -576,25 +950,362 @@ await Localizator.shutdown();
 
 ### ElasticSearch
 
-The ElasticSearch exposes a service related to data searching.
+The ElasticSearch entity provides a managed client for Elasticsearch with automatic migrations, connection management, and TLS support.
+
+Based on [@elastic/elasticsearch](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/index.html) v9.2.0.
 
 ```javascript
 import { ElasticSearch } from 'node-server-engine';
 
-// The synchronize init should be called first to initialize the data
+// Initialize (runs migrations automatically)
 await ElasticSearch.init();
 
-// This should be call when the program shuts down.
+// Get the client for operations
+const client = ElasticSearch.getClient();
+
+// Use Elasticsearch operations
+await client.index({
+  index: 'products',
+  id: '123',
+  document: { name: 'Product', price: 99.99 }
+});
+
+const result = await client.search({
+  index: 'products',
+  query: { match: { name: 'Product' } }
+});
+
+// Shutdown when done
 await ElasticSearch.shutdown();
 ```
 
-| env                           | description                                    | default      |
-| ----------------------------- | ---------------------------------------------- | ------------ |
-| ELASTIC_SEARCH_MIGRATION_PATH | The path link to Elastic Search migration data | **required** |
-| ELASTIC_SEARCH_HOST           | The elastic search host url                    | **required** |
-| ELASTIC_SEARCH_USERNAME       | The elastic search user name                   | **required** |
-| ELASTIC_SEARCH_PASSWORD       | The elastic search password                    | **required** |
-| TLS_CA                        | CA for ssl config when available               |              |
+#### Features
+
+- **Automatic Migrations**: Tracks and runs migrations on startup
+- **Connection Verification**: Pings cluster on initialization
+- **TLS Support**: Optional SSL/TLS configuration
+- **Retry Logic**: Built-in retry mechanism with configurable attempts
+- **Test Mode**: Auto-flushes indices in test environment
+- **Error Handling**: Detailed error reporting with context
+
+#### Migration System
+
+Create migration files in your specified migration directory:
+
+```javascript
+// migrations/001-create-products-index.ts
+import { Client } from '@elastic/elasticsearch';
+
+export async function migrate(client: Client): Promise<void> {
+  await client.indices.create({
+    index: 'products',
+    settings: {
+      number_of_shards: 1,
+      number_of_replicas: 1
+    },
+    mappings: {
+      properties: {
+        name: { type: 'text' },
+        price: { type: 'double' },
+        createdAt: { type: 'date' }
+      }
+    }
+  });
+}
+```
+
+Migrations are:
+- Run automatically on `init()`
+- Tracked in the `migrations` index
+- Executed once per file
+- Run in alphabetical order
+
+#### Environment Variables
+
+| Variable                       | Description                                | Required |
+| ------------------------------ | ------------------------------------------ | -------- |
+| ELASTIC_SEARCH_HOST            | Elasticsearch cluster URL                  | ✓        |
+| ELASTIC_SEARCH_USERNAME        | Username for authentication                | ✓        |
+| ELASTIC_SEARCH_PASSWORD        | Password for authentication                | ✓        |
+| ELASTIC_SEARCH_MIGRATION_PATH  | Absolute path to migrations directory      | ✓        |
+| TLS_CA                         | TLS certificate authority for SSL/TLS      | ✗        |
+
+#### Configuration
+
+The client is configured with:
+- **Max Retries**: 3 attempts
+- **Request Timeout**: 30 seconds
+- **Sniff on Start**: Disabled (use with clusters)
+- **TLS**: Enabled when `TLS_CA` is provided
+
+---
+
+### GoogleCloudStorage
+
+The GoogleCloudStorage entity provides a simple, generic wrapper for Google Cloud Storage operations. It handles file uploads, downloads, streaming, and deletion with built-in size validation and automatic file path generation.
+
+Based on [@google-cloud/storage](https://cloud.google.com/nodejs/docs/reference/storage/latest) v7.14.0.
+
+```javascript
+import { GoogleCloudStorage } from 'node-server-engine';
+import fs from 'fs';
+
+// Initialize with configuration
+GoogleCloudStorage.init({
+  projectId: 'my-project',
+  keyFilename: '/path/to/keyfile.json'
+});
+
+// Or use environment variables (GC_PROJECT, GOOGLE_APPLICATION_CREDENTIALS)
+GoogleCloudStorage.init();
+
+// Upload a file
+const fileStream = fs.createReadStream('photo.jpg');
+const result = await GoogleCloudStorage.upload(
+  fileStream,
+  'my-bucket',
+  { directory: 'photos', mime: 'image/jpeg' },
+  { metadata: { contentType: 'image/jpeg' } },
+  { maxSize: '5MB' }
+);
+console.log(result.name); // photos/uuid.jpeg
+
+// Download file as Buffer
+const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
+console.log(metadata.size); // File size in bytes
+fs.writeFileSync('downloaded.jpg', data);
+
+// Stream a file (for large files)
+const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/video.mp4');
+stream.pipe(res); // Stream to HTTP response
+
+// Get file stream directly (fastest, no metadata)
+const stream = GoogleCloudStorage.getFileStream('my-bucket', 'audio/song.mp3');
+stream.pipe(res);
+
+// Delete a file
+await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
+
+// Generate unique file paths
+const path = GoogleCloudStorage.generateFileDestination({
+  directory: 'uploads/images',
+  mime: 'image/jpeg'
+});
+// Result: 'uploads/images/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpeg'
+```
+
+#### Features
+
+- **Auto-initialization**: Automatically initializes on first use if not manually initialized
+- **Flexible Configuration**: Supports config object, environment variables, or credentials
+- **File Upload**: Stream-based uploads with size validation
+- **Multiple Download Methods**: Full download, streaming, or direct stream access
+- **Path Generation**: Automatic UUID-based file naming with directory and extension support
+- **Size Validation**: Built-in file size limits with human-readable formats (5MB, 100KB, etc.)
+- **Error Handling**: Detailed error reporting with context
+- **No Project Dependencies**: Generic implementation works with any Google Cloud Storage bucket
+
+#### API Methods
+
+##### `init(config?)`
+
+Initialize Google Cloud Storage with configuration. Optional - will auto-initialize with environment variables if not called.
+
+```javascript
+GoogleCloudStorage.init({
+  projectId: 'my-project-id',
+  keyFilename: '/path/to/service-account-key.json',
+  // Or use credentials directly
+  credentials: {
+    client_email: 'service@project.iam.gserviceaccount.com',
+    private_key: '-----BEGIN PRIVATE KEY-----\n...'
+  },
+  // For local emulator
+  apiEndpoint: 'http://localhost:9000'
+});
+```
+
+##### `upload(stream, bucket, destinationOptions?, storageOptions?, uploaderOptions?)`
+
+Upload a file to Google Cloud Storage.
+
+**Parameters:**
+- `stream` (Readable): Node.js readable stream of file content
+- `bucket` (string): Bucket name
+- `destinationOptions` (object, optional):
+  - `directory` (string): Subdirectory path (e.g., 'uploads/images')
+  - `fileName` (string): Specific filename (if not provided, generates UUID)
+  - `mime` (string): MIME type for extension detection
+  - `noExtension` (boolean): Don't append file extension
+- `storageOptions` (object, optional): Google Cloud Storage write stream options
+- `uploaderOptions` (object, optional):
+  - `maxSize` (string): Maximum file size (e.g., '5MB', '100KB', '1GB')
+
+**Returns:** Promise\<StorageUploadedFile> - Metadata of uploaded file
+
+**Example:**
+```javascript
+const fileStream = fs.createReadStream('document.pdf');
+const result = await GoogleCloudStorage.upload(
+  fileStream,
+  'documents-bucket',
+  { directory: 'legal/contracts', mime: 'application/pdf' },
+  { metadata: { contentType: 'application/pdf' } },
+  { maxSize: '10MB' }
+);
+```
+
+##### `get(bucket, path)`
+
+Download a file and return its content as a Buffer along with metadata.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Promise\<{data: Buffer, metadata: StorageUploadedFile}>
+
+**Example:**
+```javascript
+const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
+console.log(metadata.contentType); // 'image/jpeg'
+console.log(data.length); // File size in bytes
+```
+
+##### `download(bucket, path)`
+
+Get a readable stream for a file along with its metadata. Use this for large files or when you need to stream content.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Promise\<{stream: Readable, metadata: StorageUploadedFile}>
+
+**Example:**
+```javascript
+const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/large-video.mp4');
+console.log(metadata.size); // File size
+stream.pipe(response); // Stream to HTTP response
+```
+
+##### `getFileStream(bucket, path)`
+
+Get a readable stream for a file without fetching metadata. Fastest option when metadata is not needed.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Readable - Node.js readable stream
+
+**Example:**
+```javascript
+const stream = GoogleCloudStorage.getFileStream('my-bucket', 'audio/song.mp3');
+stream.pipe(response); // Direct streaming
+```
+
+##### `delete(bucket, path)`
+
+Delete a file from Google Cloud Storage.
+
+**Parameters:**
+- `bucket` (string): Bucket name
+- `path` (string): File path in the bucket
+
+**Returns:** Promise\<void>
+
+**Example:**
+```javascript
+await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
+```
+
+##### `generateFileDestination(options?)`
+
+Generate a unique file path with optional directory and extension.
+
+**Parameters:**
+- `options` (object, optional):
+  - `directory` (string): Subdirectory path
+  - `mime` (string): MIME type for extension detection
+  - `noExtension` (boolean): Don't append extension
+
+**Returns:** string - Generated file path
+
+**Examples:**
+```javascript
+// UUID only
+GoogleCloudStorage.generateFileDestination();
+// → 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+
+// With directory and MIME type
+GoogleCloudStorage.generateFileDestination({
+  directory: 'uploads/images',
+  mime: 'image/jpeg'
+});
+// → 'uploads/images/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpeg'
+
+// Without extension
+GoogleCloudStorage.generateFileDestination({
+  directory: 'data',
+  noExtension: true
+});
+// → 'data/a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+```
+
+#### Environment Variables
+
+| Variable                        | Description                          | Required |
+| ------------------------------- | ------------------------------------ | -------- |
+| GC_PROJECT                      | Google Cloud Project ID              | ✗*       |
+| GOOGLE_APPLICATION_CREDENTIALS  | Path to service account key file     | ✗*       |
+
+\* Not required if you call `init()` with a config object
+
+#### Error Handling
+
+The entity throws `WebError` with appropriate status codes:
+
+- **413 (Payload Too Large)**: File exceeds `maxSize` limit
+- Other errors are passed through from Google Cloud Storage SDK
+
+**Example:**
+```javascript
+try {
+  await GoogleCloudStorage.upload(stream, 'bucket', {}, {}, { maxSize: '1MB' });
+} catch (error) {
+  if (error.statusCode === 413) {
+    console.log('File too large!');
+  }
+}
+```
+
+#### Usage in Template Projects
+
+In your node-server-template endpoints:
+
+```javascript
+import { GoogleCloudStorage } from 'node-server-engine';
+import { Endpoint, Method } from 'node-server-engine';
+
+new Endpoint({
+  path: '/upload',
+  method: Method.POST,
+  files: [{ key: 'file', maxSize: '5MB', required: true }],
+  async handler(req, res) {
+    const file = req.files[0];
+    const stream = Readable.from(file.buffer);
+    
+    const result = await GoogleCloudStorage.upload(
+      stream,
+      process.env.UPLOAD_BUCKET,
+      { directory: 'user-uploads', mime: file.mimetype }
+    );
+    
+    res.json({ path: result.name, url: result.mediaLink });
+  }
+});
+```
 
 ---
 
@@ -645,6 +1356,47 @@ await TranslationManager.shutdown();
 The server engine standardizes the way errors are handled and reported. The error classes provided by the Server Engine should always be used when throwing an exception.
 
 Errors are a crucial part of the application, they are what helps us to properly debug the program and offer support when need, as well as what exposes issues to the client.
+
+#### Log Output Formats
+
+The engine automatically adapts log output based on the environment:
+
+**Local Development (Readable Format)**
+- Colorized output with severity levels
+- Formatted timestamps and file locations
+- Pretty-printed data objects
+- Stack traces with proper formatting
+- HTTP request context when available
+
+**Production/GCP (JSON Format)**
+- Structured JSON for log aggregation
+- Google Cloud Error Reporting integration
+- Kubernetes pod information
+- Service context metadata
+
+**Control Log Format**
+
+You can override the automatic detection:
+
+```bash
+# Force readable local format (useful for local Docker)
+LOG_FORMAT=local npm start
+
+# Force JSON format (useful for local testing)
+LOG_FORMAT=json npm start
+```
+
+**Example Local Output:**
+```
+[2025-12-10T10:30:45.123Z] ERROR    src/endpoints/users.ts:42 User not found
+  Error Code: user-not-found
+  Status: 404
+Data:
+  {
+    "userId": "abc-123",
+    "requestId": "req-456"
+  }
+```
 
 By standard, the client receives the following body when an error happens.
 
@@ -836,56 +1588,93 @@ The file's data will be available at `req.body.fileUri req.body.mimeType  req.bo
 
 ### Check Permission Middleware
 
-/!\ **Must be used in combination with AuthType.JWT**
+⚠️ **Must be used in combination with AuthType.JWT**
 
-Checks if the user has at least one of the required permissions. The permissions are case-insensitive.
+Role-based access control middleware that checks if the authenticated user has at least one of the required permissions. All permission checks are **case-insensitive** for maximum flexibility.
+
+#### Features
+
+- ✅ Single or multiple permission checking
+- ✅ Case-insensitive permission matching
+- ✅ Integration with JWT authentication
+- ✅ Clear error messages for debugging
+- ✅ TypeScript support
+
+#### Basic Usage
 
 ```javascript
 import { Endpoint, middleware, AuthType, Method } from 'node-server-engine';
 
+// Single permission check
+new Endpoint({
+  path: '/users',
+  method: Method.GET,
+  authType: AuthType.JWT,
+  middleware: [middleware.checkPermission('users:read')],
+  handler: (req, res) => {
+    res.json({ message: 'User list' });
+  }
+});
+
+// Multiple permissions (user needs at least ONE)
 new Endpoint({
   path: '/admin',
   method: Method.GET,
   authType: AuthType.JWT,
-  middleware: [middleware.checkPermission(['admin', 'superuser'])],
+  middleware: [middleware.checkPermission(['admin', 'superuser', 'moderator'])],
   handler: (req, res) => {
-    res.json({ message: 'Access granted' });
+    res.json({ message: 'Admin access granted' });
   }
 });
 ```
 
+#### User Object Structure
+
+The middleware expects `req.user` to contain a `permissions` array:
+
 ```typescript
-import { Request, Response, NextFunction } from 'express';
+interface User {
+  id: string;
+  permissions: string[]; // e.g., ['users:read', 'users:write', 'admin']
+}
+```
 
-// Middleware to check if the user has at least one of the required permissions (case-insensitive)
-export const checkPermission = (requiredActions: string | string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
+#### Examples
 
-    if (!user || !user.permissions) {
-      return res
-        .status(403)
-        .json({ message: 'User does not have permissions' });
-    }
+```javascript
+// Case-insensitive matching
+checkPermission('ADMIN')  // Matches: 'admin', 'Admin', 'ADMIN'
+checkPermission(['READ', 'write'])  // Matches any case variation
 
-    const requiredActionsArray = Array.isArray(requiredActions)
-      ? requiredActions
-      : [requiredActions];
+// Namespace-style permissions
+checkPermission('users:read')
+checkPermission(['users:write', 'users:delete'])
 
-    const requiredActionsLower = requiredActionsArray.map((action) =>
-      action.toLowerCase()
-    );
+// Role-based permissions
+checkPermission(['admin', 'moderator'])
+```
 
-    const hasPermission = user.permissions.some((permission: string) =>
-      requiredActionsLower.includes(permission.toLowerCase())
-    );
+#### Response Codes
 
-    if (!hasPermission) {
-      return res.status(403).json({ message: 'Permission denied' });
-    }
+- **200**: Permission granted, request proceeds
+- **403**: Permission denied
+  - No user authenticated
+  - User has no permissions array
+  - User lacks required permission(s)
 
-    next();
-  };
+#### Error Responses
+
+```json
+{
+  "message": "User does not have permissions"
+}
+```
+
+```json
+{
+  "message": "Permission denied"
+}
+```
 };
 ```
 
@@ -1238,3 +2027,122 @@ await wait(600);
 ```
 
 <!-- markdownlint-enable MD033 -->
+
+## Development
+
+### Prerequisites
+
+- Node.js 18.x or higher
+- npm 9.x or higher
+- Git
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/prakashmahendran/node-server-engine.git
+cd node-server-engine
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run coverage
+```
+
+### Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run build` | Compile TypeScript and generate distribution files |
+| `npm run lint` | Check code for linting errors |
+| `npm run lint:fix` | Automatically fix linting errors |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check code formatting without modifying files |
+| `npm test` | Run all tests with coverage |
+| `npm run test:file` | Run a specific test file |
+| `npm run coverage` | Generate HTML coverage report |
+| `npm run coverage:ci` | Generate coverage summary for CI |
+
+### Commit Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation.
+
+**Format:** `type(scope): subject`
+
+**Types:**
+- `feat`: New feature (triggers minor version bump)
+- `fix`: Bug fix (triggers patch version bump)
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, semicolons, etc.)
+- `refactor`: Code refactoring without feature changes
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+- `ci`: CI/CD changes
+
+**Examples:**
+```bash
+git commit -m "feat(endpoints): add support for GraphQL endpoints"
+git commit -m "fix(auth): resolve JWT token validation issue"
+git commit -m "docs(readme): update installation instructions"
+```
+
+**Breaking Changes:** Add `BREAKING CHANGE:` in the commit body to trigger a major version bump:
+```bash
+git commit -m "feat(api): redesign authentication flow" -m "BREAKING CHANGE: AuthType enum values changed"
+```
+
+### Automated Versioning
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated version management and package publishing.
+
+**How it works:**
+1. Commits are analyzed based on conventional commit format
+2. Version number is automatically determined (major.minor.patch)
+3. Changelog is generated from commit messages
+4. Git tag is created
+5. Package is published to npm
+6. GitHub release is created
+
+**When releases happen:**
+- Automatically on every push to `main` branch
+- Only if there are release-worthy commits (feat, fix, perf, BREAKING CHANGE)
+- Releases are skipped for commits with `[skip ci]` in the message
+
+## Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+1. **Fork the repository** and create your branch from `main`
+2. **Follow the commit convention** described above
+3. **Write or update tests** for your changes
+4. **Ensure all tests pass** before submitting
+5. **Update documentation** if needed
+6. **Submit a pull request** with a clear description
+
+### Code Style
+
+- This project uses ESLint and Prettier for code consistency
+- Run `npm run lint:fix` and `npm run format` before committing
+- Husky pre-commit hooks will automatically check your code
+
+## License
+
+ISC © Ram
+
+## Support
+
+- 📫 **Issues:** [GitHub Issues](https://github.com/prakashmahendran/node-server-engine/issues)
+- 📖 **Documentation:** [README](https://github.com/prakashmahendran/node-server-engine#readme)
+- 💬 **Discussions:** [GitHub Discussions](https://github.com/prakashmahendran/node-server-engine/discussions)
+
+---
+
+**Made with ❤️ for the Node.js community**

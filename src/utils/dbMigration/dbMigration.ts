@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-// Register ts-node at the top of runMigrations.ts
-require('ts-node/register');
-
 import { existsSync, lstatSync } from 'fs';
 import { join } from 'path';
 import { Sequelize, Transaction } from 'sequelize';
@@ -11,7 +7,7 @@ import { migrateMetadataTable } from './migrateMetadataTable';
 import { SequelizeMeta } from 'db/models';
 import { EngineError } from 'entities/EngineError';
 import { sequelize } from 'entities/Sequelize';
-import { reportDebug } from 'utils/report';
+import { reportDebug, reportInfo } from 'utils/report';
 import { semverCompare } from 'utils/semverCompare';
 
 const namespace = 'engine:utils:dbMigration';
@@ -57,17 +53,24 @@ export async function runPendingMigrations(): Promise<void> {
     return;
   }
 
-  migrationPaths?.forEach(async (path) => {
+  // Process migrations sequentially to avoid race conditions
+  for (const path of migrationPaths) {
     const migrator = new Umzug({
       migrations: {
         glob: path,
         resolve: ({ name, path, context }) => {
-          // Use require to import the migration file
-          const migration = require(path || '');
+          // Use dynamic import for better TypeScript/ES module support
+          const migrationPromise = import(path || '');
           return {
             name,
-            up: async () => migration.up(context),
-            down: async () => migration.down(context)
+            up: async () => {
+              const migration = await migrationPromise;
+              return migration.up(context);
+            },
+            down: async () => {
+              const migration = await migrationPromise;
+              return migration.down(context);
+            }
           };
         }
       },
@@ -82,8 +85,11 @@ export async function runPendingMigrations(): Promise<void> {
       data: { path }
     });
     await migrator.up();
-    console.log('Db Migration Completed');
-  });
+    reportInfo({
+      message: 'Database migration completed successfully',
+      data: { path }
+    });
+  }
 }
 
 /** Rollback all migrations up to a specified target version */
@@ -124,16 +130,23 @@ export async function rollbackMigrations(): Promise<void> {
     return;
   }
 
-  migrationPaths.forEach(async (path) => {
+  // Process rollback migrations sequentially
+  for (const path of migrationPaths) {
     const migrator = new Umzug({
       migrations: {
         glob: path,
         resolve: ({ name, path, context }) => {
-          const migration = require(path || '');
+          const migrationPromise = import(path || '');
           return {
             name,
-            up: async () => migration.up(context),
-            down: async () => migration.down(context)
+            up: async () => {
+              const migration = await migrationPromise;
+              return migration.up(context);
+            },
+            down: async () => {
+              const migration = await migrationPromise;
+              return migration.down(context);
+            }
           };
         }
       },
@@ -149,7 +162,7 @@ export async function rollbackMigrations(): Promise<void> {
     });
 
     await migrator.down({ to: rollbackUntil.name });
-  });
+  }
 }
 
 /**

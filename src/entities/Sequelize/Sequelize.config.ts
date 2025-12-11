@@ -18,14 +18,15 @@ const config: Options = {
     collate: 'utf8mb4_unicode_ci' // Set collation for MySQL/MariaDB
   },
   retry: {
-    max: 5 // Maximum retry attempts for failed queries
+    max: process.env.NODE_ENV === 'test' ? 0 : 3 // Disable retries in test environment to prevent unhandled rejections
   },
   dialectOptions: {},
   pool: {
-    max: 5,
+    max: process.env.NODE_ENV === 'test' ? 1 : 5,
     min: 0,
-    acquire: 30000, // Maximum time to wait for a connection
-    idle: 10000 // Maximum idle time for connections
+    acquire: process.env.NODE_ENV === 'test' ? 1000 : 30000, // Reduce acquire timeout in test
+    idle: process.env.NODE_ENV === 'test' ? 1000 : 10000, // Reduce idle time in test
+    evict: process.env.NODE_ENV === 'test' ? 100 : 1000 // How often to check for idle connections
   },
 };
 

@@ -7,8 +7,8 @@ import {
 } from './Localizator.types';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
-import { Storage } from 'entities/Storage';
-import { checkEnvironment } from 'utils/checkEnvironment';
+import { GoogleCloudStorage } from 'entities/GoogleCloudStorage';
+import { assertEnvironment } from 'utils/checkEnvironment';
 import { envAssert } from 'utils/envAssert';
 import { reportError, reportDebug } from 'utils/report';
 
@@ -23,7 +23,7 @@ let interval: NodeJS.Timeout | string | number | undefined;
 /** Service handling contextual localization */
 export const Localizator = {
   async init(): Promise<void> {
-    checkEnvironment({ LOCALES_BUCKET: envAssert.isString() });
+    assertEnvironment({ LOCALES_BUCKET: envAssert.isString() });
     await Localizator.synchronize();
     // Keep synchronizing
     interval = setInterval(() => {
@@ -43,7 +43,7 @@ export const Localizator = {
       message: `Starting download of localization file [${file}]`,
       data: { bucket: process.env.LOCALES_BUCKET, file }
     });
-    const { data } = await Storage.get(
+    const { data } = await GoogleCloudStorage.get(
       process.env.LOCALES_BUCKET as string,
       file
     );
@@ -134,6 +134,6 @@ export const Localizator = {
 
   /** Cleanup the instance */
   shutdown(): void {
-    if (interval) clearTimeout(interval);
+    if (interval) clearInterval(interval);
   }
 };

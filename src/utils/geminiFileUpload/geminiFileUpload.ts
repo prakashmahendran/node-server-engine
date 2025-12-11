@@ -1,6 +1,7 @@
 import { GoogleAIFileManager } from '@google/generative-ai/server';
 import fs from 'fs';
 import path from 'path';
+import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import tmp from 'tmp';
 import { reportError, reportDebug } from 'utils/report';
 
@@ -48,7 +49,7 @@ export async function geminiFileUpload(
     let geminiFile = await fileManager.getFile(file.name);
     while (geminiFile?.state === 'PROCESSING') {
       process.stdout.write('.');
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await setTimeoutPromise(10000);
       geminiFile = await fileManager.getFile(file.name);
     }
 

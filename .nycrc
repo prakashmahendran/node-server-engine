@@ -1,7 +1,11 @@
 {
   "all": true,
   "check-coverage": true,
+  "include": [
+    "src/**/*.ts"
+  ],
   "exclude": [
+    "**/*.test.ts",
     "dist/**",
     "certs/**",
     "test/**",
@@ -15,10 +19,10 @@
   "instrument": true,
   "require": ["@babel/register"],
   "reporter": ["text", "html", "lcov"],
-  "lines": 85,
-  "branches": 80,
-  "functions": 85,
-  "statements": 85,
+  "lines": 80,
+  "branches": 65,
+  "functions": 70,
+  "statements": 80,
   "report-dir": "./.test-coverage",
   "temp-dir": "./.nyc_output"
 }

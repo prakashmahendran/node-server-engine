@@ -168,7 +168,7 @@ export function generateJwtToken(user: unknown) {
     algorithm: 'ES256' as const, // or 'ES256' as Algorithm
     expiresIn: process.env.ACCESS_TOKEN_EXPIRATION_TIME
       ? parseInt(process.env.ACCESS_TOKEN_EXPIRATION_TIME, 10)
-      : undefined,
+      : 3600,
     issuer: process.env.ACCESS_TOKEN_ISSUER,
     audience: process.env.ACCESS_TOKEN_AUDIENCE,
     keyid: Object.keys(keySet?.getKeys() ?? {})[0]

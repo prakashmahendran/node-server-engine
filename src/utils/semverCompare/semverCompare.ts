@@ -6,26 +6,27 @@ const SEMVER_REGEX =
   /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:(alpha|beta|rc)(?:\.(0|[1-9]\d*))))?$/;
 
 /**
- * Comparison function for our SemVer strings, includes support ofr pre-releases
- * @param {string} v1
- * @param {string} v2
- * @return {number} - -1 if v1 < v2, 0 if v1 = v2, +1 if v1 > v2
+ * Comparison function for our SemVer strings, includes support for pre-releases
+ * @param v1 - First version string to compare
+ * @param v2 - Second version string to compare
+ * @returns -1 if v1 < v2, 0 if v1 = v2, +1 if v1 > v2
  */
 export function semverCompare(v1: string, v2: string): 1 | -1 | 0 {
   const [match1, match2] = [v1, v2].map((v) => v.match(SEMVER_REGEX));
-  if (!match1 || !match2)
+  
+  if (!match1 || !match2) {
     throw new EngineError({
-      message: 'Provided invalid SemVer string, can not compare',
+      message: 'Provided invalid SemVer string, cannot compare',
       data: { v1, v2 }
     });
+  }
+
   const [
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    [_1, major1, minor1, patch1, preType1, preVersion1],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    [_2, major2, minor2, patch2, preType2, preVersion2]
+    [, major1, minor1, patch1, preType1, preVersion1],
+    [, major2, minor2, patch2, preType2, preVersion2]
   ] = [match1, match2].map((group) =>
-    // We parse to int the parts that can be
-    group.map((item) => (item && validator.isInt(item) ? parseInt(item) : item))
+    // Parse numeric values
+    group.map((item) => (item && validator.isInt(item) ? parseInt(item, 10) : item))
   );
 
   // Compare majors first
