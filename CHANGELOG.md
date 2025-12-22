@@ -1,3 +1,9 @@
+## [1.10.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.3...v1.10.4) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* update logs to sequlize ([6c9869b](https://github.com/prakashmahendran/node-server-engine/commit/6c9869bb1a2d8f80d9af7c30afd933963b81ee7c))
+
 ## [1.10.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.2...v1.10.3) (2025-12-22)
 
 ### 🐛 Bug Fixes
