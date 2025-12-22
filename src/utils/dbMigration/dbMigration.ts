@@ -59,10 +59,12 @@ export async function runPendingMigrations(): Promise<void> {
       migrations: {
         glob: path,
         resolve: ({ name, path, context }) => {
+          const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
+          
           // Use dynamic import for better TypeScript/ES module support
           const migrationPromise = import(path || '');
           return {
-            name,
+            name: nameWithoutExtension,
             up: async () => {
               const migration = await migrationPromise;
               return migration.up(context);
@@ -136,9 +138,12 @@ export async function rollbackMigrations(): Promise<void> {
       migrations: {
         glob: path,
         resolve: ({ name, path, context }) => {
+          // Strip file extension to ensure consistent naming across .ts and .js files
+          const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
+          
           const migrationPromise = import(path || '');
           return {
-            name,
+            name: nameWithoutExtension,
             up: async () => {
               const migration = await migrationPromise;
               return migration.up(context);
