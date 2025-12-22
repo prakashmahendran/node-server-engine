@@ -40,57 +40,100 @@ function getMigrationPaths(): Array<string> | undefined {
 export async function runPendingMigrations(): Promise<void> {
   if (!sequelize)
     throw new EngineError({ message: 'Sequelize is not initialized' });
-  // First make sure that the metadata table is up to date
-  await migrateMetadataTable(sequelize);
-  const migrationPaths = getMigrationPaths();
-
-  if (!migrationPaths || migrationPaths.length <= 0) {
+  
+  try {
     reportDebug({
       namespace,
-      message: 'No valid migration paths found.',
-      data: { migrationPaths }
-    });
-    return;
-  }
-
-  // Process migrations sequentially to avoid race conditions
-  for (const path of migrationPaths) {
-    const migrator = new Umzug({
-      migrations: {
-        glob: path,
-        resolve: ({ name, path, context }) => {
-          const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
-          
-          // Use dynamic import for better TypeScript/ES module support
-          const migrationPromise = import(path || '');
-          return {
-            name: nameWithoutExtension,
-            up: async () => {
-              const migration = await migrationPromise;
-              return migration.up(context);
-            },
-            down: async () => {
-              const migration = await migrationPromise;
-              return migration.down(context);
-            }
-          };
-        }
-      },
-      context: sequelize.getQueryInterface(),
-      storage: new SequelizeStorage({ sequelize }),
-      logger: console
+      message: 'Starting migration process',
+      data: {
+        sqlHost: process.env.SQL_HOST,
+        sqlDb: process.env.SQL_DB,
+        sqlUser: process.env.SQL_USER,
+        nodeEnv: process.env.NODE_ENV
+      }
     });
 
+    // First make sure that the metadata table is up to date
     reportDebug({
       namespace,
-      message: 'Starting pending database migrations',
-      data: { path }
+      message: 'Migrating metadata table'
     });
-    await migrator.up();
-    reportInfo({
-      message: 'Database migration completed successfully',
-      data: { path }
+    await migrateMetadataTable(sequelize);
+    
+    const migrationPaths = getMigrationPaths();
+
+    if (!migrationPaths || migrationPaths.length <= 0) {
+      reportDebug({
+        namespace,
+        message: 'No valid migration paths found.',
+        data: { migrationPaths }
+      });
+      return;
+    }
+
+    // Process migrations sequentially to avoid race conditions
+    for (const path of migrationPaths) {
+      reportDebug({
+        namespace,
+        message: 'Processing migration path',
+        data: { path }
+      });
+
+      const migrator = new Umzug({
+        migrations: {
+          glob: path,
+          resolve: ({ name, path, context }) => {
+            const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
+            
+            // Use dynamic import for better TypeScript/ES module support
+            const migrationPromise = import(path || '');
+            return {
+              name: nameWithoutExtension,
+              up: async () => {
+                reportDebug({
+                  namespace,
+                  message: `Running migration: ${nameWithoutExtension}`
+                });
+                const migration = await migrationPromise;
+                return migration.up(context);
+              },
+              down: async () => {
+                const migration = await migrationPromise;
+                return migration.down(context);
+              }
+            };
+          }
+        },
+        context: sequelize.getQueryInterface(),
+        storage: new SequelizeStorage({ sequelize }),
+        logger: console
+      });
+
+      reportDebug({
+        namespace,
+        message: 'Starting pending database migrations',
+        data: { path }
+      });
+      
+      await migrator.up();
+      
+      reportInfo({
+        message: 'Database migration completed successfully',
+        data: { path }
+      });
+    }
+  } catch (error) {
+    reportDebug({
+      namespace,
+      message: 'Migration failed with error',
+      data: {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        sqlHost: process.env.SQL_HOST,
+        sqlDb: process.env.SQL_DB
+      }
     });
+    throw error;
   }
 }
 

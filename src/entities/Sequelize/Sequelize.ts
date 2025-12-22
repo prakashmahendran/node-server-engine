@@ -43,10 +43,44 @@ export function init(): void {
   // In test environment, authentication happens automatically with SQLite
   // For other environments, authenticate and log the result
   if (process.env.NODE_ENV !== 'test') {
+    // Add timeout to prevent hanging on connection issues
+    const authTimeout = setTimeout(() => {
+      reportError({
+        message: 'Database authentication timeout after 30 seconds',
+        data: {
+          host: process.env.SQL_HOST,
+          database: process.env.SQL_DB,
+          user: process.env.SQL_USER
+        }
+      });
+    }, 30000);
+
     void sequelizeClient
       .authenticate()
-      .then(() => reportInfo({ message: 'Connected to database successfully' }))
-      .catch((err: Error) => reportError(err));
+      .then(() => {
+        clearTimeout(authTimeout);
+        reportInfo({ 
+          message: 'Connected to database successfully',
+          data: {
+            host: process.env.SQL_HOST,
+            database: process.env.SQL_DB,
+            dialect: sequelizeClient?.getDialect()
+          }
+        });
+      })
+      .catch((err: Error) => {
+        clearTimeout(authTimeout);
+        reportError({
+          message: 'Failed to connect to database',
+          data: {
+            error: err.message,
+            host: process.env.SQL_HOST,
+            database: process.env.SQL_DB,
+            user: process.env.SQL_USER
+          }
+        });
+        reportError(err);
+      });
   }
   
   LifecycleController.register(sequelize);
@@ -75,6 +109,31 @@ export function addModels(models: Array<ModelCtor>): void {
       message: 'Sequelize client was not initialized'
     });
   sequelizeClient.addModels(models);
+  
+  // Override toJSON behavior globally to ensure consistency between dev and prod
+  // In dev (ts-node), property access works directly on instances
+  // In prod (compiled), we need explicit serialization
+  // This hook intercepts all afterFind results and converts them to plain objects
+  sequelizeClient.addHook('afterFind', (result) => {
+    if (!result) return;
+    
+    const convertToPlain = (instance: any) => {
+      if (!instance || !instance.toJSON) return instance;
+      const plain = instance.toJSON();
+      // Copy the plain object properties back to the instance
+      // This makes property access work without .toJSON() in compiled code
+      Object.keys(plain).forEach(key => {
+        instance[key] = plain[key];
+      });
+    };
+    
+    if (Array.isArray(result)) {
+      result.forEach(convertToPlain);
+    } else {
+      convertToPlain(result);
+    }
+  });
+  
   sequelizeClient.sync();
 }
 

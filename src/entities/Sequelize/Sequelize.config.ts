@@ -4,14 +4,18 @@ import { validateSequelizeEnvironment } from './Sequelize.validate';
 // Check that environment variables are correctly set
 validateSequelizeEnvironment();
 
+// Check if SQL_HOST is a Unix socket path (Cloud SQL)
+const isUnixSocket = process.env.SQL_HOST?.startsWith('/');
+
 const config: Options = {
   username: process.env.SQL_USER,
   password: process.env.SQL_PASSWORD,
   database: process.env.SQL_DB,
   host: process.env.SQL_HOST,
-  port: process.env.SQL_PORT ? parseInt(process.env.SQL_PORT) : 5432, // Default port for PostgreSQL
+  // Don't set port for Unix socket connections (Cloud SQL)
+  port: isUnixSocket ? undefined : (process.env.SQL_PORT ? parseInt(process.env.SQL_PORT) : 5432),
   dialect: (process.env.SQL_TYPE ?? 'postgres') as Dialect, // Dynamically set the dialect (postgres, mysql, mssql)
-  logging: false, // Set to true for debugging SQL queries
+  logging: process.env.SQL_LOGGING === 'true' ? console.log : false, // Enable SQL logging with SQL_LOGGING=true
   define: {
     freezeTableName: false, // Prevent automatic pluralization of table names
     charset: 'utf8mb4', // Set character set for MySQL/MariaDB
