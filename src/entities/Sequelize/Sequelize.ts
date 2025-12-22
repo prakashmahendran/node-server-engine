@@ -38,11 +38,28 @@ export const sequelize = new Proxy<SequelizeInterface>(
 export function init(): void {
   // Ignore if already initialized
   if (sequelizeClient) return;
+  
+  reportInfo({
+    message: 'Initializing Sequelize client',
+    data: {
+      host: process.env.SQL_HOST,
+      database: process.env.SQL_DB,
+      user: process.env.SQL_USER,
+      port: process.env.SQL_PORT,
+      dialect: process.env.SQL_TYPE || 'postgres',
+      isUnixSocket: process.env.SQL_HOST?.startsWith('/')
+    }
+  });
+  
   sequelizeClient = createSequelizeClient();
   
   // In test environment, authentication happens automatically with SQLite
   // For other environments, authenticate and log the result
   if (process.env.NODE_ENV !== 'test') {
+    reportInfo({
+      message: 'Starting database authentication'
+    });
+
     // Add timeout to prevent hanging on connection issues
     const authTimeout = setTimeout(() => {
       reportError({
@@ -50,7 +67,10 @@ export function init(): void {
         data: {
           host: process.env.SQL_HOST,
           database: process.env.SQL_DB,
-          user: process.env.SQL_USER
+          user: process.env.SQL_USER,
+          port: process.env.SQL_PORT,
+          dialect: process.env.SQL_TYPE || 'postgres',
+          isUnixSocket: process.env.SQL_HOST?.startsWith('/')
         }
       });
     }, 30000);
@@ -74,9 +94,11 @@ export function init(): void {
           message: 'Failed to connect to database',
           data: {
             error: err.message,
+            stack: err.stack,
             host: process.env.SQL_HOST,
             database: process.env.SQL_DB,
-            user: process.env.SQL_USER
+            user: process.env.SQL_USER,
+            port: process.env.SQL_PORT
           }
         });
         reportError(err);
@@ -150,6 +172,21 @@ export function createSequelizeClient(): Sequelize {
   
   // Throw an error if there is no host initial
   validateSequelizeEnvironment();
+  
+  reportInfo({
+    message: 'Creating Sequelize client with config',
+    data: {
+      database: process.env.SQL_DB,
+      username: process.env.SQL_USER,
+      host: process.env.SQL_HOST,
+      port: dbConfig.port,
+      dialect: dbConfig.dialect,
+      isUnixSocket: process.env.SQL_HOST?.startsWith('/'),
+      poolMax: dbConfig.pool?.max,
+      poolMin: dbConfig.pool?.min
+    }
+  });
+  
   return new Sequelize(
     process.env.SQL_DB as string,
     process.env.SQL_USER as string,
