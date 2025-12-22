@@ -35,7 +35,7 @@ export const sequelize = new Proxy<SequelizeInterface>(
 );
 
 /** On init create client and connect */
-export function init(): void {
+export async function init(): Promise<void> {
   // Ignore if already initialized
   if (sequelizeClient) return;
   
@@ -60,49 +60,33 @@ export function init(): void {
       message: 'Starting database authentication'
     });
 
-    // Add timeout to prevent hanging on connection issues
-    const authTimeout = setTimeout(() => {
-      reportError({
-        message: 'Database authentication timeout after 30 seconds',
+    try {
+      await sequelizeClient.authenticate();
+      reportInfo({ 
+        message: 'Connected to database successfully',
         data: {
           host: process.env.SQL_HOST,
           database: process.env.SQL_DB,
-          user: process.env.SQL_USER,
-          port: process.env.SQL_PORT,
-          dialect: process.env.SQL_TYPE || 'postgres',
-          isUnixSocket: process.env.SQL_HOST?.startsWith('/')
+          dialect: sequelizeClient?.getDialect()
         }
       });
-    }, 30000);
-
-    void sequelizeClient
-      .authenticate()
-      .then(() => {
-        clearTimeout(authTimeout);
-        reportInfo({ 
-          message: 'Connected to database successfully',
-          data: {
-            host: process.env.SQL_HOST,
-            database: process.env.SQL_DB,
-            dialect: sequelizeClient?.getDialect()
-          }
-        });
-      })
-      .catch((err: Error) => {
-        clearTimeout(authTimeout);
-        reportError({
-          message: 'Failed to connect to database',
-          data: {
-            error: err.message,
-            stack: err.stack,
-            host: process.env.SQL_HOST,
-            database: process.env.SQL_DB,
-            user: process.env.SQL_USER,
-            port: process.env.SQL_PORT
-          }
-        });
-        reportError(err);
+    } catch (err) {
+      reportError({
+        message: 'Failed to connect to database',
+        data: {
+          error: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined,
+          host: process.env.SQL_HOST,
+          database: process.env.SQL_DB,
+          user: process.env.SQL_USER,
+          port: process.env.SQL_PORT
+        }
       });
+      if (err instanceof Error) {
+        reportError(err);
+      }
+      throw err;
+    }
   }
   
   LifecycleController.register(sequelize);
