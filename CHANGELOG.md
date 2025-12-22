@@ -1,3 +1,9 @@
+## [1.10.6](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.5...v1.10.6) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* Sequlize package ([c04ddb6](https://github.com/prakashmahendran/node-server-engine/commit/c04ddb60890790bbfec5ac861624cae69dff30b6))
+
 ## [1.10.5](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.4...v1.10.5) (2025-12-22)
 
 ### 🐛 Bug Fixes
