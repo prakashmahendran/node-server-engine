@@ -1,3 +1,9 @@
+## [1.10.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.1...v1.10.2) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* migration script issue ([9b964f5](https://github.com/prakashmahendran/node-server-engine/commit/9b964f51f3ecddd1ff0871dd40be333f5c471358))
+
 ## [1.10.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.0...v1.10.1) (2025-12-10)
 
 ### 🐛 Bug Fixes
