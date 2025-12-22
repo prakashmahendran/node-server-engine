@@ -1,6 +1,6 @@
 {
   "name": "node-server-engine",
-  "version": "1.10.3",
+  "version": "1.10.5",
   "description": "Framework used to develop backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.",
   "main": "dist/index.js",
   "scripts": {
