@@ -1,3 +1,33 @@
+## [1.10.6](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.5...v1.10.6) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* Sequlize package ([c04ddb6](https://github.com/prakashmahendran/node-server-engine/commit/c04ddb60890790bbfec5ac861624cae69dff30b6))
+
+## [1.10.5](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.4...v1.10.5) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* sequlize issue ([60a0202](https://github.com/prakashmahendran/node-server-engine/commit/60a0202821548ea3cb83c35727d6f918f9c63584))
+
+## [1.10.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.3...v1.10.4) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* update logs to sequlize ([6c9869b](https://github.com/prakashmahendran/node-server-engine/commit/6c9869bb1a2d8f80d9af7c30afd933963b81ee7c))
+
+## [1.10.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.2...v1.10.3) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* update package json ([e72ed79](https://github.com/prakashmahendran/node-server-engine/commit/e72ed79e8f1f3c95f8d00cade71d2b5e811de410))
+
+## [1.10.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.1...v1.10.2) (2025-12-22)
+
+### 🐛 Bug Fixes
+
+* migration script issue ([9b964f5](https://github.com/prakashmahendran/node-server-engine/commit/9b964f51f3ecddd1ff0871dd40be333f5c471358))
+
 ## [1.10.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.0...v1.10.1) (2025-12-10)
 
 ### 🐛 Bug Fixes

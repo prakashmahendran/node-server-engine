@@ -1,6 +1,6 @@
 import { Sequelize, QueryTypes } from 'sequelize';
 import { SequelizeMeta } from 'db/models';
-import { reportDebug } from 'utils/report';
+import { reportDebug, reportError } from 'utils/report';
 
 const namespace = 'engine:utils:dbMigration';
 
@@ -12,14 +12,21 @@ const namespace = 'engine:utils:dbMigration';
 export async function migrateMetadataTable(
   sequelize: Sequelize
 ): Promise<void> {
-  reportDebug({ namespace, message: 'Executing metadata migration routine' });
+  try {
+    reportDebug({ namespace, message: 'Executing metadata migration routine' });
 
-  const query = `SELECT table_name FROM information_schema.tables`;
+    const query = `SELECT table_name FROM information_schema.tables`;
 
-  // We check if we have a custom sequelize_meta table yet
-  const tables = await sequelize.query<Array<string>>(query, {
-    type: QueryTypes.SELECT
-  });
+    reportDebug({ 
+      namespace, 
+      message: 'Checking for existing metadata tables',
+      data: { sqlType: process.env.SQL_TYPE }
+    });
+
+    // We check if we have a custom sequelize_meta table yet
+    const tables = await sequelize.query<Array<string>>(query, {
+      type: QueryTypes.SELECT
+    });
 
   const hasCustomSequelizeMeta =
     process.env.SQL_TYPE === 'postgres'
@@ -63,7 +70,13 @@ export async function migrateMetadataTable(
     }
 
     // Create the new sequelize_meta table if it does not exist
+    reportDebug({ 
+      namespace, 
+      message: 'Creating sequelize_meta table',
+      data: { sqlType: process.env.SQL_TYPE }
+    });
     await sequelize.query(createTableQuery, { type: QueryTypes.RAW });
+    reportDebug({ namespace, message: 'sequelize_meta table created successfully' });
 
     // Migrate the data from the old table to the new one if needed
     if (hasLegacySequelizeMeta) {
@@ -98,5 +111,18 @@ export async function migrateMetadataTable(
 
       await sequelize.query(insertQuery, { type: QueryTypes.INSERT });
     }
+  }
+  } catch (error) {
+    reportError({
+      namespace,
+      message: 'Error in metadata migration',
+      data: {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        sqlType: process.env.SQL_TYPE,
+        sqlHost: process.env.SQL_HOST
+      }
+    });
+    throw error;
   }
 }

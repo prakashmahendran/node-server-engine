@@ -35,18 +35,58 @@ export const sequelize = new Proxy<SequelizeInterface>(
 );
 
 /** On init create client and connect */
-export function init(): void {
+export async function init(): Promise<void> {
   // Ignore if already initialized
   if (sequelizeClient) return;
+  
+  reportInfo({
+    message: 'Initializing Sequelize client',
+    data: {
+      host: process.env.SQL_HOST,
+      database: process.env.SQL_DB,
+      user: process.env.SQL_USER,
+      port: process.env.SQL_PORT,
+      dialect: process.env.SQL_TYPE || 'postgres',
+      isUnixSocket: process.env.SQL_HOST?.startsWith('/')
+    }
+  });
+  
   sequelizeClient = createSequelizeClient();
   
   // In test environment, authentication happens automatically with SQLite
   // For other environments, authenticate and log the result
   if (process.env.NODE_ENV !== 'test') {
-    void sequelizeClient
-      .authenticate()
-      .then(() => reportInfo({ message: 'Connected to database successfully' }))
-      .catch((err: Error) => reportError(err));
+    reportInfo({
+      message: 'Starting database authentication'
+    });
+
+    try {
+      await sequelizeClient.authenticate();
+      reportInfo({ 
+        message: 'Connected to database successfully',
+        data: {
+          host: process.env.SQL_HOST,
+          database: process.env.SQL_DB,
+          dialect: sequelizeClient?.getDialect()
+        }
+      });
+    } catch (err) {
+      reportError({
+        message: 'Failed to connect to database',
+        data: {
+          error: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined,
+          host: process.env.SQL_HOST,
+          database: process.env.SQL_DB,
+          user: process.env.SQL_USER,
+          port: process.env.SQL_PORT
+        }
+      });
+      if (err instanceof Error) {
+        reportError(err);
+      }
+      throw err;
+    }
   }
   
   LifecycleController.register(sequelize);
@@ -75,6 +115,31 @@ export function addModels(models: Array<ModelCtor>): void {
       message: 'Sequelize client was not initialized'
     });
   sequelizeClient.addModels(models);
+  
+  // Override toJSON behavior globally to ensure consistency between dev and prod
+  // In dev (ts-node), property access works directly on instances
+  // In prod (compiled), we need explicit serialization
+  // This hook intercepts all afterFind results and converts them to plain objects
+  sequelizeClient.addHook('afterFind', (result) => {
+    if (!result) return;
+    
+    const convertToPlain = (instance: any) => {
+      if (!instance || !instance.toJSON) return instance;
+      const plain = instance.toJSON();
+      // Copy the plain object properties back to the instance
+      // This makes property access work without .toJSON() in compiled code
+      Object.keys(plain).forEach(key => {
+        instance[key] = plain[key];
+      });
+    };
+    
+    if (Array.isArray(result)) {
+      result.forEach(convertToPlain);
+    } else {
+      convertToPlain(result);
+    }
+  });
+  
   sequelizeClient.sync();
 }
 
@@ -91,6 +156,21 @@ export function createSequelizeClient(): Sequelize {
   
   // Throw an error if there is no host initial
   validateSequelizeEnvironment();
+  
+  reportInfo({
+    message: 'Creating Sequelize client with config',
+    data: {
+      database: process.env.SQL_DB,
+      username: process.env.SQL_USER,
+      host: process.env.SQL_HOST,
+      port: dbConfig.port,
+      dialect: dbConfig.dialect,
+      isUnixSocket: process.env.SQL_HOST?.startsWith('/'),
+      poolMax: dbConfig.pool?.max,
+      poolMin: dbConfig.pool?.min
+    }
+  });
+  
   return new Sequelize(
     process.env.SQL_DB as string,
     process.env.SQL_USER as string,
