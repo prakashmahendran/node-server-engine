@@ -1,3 +1,9 @@
+## [1.10.8](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.7...v1.10.8) (2025-12-24)
+
+### 🐛 Bug Fixes
+
+* package version ([9f6ed34](https://github.com/prakashmahendran/node-server-engine/commit/9f6ed342abb45a07ad725fa869b2307010121a4a))
+
 ## [1.10.7](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.6...v1.10.7) (2025-12-24)
 
 ### 🐛 Bug Fixes
