@@ -1,3 +1,9 @@
+## [1.10.7](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.6...v1.10.7) (2025-12-24)
+
+### 🐛 Bug Fixes
+
+* fileupload size limit ([f1b7726](https://github.com/prakashmahendran/node-server-engine/commit/f1b77266199b1d1a743b2bc64c1739e6e6f5bd1e))
+
 ## [1.10.6](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.5...v1.10.6) (2025-12-22)
 
 ### 🐛 Bug Fixes
