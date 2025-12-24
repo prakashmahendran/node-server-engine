@@ -32,9 +32,14 @@ export function fileUploader(
 
     // Setup multer with memory storage
     const storage = multer.memoryStorage();
+    // Resolve global per-file upload size from env (e.g. "32MB") or fallback to 32MB
+    const globalMaxSize =
+      (process.env.UPLOAD_MAX_SIZE && bytes(process.env.UPLOAD_MAX_SIZE)) ||
+      32 * 1024 * 1024;
+
     const upload = multer({
       storage,
-      limits: { fileSize: 32 * 1024 * 1024 } // Default global limit (10MB)
+      limits: { fileSize: globalMaxSize } // Global per-file limit (bytes)
     }).any();
 
     upload(request, response, async (err) => {
