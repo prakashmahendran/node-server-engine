@@ -1,3 +1,27 @@
+## [1.10.10](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.9...v1.10.10) (2025-12-24)
+
+### 🐛 Bug Fixes
+
+* Multipart upload ([f7a2e7e](https://github.com/prakashmahendran/node-server-engine/commit/f7a2e7e77a928592b4ba81fcd4337bb8f3bde78d))
+
+## [1.10.9](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.8...v1.10.9) (2025-12-24)
+
+### 🐛 Bug Fixes
+
+* package json ([a5ceb78](https://github.com/prakashmahendran/node-server-engine/commit/a5ceb78b41b47b4b28f9da54a718cfbc1468f981))
+
+## [1.10.8](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.7...v1.10.8) (2025-12-24)
+
+### 🐛 Bug Fixes
+
+* package version ([9f6ed34](https://github.com/prakashmahendran/node-server-engine/commit/9f6ed342abb45a07ad725fa869b2307010121a4a))
+
+## [1.10.7](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.6...v1.10.7) (2025-12-24)
+
+### 🐛 Bug Fixes
+
+* fileupload size limit ([f1b7726](https://github.com/prakashmahendran/node-server-engine/commit/f1b77266199b1d1a743b2bc64c1739e6e6f5bd1e))
+
 ## [1.10.6](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.5...v1.10.6) (2025-12-22)
 
 ### 🐛 Bug Fixes

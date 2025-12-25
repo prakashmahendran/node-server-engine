@@ -7,6 +7,7 @@ import { reportDebug, reportError } from 'utils';
 import { WebError } from 'entities/WebError';
 import { validate } from './validate';
 import { MultiPartFileUploaderConfig } from './multiPartFileUploader.types';
+import bytes from 'bytes';
 
 const namespace = 'engine:middleware:multiPartFileUploader';
 
@@ -101,7 +102,7 @@ export function multiPartFileUploader(
 
         if (
           filesOption?.maxSize &&
-          req.file.size > parseInt(filesOption?.maxSize, 10)
+          req.file.size > (bytes(filesOption.maxSize) || 0)
         ) {
           return next(
             new WebError({
@@ -214,12 +215,20 @@ async function mergeChunks(
     data: { finalFilePath }
   });
 
-  for (let i = 0; i < parseInt(totalChunks as string, 10); i++) {
+  const totalChunksNum = parseInt(totalChunks as string, 10);
+  const chunks: Buffer[] = [];
+
+  // Read all chunks into memory first
+  for (let i = 0; i < totalChunksNum; i++) {
     const partPath = path.join(sessionFolder, `${filename}.part${i}`);
     try {
       const chunkData = await fs.readFile(partPath);
-      writeStream.write(chunkData);
+      chunks.push(chunkData);
     } catch (error) {
+      // Cleanup on error
+      await fs.remove(sessionFolder).catch((cleanupErr: Error) =>
+        reportError(`Error cleaning up folder ${sessionFolder}: ${cleanupErr.message}`)
+      );
       throw new WebError({
         statusCode: 500,
         errorCode: 'chunk-read-failed',
@@ -227,6 +236,16 @@ async function mergeChunks(
         data: { error: (error as Error).message }
       });
     }
+  }
+
+  // Write all chunks sequentially
+  for (const chunkData of chunks) {
+    writeStream.write(chunkData);
+  }
+
+  // Remove temp files
+  for (let i = 0; i < totalChunksNum; i++) {
+    const partPath = path.join(sessionFolder, `${filename}.part${i}`);
     fs.remove(partPath).catch((err: Error) =>
       reportError(`Error removing part ${partPath}: ${err.message}`)
     );
@@ -234,8 +253,22 @@ async function mergeChunks(
 
   writeStream.end();
   return new Promise<void>((resolve, reject) => {
-    writeStream.on('finish', () => resolve(undefined));
-    writeStream.on('error', (error) =>
+    writeStream.on('finish', () => {
+      // Clean up temp folder after successful merge
+      fs.remove(sessionFolder)
+        .then(() => resolve(undefined))
+        .catch((cleanupErr: Error) => {
+          reportError(
+            `Error cleaning up temp folder ${sessionFolder}: ${cleanupErr.message}`
+          );
+          resolve(undefined); // Don't fail the merge if cleanup fails
+        });
+    });
+    writeStream.on('error', (error) => {
+      // Cleanup on write error
+      fs.remove(sessionFolder).catch((cleanupErr: Error) =>
+        reportError(`Error cleaning up folder after write error: ${cleanupErr.message}`)
+      );
       reject(
         new WebError({
           statusCode: 500,
@@ -243,7 +276,7 @@ async function mergeChunks(
           message: 'Error merging file chunks',
           data: { error: (error as Error).message }
         })
-      )
-    );
+      );
+    });
   });
 }
