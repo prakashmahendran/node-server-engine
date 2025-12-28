@@ -6,7 +6,8 @@ import {
   healthCheck,
   version,
   swaggerDocs,
-  requestLogger
+  requestLogger,
+  requestMetrics
 } from 'middleware';
 
 // Default middleware that are applied first thing on the primary port, before the business logic endpoints
@@ -17,6 +18,7 @@ export const defaultMiddleware: Array<RequestHandler> = [
     extended: true,
     limit: process.env.REQUEST_SIZE_LIMIT ?? '1mb'
   }),
+  requestMetrics,
   metrics(),
   version()
 ].filter((val) => val);
@@ -28,6 +30,7 @@ export const defaultErrorMiddleware: Array<
 
 // Middleware that are served on the secondary port
 export const secondaryMiddleware: Array<RequestHandler> = [
+  requestMetrics,
   metrics(),
   version(),
   swaggerDocs()

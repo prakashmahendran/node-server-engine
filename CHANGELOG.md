@@ -1,3 +1,9 @@
+## [1.10.11](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.10...v1.10.11) (2025-12-26)
+
+### 🐛 Bug Fixes
+
+* add metrics in the server engine ([0758026](https://github.com/prakashmahendran/node-server-engine/commit/07580269e16cd363df19b5b19a98639da9657848))
+
 ## [1.10.10](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.9...v1.10.10) (2025-12-24)
 
 ### 🐛 Bug Fixes
