@@ -1,3 +1,9 @@
+## [1.10.13](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.12...v1.10.13) (2026-01-04)
+
+### 🐛 Bug Fixes
+
+* pubsub issues ([228471c](https://github.com/prakashmahendran/node-server-engine/commit/228471c14ea873ed6c1eee7cb9d55c15de84e276))
+
 ## [1.10.12](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.11...v1.10.12) (2025-12-29)
 
 ### 🐛 Bug Fixes
