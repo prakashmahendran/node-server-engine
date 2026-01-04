@@ -15,17 +15,20 @@ describe('Entity - PushNotification', () => {
     process.env = originalEnv;
   });
 
-  it('should throw if PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC is not set', () => {
+  it('should throw if PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC is not set', async () => {
     delete process.env.PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC;
-    expect(() => PushNotification.init()).to.throw(EngineError);
+    await expect(PushNotification.init()).to.be.rejectedWith(EngineError);
   });
 
-  it('should register publisher on init when topic is set', () => {
+  it('should register publisher on init when topic is set', async () => {
     process.env.PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC = 'push-topic';
     const addPublisherStub = stub(PubSub, 'addPublisher');
     try {
-      PushNotification.init();
-      expect(addPublisherStub.calledOnceWith('push-topic')).to.equal(true);
+      await PushNotification.init();
+      expect(addPublisherStub.calledOnce).to.equal(true);
+      expect(addPublisherStub.firstCall.args[0]).to.equal('push-topic');
+      // Check that options were passed
+      expect(addPublisherStub.firstCall.args[1]).to.be.an('object');
     } finally {
       addPublisherStub.restore();
     }

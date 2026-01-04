@@ -8,7 +8,8 @@ import {
   PubSubTopicsMap,
   PubSubSubscriptionsMap,
   PubSubAddSubscriberOptions,
-  PubSubMessageHandler
+  PubSubMessageHandler,
+  PubSubPublisherOptions
 } from './PubSub.types';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
@@ -121,18 +122,49 @@ export const PubSub = {
 
   /**
    * Creates a publisher if it does not exist yet
+   * @param topic - Topic name or array of topic names
+   * @param options - Publisher configuration options
    */
-  addPublisher(topic: string | Array<string>): void {
+  addPublisher(
+    topic: string | Array<string>,
+    options?: PubSubPublisherOptions
+  ): void {
     const topicArray = topic instanceof Array ? topic : [topic];
     reportDebug({
       namespace,
-      message: `Registering publisher for topics '${topicArray.join("', '")}'`
+      message: `Registering publisher for topics '${topicArray.join("', '")}'`,
+      data: options
     });
     // Register a new topic if it does not exist yet
     for (const topic of topicArray) {
       if (!Object.keys(topics).includes(topic)) {
         topics[topic] = pubSubClient.topic(topic, {
-          enableOpenTelemetryTracing: true
+          enableOpenTelemetryTracing: true,
+          messageOrdering: options?.enableMessageOrdering ?? false,
+          batching: options?.batching
+            ? {
+                maxMessages: options.batching.maxMessages ?? 100,
+                maxBytes: options.batching.maxBytes ?? 1024 * 1024, // 1MB
+                maxMilliseconds: options.batching.maxMilliseconds ?? 100
+              }
+            : undefined,
+          gaxOpts: options?.retry
+            ? {
+                retry: {
+                  retryCodes: [10, 14], // ABORTED, UNAVAILABLE
+                  backoffSettings: {
+                    initialRetryDelayMillis:
+                      options.retry.initialDelayMillis ?? 100,
+                    maxRetryDelayMillis: options.retry.maxDelayMillis ?? 60000,
+                    retryDelayMultiplier: options.retry.delayMultiplier ?? 1.3,
+                    initialRpcTimeoutMillis: 60000,
+                    maxRpcTimeoutMillis: 600000,
+                    rpcTimeoutMultiplier: 1.0,
+                    totalTimeoutMillis: 600000
+                  }
+                }
+              }
+            : undefined
         });
       }
     }
@@ -152,16 +184,35 @@ export const PubSub = {
     const handlers = handler instanceof Array ? handler : [handler];
     const isDebezium = options?.isDebezium ?? false;
     const first = options?.first ?? false;
+    const flowControl = options?.flowControl;
+    const ackDeadline = options?.ackDeadline;
 
     reportDebug({
       namespace,
       message: `Registering subscriber for subscription '${subscription}'`,
-      data: { first, handlersCount: handlers.length, isDebezium }
+      data: {
+        first,
+        handlersCount: handlers.length,
+        isDebezium,
+        flowControl
+      }
     });
     if (!Object.keys(subscriptions).includes(subscription)) {
       subscriptions[subscription] = {
         subscription: pubSubClient.subscription(subscription, {
-          enableOpenTelemetryTracing: true
+          enableOpenTelemetryTracing: true,
+          flowControl: flowControl
+            ? {
+                maxMessages: flowControl.maxMessages ?? 1000,
+                maxBytes: flowControl.maxBytes ?? 100 * 1024 * 1024, // 100MB
+                allowExcessMessages: flowControl.allowExcessMessages ?? true
+              }
+            : {
+                maxMessages: 1000,
+                maxBytes: 100 * 1024 * 1024,
+                allowExcessMessages: true
+              },
+          ackDeadline: ackDeadline ?? 60
         }),
         handlers: []
       };

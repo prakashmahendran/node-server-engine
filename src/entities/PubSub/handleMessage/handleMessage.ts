@@ -24,8 +24,6 @@ export async function handleMessage(
     message: `Received message from Pub/Sub [${subscription.name}]`
   });
 
-  message.ack();
-
   let payload;
   try {
     payload = JSON.parse(message.data.toString()) as unknown;
@@ -47,19 +45,39 @@ export async function handleMessage(
           data: { subscription, message: message.data.toString() }
         });
     }
-  } catch {
-    throw new EngineError({
-      severity: LogSeverity.WARNING,
-      message: `Pub/Sub message is not valid JSON ${subscription.name}`,
-      data: { subscription, message: message.data.toString() }
-    });
+  } catch (error) {
+    reportError(
+      new EngineError({
+        severity: LogSeverity.WARNING,
+        message: `Pub/Sub message is not valid JSON ${subscription.name}`,
+        data: { subscription, message: message.data.toString() }
+      })
+    );
+    // Acknowledge invalid messages to prevent redelivery
+    message.ack();
+    return;
   }
 
+  // Process all handlers
+  let hasError = false;
   for (const handler of handlers) {
     try {
       await handler(payload, message.attributes, message.publishTime);
     } catch (error) {
+      hasError = true;
       reportError(error);
     }
+  }
+
+  // Acknowledge message only after successful processing
+  // If there was an error, nack the message so it can be redelivered
+  if (hasError) {
+    reportDebug({
+      namespace,
+      message: `Nacking message due to handler errors [${subscription.name}]`
+    });
+    message.nack();
+  } else {
+    message.ack();
   }
 }
