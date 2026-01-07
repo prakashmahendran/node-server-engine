@@ -25,6 +25,41 @@ export interface PubSubAddSubscriberOptions {
   first?: boolean;
   /** Indicates that the topic is a Debezium CDC topic, additional processing is done on the message */
   isDebezium?: boolean;
+  /** Flow control settings for the subscriber */
+  flowControl?: {
+    /** Maximum number of messages to process concurrently */
+    maxMessages?: number;
+    /** Maximum bytes to process concurrently */
+    maxBytes?: number;
+    /** Allow more messages than maxMessages if total bytes is under maxBytes */
+    allowExcessMessages?: boolean;
+  };
+  /** Acknowledgement deadline in seconds (10-600) */
+  ackDeadline?: number;
+}
+
+/** Options for configuring a publisher */
+export interface PubSubPublisherOptions {
+  /** Enable message ordering (requires orderingKey when publishing) */
+  enableMessageOrdering?: boolean;
+  /** Batching settings */
+  batching?: {
+    /** Maximum messages to batch */
+    maxMessages?: number;
+    /** Maximum bytes to batch */
+    maxBytes?: number;
+    /** Maximum delay in milliseconds */
+    maxMilliseconds?: number;
+  };
+  /** Retry settings */
+  retry?: {
+    /** Initial retry delay in milliseconds */
+    initialDelayMillis?: number;
+    /** Maximum retry delay in milliseconds */
+    maxDelayMillis?: number;
+    /** Retry delay multiplier */
+    delayMultiplier?: number;
+  };
 }
 
 export type PubSubMessageHandler<T> = (

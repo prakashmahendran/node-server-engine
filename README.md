@@ -852,7 +852,9 @@ It can be configured through environment variables
 
 ### Pub/Sub
 
-The engine exposes a `PubSub` entity that can be used to communicate with Google Cloud Pub/Sub.
+The engine exposes a `PubSub` entity that can be used to communicate with Google Cloud Pub/Sub with production-ready configuration including flow control, retry policies, and batch processing.
+
+Based on [@google-cloud/pubsub](https://github.com/googleapis/nodejs-pubsub) v4.11.0.
 
 ```javascript
 import { PubSub } from 'node-server-engine';
@@ -861,32 +863,55 @@ import { PubSub } from 'node-server-engine';
  * Declare that the service will be publishing to a topic
  * This must be done before init() is called
  * Any attempt to publish a message without declaring a topic first will fail
- * @property {string|Array.<string>} topic - The topic(s) to which we will be publishing
+ * @param {string|Array<string>} topic - The topic(s) to which we will be publishing
+ * @param {Object} [options] - Publisher configuration options
  */
-PubSub.addPublisher(topic);
+PubSub.addPublisher(topic, {
+  enableMessageOrdering: false, // Enable ordering (requires orderingKey when publishing)
+  batching: {
+    maxMessages: 100,        // Max messages per batch
+    maxBytes: 1024 * 1024,   // Max bytes per batch (1MB)
+    maxMilliseconds: 100     // Max delay before sending batch
+  },
+  retry: {
+    initialDelayMillis: 100,  // Initial retry delay
+    maxDelayMillis: 60000,    // Max retry delay (60s)
+    delayMultiplier: 1.3      // Exponential backoff multiplier
+  }
+});
 
 /**
- * Binds a message handle to a subscription
+ * Binds a message handler to a subscription
  * If called multiple times, handlers will be chained
  * This must be done before init() is called
  * The subscription will not be consumed until init() is called
- * @property {string} subscription - The subscription to consume
- * @property {function|Array.<function>} handler - The message handling function(s)
- * @property {boolean} [first] - Puts the handler(s) at the beginning of the handling chain (default: false)
+ * @param {string} subscription - The subscription to consume
+ * @param {function|Array<function>} handler - The message handling function(s)
+ * @param {Object} [options] - Subscriber configuration options
  */
-PubSub.addSubscriber(subscription, handler, first);
+PubSub.addSubscriber(subscription, handler, {
+  first: false,              // Put handler at beginning of chain
+  isDebezium: false,         // Handle Debezium CDC events
+  ackDeadline: 60,           // Acknowledgement deadline (10-600 seconds)
+  flowControl: {
+    maxMessages: 1000,         // Max concurrent messages
+    maxBytes: 100 * 1024 * 1024, // Max concurrent bytes (100MB)
+    allowExcessMessages: true  // Allow excess messages if under maxBytes
+  }
+});
 
 /**
  * Establish connection with all the declared publishers/subscribers
+ * Validates topic/subscription existence and permissions
  */
 await PubSub.init();
 
 /**
  * Send a message through a previously declared publisher
- * @property {string} topic - The name of the topic to which the message should be pushed
- * @property {Object} message - The actual message (will be JSON stringified)
- * @property {Object} [attributes] - Message attributes
- * @property {string} [orderingKey] - Ordering key
+ * @param {string} topic - The name of the topic to which the message should be pushed
+ * @param {Object} message - The actual message (will be JSON stringified)
+ * @param {Object} [attributes] - Message attributes for filtering
+ * @param {string} [orderingKey] - Enforce ordering for messages with same key
  */
 await PubSub.publish(topic, message, attributes, orderingKey);
 
@@ -896,27 +921,101 @@ await PubSub.publish(topic, message, attributes, orderingKey);
 await PubSub.shutdown();
 ```
 
+#### Message Handling
+
+Messages are acknowledged after successful processing. If any handler throws an error, the message is nacked and will be redelivered according to the subscription's retry policy.
+
+```javascript
+// Handler signature
+async function messageHandler(payload, attributes, publishedAt) {
+  // payload: The JSON message content
+  // attributes: Message attributes (key-value pairs)
+  // publishedAt: Date when message was published
+  
+  // Process the message
+  await processData(payload);
+  
+  // Message will be ack'd automatically after successful processing
+  // If an error is thrown, message will be nack'd for redelivery
+}
+```
+
+#### Best Practices
+
+1. **Flow Control**: Configure `flowControl` based on your service's memory and processing capacity
+2. **Batch Settings**: Tune batching for optimal throughput vs. latency tradeoff
+3. **Retry Policy**: Use exponential backoff to handle transient failures gracefully
+4. **Dead Letter Topics**: Configure dead letter topics on your subscriptions in GCP Console for failed messages
+5. **Exactly-Once Delivery**: Enable exactly-once delivery in GCP Console when creating/updating your subscription (requires ackWithResponse() in handlers)
+6. **Message Ordering**: Only enable when strict ordering is required (reduces throughput)
+7. **ACK Deadline**: Set based on your handler's processing time (default: 60s)
+
+#### Environment Variables
+
+Pub/Sub authentication uses [Google Cloud Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials). Set `GOOGLE_APPLICATION_CREDENTIALS` to your service account key path, or use Workload Identity in GKE.
+
 ---
 
 ### PushNotification
 
-Communication interface with the push service.
+Communication interface with the push notification service using Pub/Sub.
 
 ```javascript
 import { PushNotification } from 'node-server-engine';
 
-// The entity needs to initialize it's pub/sub connections
-// Handlers must be declared before this function is called
+// Initialize with optimized settings for push notifications
+// Must be called before sending notifications
 await PushNotification.init();
 
 /**
  * Send a push notification through the push service
- * @param {String} userId - ID of the user that should receive the notification
+ * @param {string} userId - ID of the user that should receive the notification
  * @param {Object} notification - Notification that should be sent
- * @return {void}
+ * @throws {EngineError} If userId is missing or publish fails
  */
-await PushNotification.sendPush(userId, notification);
+await PushNotification.sendPush(userId, {
+  title: 'Hello!',
+  body: 'You have a new message',
+  payload: { type: 'message', messageId: '123' },
+  priority: true,
+  ttl: 3600 // Time to live in seconds
+});
 ```
+
+#### Notification Options
+
+```typescript
+{
+  title?: string;              // Notification title
+  body?: string;               // Notification body text
+  payload?: unknown;           // Custom data payload
+  voip?: boolean;             // VOIP notification (iOS)
+  background?: boolean;       // Background/data-only notification
+  token?: string;             // Specific device token (optional)
+  mutable?: boolean;          // Content can be mutated by client (iOS)
+  contentAvailable?: boolean; // Requires client-side processing (iOS)
+  ttl?: number;               // Time to live in seconds
+  priority?: boolean;         // High priority notification
+  collapseId?: string;        // Group notifications with same ID
+}
+```
+
+#### Environment Variables
+
+| Variable | Description | Required |
+| -------- | ----------- | -------- |
+| `PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC` | Pub/Sub topic name for push notifications | ✓ |
+
+#### Configuration
+
+The PushNotification entity is pre-configured with optimal settings:
+- **Batching**: Up to 100 messages, 1MB max, 50ms delay for fast delivery
+- **Retry**: Exponential backoff with 100ms initial delay, up to 60s max delay
+- **No Ordering**: Push notifications don't require strict ordering for better throughput
+
+#### Integration
+
+Your `omg-notification-service` (or similar) should subscribe to the configured topic to process and deliver push notifications to devices via FCM, APNs, or other push providers.
 
 ---
 
