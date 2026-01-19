@@ -1,3 +1,9 @@
+## [1.10.14](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.13...v1.10.14) (2026-01-19)
+
+### 🐛 Bug Fixes
+
+* update package ([55011eb](https://github.com/prakashmahendran/node-server-engine/commit/55011ebbc3de066f6cd838910b826422d76d44b5))
+
 ## [1.10.13](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.12...v1.10.13) (2026-01-04)
 
 ### 🐛 Bug Fixes
