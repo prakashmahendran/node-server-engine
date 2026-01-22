@@ -1,3 +1,9 @@
+## [1.10.15](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.14...v1.10.15) (2026-01-22)
+
+### 🐛 Bug Fixes
+
+* email server ([ed49546](https://github.com/prakashmahendran/node-server-engine/commit/ed4954617204a1f9c2bea8001568f61dc734f2fa))
+
 ## [1.10.14](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.13...v1.10.14) (2026-01-19)
 
 ### 🐛 Bug Fixes
