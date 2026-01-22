@@ -24,8 +24,10 @@ export const sendEmail = async (
         pass: process.env.SMTP_PASS
       },
       tls: {
-        rejectUnauthorized: process.env.SMTP_PORT === '465' ? true : false
-      }
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+      },
+      requireTLS: true
     });
 
     // Construct email options
