@@ -37,8 +37,11 @@ export async function initKeySets(): Promise<void> {
         `${process.env.AUTH_SERVICE_URL}/.well-known/jwks.json`,
         { internal: true }
       );
-    else
-      keySet = new KeySet(`./keys/jwks.json`, { internal: true, file: true });
+    else {
+      // Use JWKS_PATH if set (e.g., by Secret Manager), otherwise fall back to local path
+      const jwksPath = process.env.JWKS_PATH || './keys/jwks.json';
+      keySet = new KeySet(jwksPath, { internal: true, file: true });
+    }
 
     if (!keySet)
       throw new EngineError({
