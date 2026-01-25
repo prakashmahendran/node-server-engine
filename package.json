@@ -1,6 +1,6 @@
 {
   "name": "node-server-engine",
-  "version": "1.10.13",
+  "version": "1.10.15",
   "description": "Framework used to develop backend services. This package ships with a lot of features to standardize the creation of services, letting you focus on the business logic.",
   "main": "dist/index.js",
   "scripts": {
@@ -115,7 +115,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.2",
-    "@types/nodemailer": "^6.4.17",
+    "@types/nodemailer": "^6.4.21",
     "@types/response-time": "^2.3.8",
     "@types/sequelize": "^6.12.0",
     "@types/sinon-chai": "^4.0.0",
