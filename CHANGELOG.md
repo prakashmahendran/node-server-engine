@@ -1,3 +1,9 @@
+## [1.11.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.0...v1.11.1) (2026-01-25)
+
+### 🐛 Bug Fixes
+
+* jwks path ([c5c4a4a](https://github.com/prakashmahendran/node-server-engine/commit/c5c4a4a04f4d626493e0968315f622159715433c))
+
 ## [1.11.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.15...v1.11.0) (2026-01-25)
 
 ### ✨ Features
