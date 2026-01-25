@@ -17,7 +17,8 @@ Framework used to develop Node backend services. This package ships with a lot o
 - 🌐 **i18n** - Internationalization with translation management
 - 🔍 **ElasticSearch** - Full-text search integration (v9.2) with auto-migrations
 - 💾 **Redis** - Advanced Redis client with retry logic, TLS support (ioredis v5.8)
-- 📝 **API Documentation** - Swagger/OpenAPI documentation support
+- � **Secret Manager** - GCP Secret Manager integration for secure credential management
+- �📝 **API Documentation** - Swagger/OpenAPI documentation support
 - 📤 **File Uploads** - Single and chunked file upload middleware with validation
 - 🧪 **TypeScript** - Written in TypeScript with full type definitions
 - ✅ **Modern Tooling** - ESLint, Prettier, and automated versioning
@@ -59,6 +60,7 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Properties](#properties)
     - [Message Handler](#message-handler)
     - [Redis](#redis)
+    - [SecretManager](#secretmanager)
     - [Sequelize](#sequelize)
     - [Pub/Sub](#pubsub)
     - [PushNotification](#pushnotification)
@@ -214,6 +216,7 @@ server.init();
 | cron              | Array\<Object>                                                     | List of cronjob that are called on server start                                                                                                                                    | []                 |
 | shutdownCallbacks | Array\<Function>                                                   | List of functions that are called on server shutdown                                                                                                                               | []                 |
 | checkEnvironment  | Object                                                             | [Schema against which verify the environment variables](#environment-variables-verification), will cause server termination if the environment variables are not properly set.     | {}                 |
+| secretManager     | [SecretManagerOptions](#secretmanager)                             | Configuration for GCP Secret Manager integration. Loads secrets at startup before any other initialization.                                                                        | undefined          |
 | webSocket.server  | Object                                                             | Settings to create a WebSocket server. See the [ws package documentation](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback) for details. |                    |
 | webSocket.client  | Object                                                             | Settings passed down to [SocketClient](#socket-client) when a new socket connection is established.                                                                                |                    |
 
@@ -649,6 +652,202 @@ const client = createRedisClient({
     commandTimeout: 5000
   }
 });
+```
+
+---
+
+### SecretManager
+
+The SecretManager entity provides seamless integration with GCP Secret Manager for secure credential management in production environments. It automatically loads secrets at startup, writes file-based secrets (like certificates) to secure temp locations, and falls back to environment variables in development.
+
+```javascript
+import { SecretManager } from 'node-server-engine';
+
+// Initialize (can be done automatically via Server configuration)
+await SecretManager.init({
+  enabled: process.env.NODE_ENV === 'production',
+  projectId: process.env.GCP_PROJECT_ID,
+  cache: true,
+  fallbackToEnv: true,
+  secrets: [
+    'SQL_PASSWORD',          // Simple env variable
+    'JWT_SECRET',
+    {
+      name: 'PRIVATE_KEY',   // File-based secret
+      type: 'file',
+      targetEnvVar: 'PRIVATE_KEY_PATH',
+      filename: 'private-key.pem'
+    }
+  ]
+});
+
+// Get a cached secret value
+const password = SecretManager.getSecret('SQL_PASSWORD');
+
+// Fetch a secret on-demand (useful for rotation)
+const apiKey = await SecretManager.fetchSecret('API_KEY');
+
+// Reload all secrets
+await SecretManager.reload();
+
+// Check initialization status
+if (SecretManager.isInitialized()) {
+  console.log('Secrets loaded');
+}
+```
+
+#### Features
+
+- **Automatic Loading**: Secrets loaded during server initialization
+- **Environment Fallback**: Uses `process.env` in development or when secrets are unavailable
+- **File Support**: Writes certificates and keys to temp files with secure permissions (0o600)
+- **Caching**: Optional caching of secret values for performance
+- **Secret Rotation**: On-demand fetching for runtime secret updates
+- **Lifecycle Management**: Automatic cleanup of temp files on shutdown
+
+#### Server Integration
+
+SecretManager can be configured directly in Server options:
+
+```javascript
+import { Server, SecretManagerOptions } from 'node-server-engine';
+
+const server = new Server({
+  endpoints: [...],
+  secretManager: {
+    enabled: process.env.NODE_ENV === 'production',
+    projectId: process.env.GCP_PROJECT_ID,
+    cache: true,
+    fallbackToEnv: true,
+    secrets: [
+      'SQL_PASSWORD',
+      'JWT_SECRET',
+      {
+        name: 'PRIVATE_KEY',
+        type: 'file',
+        targetEnvVar: 'PRIVATE_KEY_PATH',
+        filename: 'private-key.pem'
+      }
+    ]
+  }
+});
+
+await server.init(); // Secrets loaded before app starts
+```
+
+#### Configuration Options
+
+| Property      | Type                          | Description                                                    | Default       |
+|---------------|-------------------------------|----------------------------------------------------------------|---------------|
+| enabled       | boolean                       | Enable Secret Manager (typically only in production)            | false         |
+| projectId     | string                        | GCP project ID                                                 | Required      |
+| cache         | boolean                       | Cache secret values in memory                                  | true          |
+| fallbackToEnv | boolean                       | Fall back to `process.env` if secret loading fails             | true          |
+| tempDir       | string                        | Directory for file-based secrets                               | `os.tmpdir()` |
+| secrets       | Array<string \| SecretConfig> | List of secrets to load                                        | []            |
+
+#### Secret Configuration
+
+Secrets can be specified as strings (simple env variables) or objects for advanced configuration:
+
+**String format** (simple env variable):
+```javascript
+'SQL_PASSWORD'  // Loads GCP secret "SQL_PASSWORD" → process.env.SQL_PASSWORD
+```
+
+**Object format** (advanced configuration):
+```javascript
+{
+  name: 'PRIVATE_KEY',              // Secret name in GCP Secret Manager
+  type: 'env' | 'file',             // Type: 'env' for variables, 'file' for certificates
+  targetEnvVar: 'PRIVATE_KEY_PATH', // Env var name (optional for 'env' type)
+  filename: 'private-key.pem',      // Filename for 'file' type (optional)
+  version: 'latest'                 // Secret version (default: 'latest')
+}
+```
+
+#### Secret Types
+
+**Environment Variable Secrets** (`type: 'env'`):
+- Loaded directly into `process.env`
+- Good for passwords, API keys, tokens
+- Example: `'SQL_PASSWORD'` → `process.env.SQL_PASSWORD`
+
+**File-based Secrets** (`type: 'file'`):
+- Written to temp files with secure permissions (0o600)
+- Good for certificates, private keys, JSON credentials
+- Environment variable points to file path
+- Example: `PRIVATE_KEY` → `/tmp/private-key.pem` → `process.env.PRIVATE_KEY_PATH`
+
+#### Environment Variables
+
+| Variable         | Description                           | Required |
+|------------------|---------------------------------------|----------|
+| GCP_PROJECT_ID   | GCP project containing secrets        | ✓        |
+| NODE_ENV         | Environment (production/development)  | -        |
+
+#### Load Results
+
+The `init()` and `reload()` methods return load statistics:
+
+```javascript
+const result = await SecretManager.init({...});
+console.log(result);
+// {
+//   loaded: 3,      // Successfully loaded from Secret Manager
+//   failed: 0,      // Failed to load
+//   fallback: 1,    // Used fallback environment variables
+//   details: [...]  // Detailed information per secret
+// }
+```
+
+#### Security Features
+
+- **Secure File Permissions**: File-based secrets written with 0o600 (owner read/write only)
+- **Automatic Cleanup**: Temp files deleted on server shutdown
+- **No Logging**: Secret values never logged (only metadata)
+- **Lifecycle Integration**: Registered with LifecycleController for proper cleanup
+
+#### Example: Multiple Secrets
+
+```javascript
+const secretConfig = {
+  enabled: process.env.NODE_ENV === 'production',
+  projectId: 'my-gcp-project',
+  secrets: [
+    // Database credentials
+    'SQL_PASSWORD',
+    'SQL_USER',
+    
+    // API keys
+    'STRIPE_API_KEY',
+    'SENDGRID_API_KEY',
+    
+    // Certificate files
+    {
+      name: 'TLS_CERT',
+      type: 'file',
+      targetEnvVar: 'TLS_CERT_PATH',
+      filename: 'tls.crt'
+    },
+    {
+      name: 'TLS_KEY',
+      type: 'file',
+      targetEnvVar: 'TLS_KEY_PATH',
+      filename: 'tls.key'
+    },
+    
+    // Service account key
+    {
+      name: 'GCP_SERVICE_ACCOUNT',
+      type: 'file',
+      targetEnvVar: 'GOOGLE_APPLICATION_CREDENTIALS',
+      filename: 'service-account.json'
+    }
+  ]
+};
+
+await SecretManager.init(secretConfig);
 ```
 
 ---

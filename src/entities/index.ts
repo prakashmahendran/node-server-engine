@@ -15,3 +15,4 @@ export * from './ElasticSearch';
 export * from './LifecycleController';
 export * from './PubSub';
 export * from './PushNotification';
+export * from './SecretManager';

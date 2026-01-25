@@ -3,6 +3,7 @@ import { ErrorRequestHandler, RequestHandler } from 'express';
 import { ServerOptions as WebSocketServerOptions } from 'ws';
 import { Endpoint } from 'entities/Endpoint';
 import { SocketClientOptions } from 'entities/SocketClient';
+import { SecretManagerOptions } from 'entities/SecretManager';
 
 /** Options to create a server */
 export interface ServerOptions {
@@ -27,6 +28,8 @@ export interface ServerOptions {
   auth?: ServerAuthConfig;
   /** Configuration to enable webSocket connections to the server */
   webSocket?: ServerWebSocketConfig;
+  /** Configuration for GCP Secret Manager to load secrets at startup */
+  secretManager?: SecretManagerOptions;
 }
 
 /** Options for a CRON task on the server */
