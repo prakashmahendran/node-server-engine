@@ -123,13 +123,15 @@ export function addModels(models: Array<ModelCtor>): void {
   sequelizeClient.addHook('afterFind', (result) => {
     if (!result) return;
     
-    const convertToPlain = (instance: { toJSON?: () => Record<string, unknown> } & Record<string, unknown>) => {
-      if (!instance || !instance.toJSON) return instance;
-      const plain = instance.toJSON();
+    const convertToPlain = (instance: unknown) => {
+      if (!instance || typeof instance !== 'object') return instance;
+      const modelInstance = instance as { toJSON?: () => Record<string, unknown> } & Record<string, unknown>;
+      if (!modelInstance.toJSON) return instance;
+      const plain = modelInstance.toJSON();
       // Copy the plain object properties back to the instance
       // This makes property access work without .toJSON() in compiled code
       Object.keys(plain).forEach(key => {
-        instance[key] = plain[key];
+        modelInstance[key] = plain[key];
       });
     };
     
