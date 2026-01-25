@@ -1,3 +1,15 @@
+## [1.11.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.15...v1.11.0) (2026-01-25)
+
+### ✨ Features
+
+* fix build issue ([a2106f9](https://github.com/prakashmahendran/node-server-engine/commit/a2106f935f679d19bceac670a10da0712df39a73))
+* implement secret manager ([b225aa0](https://github.com/prakashmahendran/node-server-engine/commit/b225aa059de9583d1e57de6e894786e0d5c743e6))
+* secret manager unit test fix ([36cc4a1](https://github.com/prakashmahendran/node-server-engine/commit/36cc4a14ba0306dbfda921521afd84c644a81561))
+
+### 🐛 Bug Fixes
+
+* remove secret engine ([59eec40](https://github.com/prakashmahendran/node-server-engine/commit/59eec40c8c56496178814943f9bc04da8c49fa6b))
+
 ## [1.10.15](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.14...v1.10.15) (2026-01-22)
 
 ### 🐛 Bug Fixes
