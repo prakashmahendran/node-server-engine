@@ -123,7 +123,7 @@ export function addModels(models: Array<ModelCtor>): void {
   sequelizeClient.addHook('afterFind', (result) => {
     if (!result) return;
     
-    const convertToPlain = (instance: any) => {
+    const convertToPlain = (instance: { toJSON?: () => Record<string, unknown> } & Record<string, unknown>) => {
       if (!instance || !instance.toJSON) return instance;
       const plain = instance.toJSON();
       // Copy the plain object properties back to the instance

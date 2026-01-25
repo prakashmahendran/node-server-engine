@@ -45,7 +45,7 @@ export async function handleMessage(
           data: { subscription, message: message.data.toString() }
         });
     }
-  } catch (error) {
+  } catch {
     reportError(
       new EngineError({
         severity: LogSeverity.WARNING,

@@ -252,7 +252,7 @@ export const SecretManager = {
 
       return loaded;
     } catch (error) {
-      if ((error as any).code === 5) {
+      if ((error as { code?: number }).code === 5) {
         // NOT_FOUND error
         reportInfo(`Secret not found in Secret Manager: ${secretName}`);
       }
@@ -349,7 +349,7 @@ export const SecretManager = {
           namespace,
           message: `Deleted temporary file: ${filePath}`
         });
-      } catch (error) {
+      } catch {
         reportInfo(`Failed to delete temporary file: ${filePath}`);
       }
     }

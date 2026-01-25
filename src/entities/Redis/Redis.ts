@@ -167,9 +167,9 @@ export const Redis = {
     return this.client.get(key);
   },
 
-  async set(key: string, value: string | number | Buffer, ...args: any[]): Promise<'OK' | null> {
+  async set(key: string, value: string | number | Buffer, ...args: unknown[]): Promise<'OK' | null> {
     if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
-    return this.client.set(key, value, ...args);
+    return this.client.set(key, value, ...args as []);
   },
 
   async del(...keys: string[]): Promise<number> {
