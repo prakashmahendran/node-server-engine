@@ -1,167 +1,278 @@
 import { Redis as RedisClient, RedisOptions } from 'ioredis';
-import { RedisInterface, RedisCreateOptions } from './Redis.types';
+import { RedisCreateOptions } from './Redis.types';
 import { validateRedisEnvironment } from './Redis.validate';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
 import { reportDebug, reportError } from 'utils/report';
 
-export let redisClient: undefined | RedisClient;
+const namespace = 'engine:redis';
 
 /**
- * Factory function to create a new Redis instance (exported for testing)
+ * Generic Redis wrapper for caching and data storage
+ * Provides methods for initialization, connection management, and cleanup
+ * 
+ * @example
+ * ```typescript
+ * // Initialize Redis connection
+ * Redis.init();
+ * 
+ * // Use Redis client
+ * await Redis.set('key', 'value');
+ * const value = await Redis.get('key');
+ * 
+ * // Get underlying client for advanced operations
+ * const client = Redis.getClient();
+ * ```
  */
-export function createRedisInstance(config: RedisOptions): RedisClient {
-  return new RedisClient(config);
-}
+export const Redis = {
+  /** Redis client instance */
+  client: undefined as RedisClient | undefined,
 
-/**
- * We use a proxy to extend the Redis behavior and allow initialization of the client only when needed while keeping the same interface
- */
-export const Redis = new Proxy<RedisInterface>(
-  // Due to how we do the proxying, we are forced to ignore ts-errors, we could never create an object that respects the interface properly
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  {},
-  {
-    get: function (target, property): unknown {
-      if (property === 'init') return init;
-      if (property === 'shutdown') return shutdown;
-      if (property === 'getClient') return getClient;
-      // Create the redis client if it does not exist
-      if (!redisClient)
-        throw new EngineError({ message: 'Redis client was not initialized' });
-      // Call the function on the redis client
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return redisClient[property] as unknown;
-    }
-  }
-);
-
-/**
- * Get the underlying Redis client (for advanced use cases)
- */
-export function getClient(): RedisClient | undefined {
-  return redisClient;
-}
-
-/**
- * On init create client and connect
- */
-export function init(): void {
-  // Ignore if already initialized
-  if (redisClient) {
-    reportDebug({
-      namespace: 'engine:redis',
-      message: 'Redis client already initialized'
-    });
-    return;
-  }
-  
-  redisClient = createRedisClient();
-  
-  // Setup event listeners
-  redisClient.on('connect', () => {
-    reportDebug({
-      namespace: 'engine:redis',
-      message: 'Redis client connecting'
-    });
-  });
-  
-  redisClient.on('ready', () => {
-    reportDebug({
-      namespace: 'engine:redis',
-      message: 'Redis client ready'
-    });
-  });
-  
-  redisClient.on('error', (err) => {
-    reportError(new EngineError({
-      message: 'Redis client error',
-      data: { error: err.message }
-    }));
-  });
-  
-  redisClient.on('close', () => {
-    reportDebug({
-      namespace: 'engine:redis',
-      message: 'Redis connection closed'
-    });
-  });
-  
-  redisClient.on('reconnecting', () => {
-    reportDebug({
-      namespace: 'engine:redis',
-      message: 'Redis client reconnecting'
-    });
-  });
-  
-  LifecycleController.register(Redis);
-}
-
-/**
- * On shutdown close connection and clear client
- */
-export async function shutdown(): Promise<void> {
-  if (redisClient) {
-    try {
-      await redisClient.quit();
+  /**
+   * Initialize Redis connection
+   * @param options - Redis configuration options
+   */
+  init(options: RedisCreateOptions = {}): void {
+    // Ignore if already initialized
+    if (this.client) {
       reportDebug({
-        namespace: 'engine:redis',
-        message: 'Redis client disconnected'
+        namespace,
+        message: 'Redis client already initialized'
       });
-    } catch (error) {
-      reportError(new EngineError({
-        message: 'Error during Redis shutdown',
-        data: { error: (error as Error).message }
-      }));
+      return;
     }
-  }
-  redisClient = undefined;
-}
-
-/**
- * Create Redis client with enhanced configuration
- */
-export function createRedisClient(
-  options: RedisCreateOptions = {}
-): RedisClient {
-  // Check that environment variables are correctly set
-  validateRedisEnvironment(options);
-  
-  // Throw an error if there is no host
-  if (!process.env.REDIS_HOST)
-    throw new EngineError({
-      message: 'Host required to initialize Redis connection'
+    
+    this.client = this.createRedisClient(options);
+    
+    // Setup event listeners
+    this.client.on('connect', () => {
+      reportDebug({
+        namespace,
+        message: 'Redis client connecting'
+      });
     });
+    
+    this.client.on('ready', () => {
+      reportDebug({
+        namespace,
+        message: 'Redis client ready'
+      });
+    });
+    
+    this.client.on('error', (err) => {
+      reportError(new EngineError({
+        message: 'Redis client error',
+        data: { error: err.message }
+      }));
+    });
+    
+    this.client.on('close', () => {
+      reportDebug({
+        namespace,
+        message: 'Redis connection closed'
+      });
+    });
+    
+    this.client.on('reconnecting', () => {
+      reportDebug({
+        namespace,
+        message: 'Redis client reconnecting'
+      });
+    });
+    
+    LifecycleController.register({ shutdown: () => this.shutdown() });
+  },
 
-  const config: RedisOptions = {
-    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
-    host: process.env.REDIS_HOST,
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
-    db: options.db ?? 0,
-    retryStrategy: (times: number) => {
-      const delay = Math.min(times * 50, 2000);
-      return delay;
-    },
-    reconnectOnError: (err: Error) => {
-      const targetErrors = ['READONLY', 'ECONNRESET', 'ETIMEDOUT'];
-      return targetErrors.some(targetError => err.message.includes(targetError));
-    },
-    maxRetriesPerRequest: 3,
-    enableReadyCheck: options.enableReadyCheck ?? true,
-    lazyConnect: options.lazyConnect ?? (process.env.NODE_ENV === 'test'),
-    ...options.redis
-  };
+  /**
+   * Shutdown Redis connection and cleanup
+   * @returns Promise that resolves when shutdown is complete
+   */
+  async shutdown(): Promise<void> {
+    if (this.client) {
+      try {
+        await this.client.quit();
+        reportDebug({
+          namespace,
+          message: 'Redis client disconnected'
+        });
+      } catch (error) {
+        reportError(new EngineError({
+          message: 'Error during Redis shutdown',
+          data: { error: (error as Error).message }
+        }));
+      }
+    }
+    this.client = undefined;
+  },
 
-  // Add TLS configuration if TLS_CA is provided
-  if (process.env.TLS_CA) {
-    config.tls = {
-      ca: process.env.TLS_CA,
-      rejectUnauthorized: process.env.NODE_ENV === 'production'
+  /**
+   * Get the underlying Redis client
+   * @returns Redis client instance or undefined
+   */
+  getClient(): RedisClient | undefined {
+    return this.client;
+  },
+
+  /**
+   * Create Redis client with configuration
+   * @param options - Redis creation options
+   * @returns Redis client instance
+   * @private
+   */
+  createRedisClient(options: RedisCreateOptions = {}): RedisClient {
+    // Check that environment variables are correctly set
+    validateRedisEnvironment(options);
+    
+    // Throw an error if there is no host
+    if (!process.env.REDIS_HOST) {
+      throw new EngineError({
+        message: 'Host required to initialize Redis connection'
+      });
+    }
+
+    const config: RedisOptions = {
+      port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+      host: process.env.REDIS_HOST,
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+      db: options.db ?? 0,
+      retryStrategy: (times: number) => {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+      reconnectOnError: (err: Error) => {
+        const targetErrors = ['READONLY', 'ECONNRESET', 'ETIMEDOUT'];
+        return targetErrors.some(targetError => err.message.includes(targetError));
+      },
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: options.enableReadyCheck ?? true,
+      lazyConnect: options.lazyConnect ?? (process.env.NODE_ENV === 'test'),
+      ...options.redis
     };
-  }
 
-  return createRedisInstance(config);
-}
+    // Add TLS configuration if TLS_CA is provided
+    if (process.env.TLS_CA) {
+      config.tls = {
+        ca: process.env.TLS_CA,
+        rejectUnauthorized: process.env.NODE_ENV === 'production'
+      };
+    }
+
+    return new RedisClient(config);
+  },
+
+  // Proxy common Redis methods to the client
+  async get(key: string): Promise<string | null> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.get(key);
+  },
+
+  async set(key: string, value: string | number | Buffer, ...args: unknown[]): Promise<'OK' | null> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.set(key, value, ...args as []);
+  },
+
+  async del(...keys: string[]): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.del(...keys);
+  },
+
+  async exists(...keys: string[]): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.exists(...keys);
+  },
+
+  async expire(key: string, seconds: number): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.expire(key, seconds);
+  },
+
+  async ttl(key: string): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.ttl(key);
+  },
+
+  async incr(key: string): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.incr(key);
+  },
+
+  async decr(key: string): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.decr(key);
+  },
+
+  async hget(key: string, field: string): Promise<string | null> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.hget(key, field);
+  },
+
+  async hset(key: string, field: string, value: string | number | Buffer): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.hset(key, field, value);
+  },
+
+  async hgetall(key: string): Promise<Record<string, string>> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.hgetall(key);
+  },
+
+  async lpush(key: string, ...values: (string | Buffer | number)[]): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.lpush(key, ...values);
+  },
+
+  async rpush(key: string, ...values: (string | Buffer | number)[]): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.rpush(key, ...values);
+  },
+
+  async lpop(key: string, count?: number): Promise<string | string[] | null> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    if (count !== undefined) {
+      return this.client.lpop(key, count);
+    }
+    return this.client.lpop(key);
+  },
+
+  async rpop(key: string, count?: number): Promise<string | string[] | null> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    if (count !== undefined) {
+      return this.client.rpop(key, count);
+    }
+    return this.client.rpop(key);
+  },
+
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.lrange(key, start, stop);
+  },
+
+  async sadd(key: string, ...members: (string | Buffer | number)[]): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.sadd(key, ...members);
+  },
+
+  async smembers(key: string): Promise<string[]> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.smembers(key);
+  },
+
+  async sismember(key: string, member: string | Buffer | number): Promise<number> {
+    if (!this.client) throw new EngineError({ message: 'Redis client was not initialized' });
+    return this.client.sismember(key, member);
+  }
+};
+
+// Export backward compatibility functions
+export const createRedisClient = Redis.createRedisClient.bind(Redis);
+export const getClient = Redis.getClient.bind(Redis);
+export const init = Redis.init.bind(Redis);
+export const shutdown = Redis.shutdown.bind(Redis);
+
+// For tests that need direct access to the client
+export let redisClient: RedisClient | undefined;
+Object.defineProperty(Redis, 'client', {
+  get: () => redisClient,
+  set: (value) => { redisClient = value; }
+});

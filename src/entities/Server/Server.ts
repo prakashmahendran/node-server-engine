@@ -28,6 +28,7 @@ import { Endpoint } from 'entities/Endpoint';
 import { EngineError } from 'entities/EngineError';
 import { LifecycleController } from 'entities/LifecycleController';
 import { PubSub } from 'entities/PubSub';
+import { SecretManager } from 'entities/SecretManager';
 import { checkEnvironment, envAssert, createHttpServer } from 'utils';
 import { initKeySets, shutdownKeySets } from 'utils/jwt';
 import { reportInfo, reportError, reportDebug } from 'utils/report';
@@ -66,6 +67,8 @@ export class Server {
   private cron?: Array<ServerCronJon>;
   /** Global auth related configuration */
   private auth: ServerAuthConfig;
+  /** Secret Manager configuration */
+  private secretManagerConfig?: ServerOptions['secretManager'];
   /** WebSocket server instance, if configured */
   private wss?: WebSocketServer;
   /** Abort controller that handles signals for the server */
@@ -90,6 +93,7 @@ export class Server {
     this.syncCallbacks = config.syncCallbacks ?? false;
     this.cron = config.cron;
     this.auth = { noFetch: false, ...config.auth };
+    this.secretManagerConfig = config.secretManager;
 
     // The minimal environment check is different between the migration modes of execution and the regular server execution mode
     // When running in migration mode, we only check that we have SQL related environment variables
@@ -172,6 +176,11 @@ export class Server {
   public async init(): Promise<void> {
     this.setupGlobalErrorLogging();
     reportDebug({ namespace, message: `Starting Server` });
+    
+    // Load secrets from Secret Manager FIRST (before anything else that might need them)
+    if (this.secretManagerConfig) {
+      await SecretManager.init(this.secretManagerConfig);
+    }
     
     // Fetch the keys for JWT authentication
     // Ignore in test environment as we do symmetrical token signing

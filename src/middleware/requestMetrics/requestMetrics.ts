@@ -22,7 +22,9 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
   // Increment in-flight
   try {
     httpInFlight.inc();
-  } catch {}
+  } catch {
+    // Ignore metric collection errors
+  }
 
   // Ensure we decrement on finish/close (only once)
   let inflightDecremented = false;
@@ -31,7 +33,9 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
     inflightDecremented = true;
     try {
       httpInFlight.dec();
-    } catch {}
+    } catch {
+      // Ignore metric collection errors
+    }
   };
 
   response.once('finish', () => {
@@ -41,7 +45,9 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
     if (statusCode >= 400) {
       try {
         httpErrorCount.inc({ service: process.env.CHART, status: statusClass, method: request.method });
-      } catch {}
+      } catch {
+        // Ignore metric collection errors
+      }
     }
 
     // observe response size if content-length header available
@@ -50,7 +56,9 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
     if (!Number.isNaN(len)) {
       try {
         httpResponseSize.observe({ service: process.env.CHART, path, method: request.method, status: statusClass }, len);
-      } catch {}
+      } catch {
+        // Ignore metric collection errors
+      }
     }
 
     cleanup();
@@ -70,7 +78,9 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
     try {
       httpRequestCount.inc(labels);
       httpRequestDuration.observe(labels, time / 1000);
-    } catch {}
+    } catch {
+      // Ignore metric collection errors
+    }
   });
 
   // Call the response-time middleware which will call next when done

@@ -6,6 +6,7 @@ import {
   VerifyOptions,
   sign
 } from 'jsonwebtoken';
+import fs from 'fs';
 import { UserTokenPayload } from './jwt.types';
 import { TokenIssuer } from 'const';
 import { EngineError } from 'entities/EngineError';
@@ -14,7 +15,6 @@ import { WebError } from 'entities/WebError';
 import { assertEnvironment } from 'utils/checkEnvironment';
 import { envAssert } from 'utils/envAssert';
 import { reportDebug } from 'utils/report';
-import { getSecretOrFile } from 'utils';
 
 export let keySet: KeySet | undefined;
 
@@ -37,8 +37,11 @@ export async function initKeySets(): Promise<void> {
         `${process.env.AUTH_SERVICE_URL}/.well-known/jwks.json`,
         { internal: true }
       );
-    else
-      keySet = new KeySet(`./keys/jwks.json`, { internal: true, file: true });
+    else {
+      // Use JWKS_PATH if set (e.g., by Secret Manager), otherwise fall back to local path
+      const jwksPath = process.env.JWKS_PATH || './keys/jwks.json';
+      keySet = new KeySet(jwksPath, { internal: true, file: true });
+    }
 
     if (!keySet)
       throw new EngineError({
@@ -174,7 +177,27 @@ export function generateJwtToken(user: unknown) {
     keyid: Object.keys(keySet?.getKeys() ?? {})[0]
   };
 
-  const privateKey = getSecretOrFile('PRIVATE_KEY_PATH');
+  // Get private key - can be either the key content directly or a file path
+  let privateKey: string;
+  
+  if (process.env.PRIVATE_KEY) {
+    // Direct key content in environment variable
+    privateKey = process.env.PRIVATE_KEY;
+  } else if (process.env.PRIVATE_KEY_PATH) {
+    // File path in environment variable - read the file
+    try {
+      privateKey = fs.readFileSync(process.env.PRIVATE_KEY_PATH, 'utf8');
+    } catch (error) {
+      throw new EngineError({
+        message: `Failed to read private key from path: ${process.env.PRIVATE_KEY_PATH}`,
+        data: { error: error instanceof Error ? error.message : String(error) }
+      });
+    }
+  } else {
+    throw new EngineError({ 
+      message: 'Neither PRIVATE_KEY nor PRIVATE_KEY_PATH environment variable is set' 
+    });
+  }
 
   const token = sign({ user }, privateKey, signOptions);
 
