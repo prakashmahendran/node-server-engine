@@ -121,7 +121,14 @@ export class Server {
       cors({
         origin: process.env.CORS_ORIGIN ?? '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization']
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'x-verification-token',
+          'x-verification-otp',
+          'Access-Control-Allow-Origin'
+        ],
+        exposedHeaders: ['Access-Control-Allow-Origin']
       })
     );
     this.registerMiddleware(this.app);
