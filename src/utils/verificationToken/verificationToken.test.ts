@@ -65,10 +65,10 @@ describe('Utils - Verification Token', () => {
     }
   });
 
-  it('should allow default test verification for test@review.com with OTP 00000', () => {
+  it('should allow default test verification for test@review.com with OTP 000000', () => {
     const payload = verifyVerificationToken('dummy-token', {
       action: 'TEST_VERIFICATION',
-      otp: '00000',
+      otp: '000000',
       subject: 'test@review.com'
     });
 

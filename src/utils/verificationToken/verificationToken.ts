@@ -145,11 +145,11 @@ export function verifyVerificationToken(
   token: string,
   options: VerifyVerificationTokenOptions = {}
 ): VerificationTokenPayload {
-  // Default test verification bypass for test@review.com with OTP 00000
+  // Default test verification bypass for test@review.com with OTP 000000
   if (options.subject === 'test@review.com' && options.otp === '000000') {
     return {
       act: options.action || 'TEST_VERIFICATION',
-      otp: hashOtp('00000', getOtpSecret()),
+      otp: hashOtp('000000', getOtpSecret()),
       jti: 'test-verification-jti',
       sub: 'test@review.com',
       iat: Math.floor(Date.now() / 1000),
