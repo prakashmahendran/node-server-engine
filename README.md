@@ -80,12 +80,14 @@ Framework used to develop Node backend services. This package ships with a lot o
     - [User Resolver](#user-resolver)
     - [Gemini File Upload](#gemini-file-upload)
     - [Check Permission Middleware](#check-permission-middleware)
+    - [Verification Token Middleware](#verification-token-middleware)
   - [Utilities](#utilities)
     - [Request](#request)
     - [TLS Request](#tls-request)
     - [TLS Config](#tls-config)
     - [Send Push Notification](#send-push-notification)
     - [Send Email](#send-email)
+    - [Verification Token](#verification-token)
     - [Parameters](#parameters)
     - [Return Status](#return-status)
     - [Gemini File Upload](#gemini-file-upload-1)
@@ -1976,6 +1978,42 @@ checkPermission(['admin', 'moderator'])
 };
 ```
 
+---
+
+### Verification Token Middleware
+
+⚠️ **Must be used in combination with AuthType.JWT**
+
+Generates a short-lived verification flow for sensitive operations (for example: delete account, change email, payout). The middleware verifies a signed verification token and the OTP provided by the user, and binds it to a specific action.
+
+#### Flow Summary
+
+1. Generate a verification token + OTP using the utility (server-side).
+2. Send the OTP to the user (SMS/WhatsApp/email).
+3. Call the sensitive endpoint with both `x-verification-token` and `x-verification-otp`.
+
+#### Middleware Usage
+
+```javascript
+import { Endpoint, middleware, AuthType, Method } from 'node-server-engine';
+
+new Endpoint({
+  path: '/users/:id',
+  method: Method.DELETE,
+  authType: AuthType.JWT,
+  middleware: [middleware.verificationToken('DELETE ACCOUNT', { requireSubject: true })],
+  handler: (req, res) => {
+    res.json({ ok: true });
+  }
+});
+```
+
+#### Defaults
+
+- Token header: `x-verification-token`
+- OTP header: `x-verification-otp`
+- Body/query fields: `verificationToken`, `verificationOtp`
+
 ## Utilities
 
 The server engine ships with a handful of utility functions that are commonly used by servers
@@ -2101,6 +2139,46 @@ The function returns an object with the following status options:
 | `delivered` | Email was successfully delivered.                                       |
 | `queued`    | Email is queued for delivery but not yet sent.                          |
 | `failed`    | Email could not be sent due to an error.                                |
+
+---
+
+### Verification Token
+
+Generate and verify a short-lived verification token + OTP for sensitive operations.
+
+```javascript
+import { createVerificationToken, verifyVerificationToken } from 'node-server-engine';
+
+// Generate token + OTP
+const { token, otp, expiresAt } = createVerificationToken({
+  action: 'DELETE ACCOUNT',
+  subject: userId,
+  otpLength: 6,
+  expiresInSeconds: 300
+});
+
+// Later, verify token + OTP
+const payload = verifyVerificationToken(token, {
+  action: 'DELETE ACCOUNT',
+  otp,
+  subject: userId
+});
+```
+
+#### Environment Variables
+
+- `VERIFICATION_TOKEN_SECRET` (required)
+- `VERIFICATION_TOKEN_OTP_SECRET` (optional, defaults to `VERIFICATION_TOKEN_SECRET`)
+- `VERIFICATION_TOKEN_ISSUER` (optional, default: `node-server-engine`)
+- `VERIFICATION_TOKEN_AUDIENCE` (optional, used when `audience` is not provided)
+
+#### Multi-service setup
+
+If you generate verification tokens in one service and verify them in another, **all services must share the same verification secrets** for the same environment:
+
+- Use the same `VERIFICATION_TOKEN_SECRET` in every service.
+- If you set `VERIFICATION_TOKEN_OTP_SECRET`, use the same value everywhere.
+- Keep `VERIFICATION_TOKEN_ISSUER` and `VERIFICATION_TOKEN_AUDIENCE` consistent across services.
 
 ---
 
