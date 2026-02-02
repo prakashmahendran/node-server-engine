@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.1...v1.11.2) (2026-01-29)
+
+### 🐛 Bug Fixes
+
+* add PATCH method to CORS configuration ([3155551](https://github.com/prakashmahendran/node-server-engine/commit/31555518533bf32d54a68fdf0a79a8d82935ef05))
+* add PATCH method to CORS configuration ([4841e9f](https://github.com/prakashmahendran/node-server-engine/commit/4841e9fa0b5a74a722636978e2e9059b7d4d4deb))
+
 ## [1.11.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.0...v1.11.1) (2026-01-25)
 
 ### 🐛 Bug Fixes
