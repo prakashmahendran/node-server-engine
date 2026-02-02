@@ -64,4 +64,17 @@ describe('Utils - Verification Token', () => {
       expect((error as WebError).errorCode).to.equal('verification_failed');
     }
   });
+
+  it('should allow default test verification for test@review.com with OTP 00000', () => {
+    const payload = verifyVerificationToken('dummy-token', {
+      action: 'TEST_VERIFICATION',
+      otp: '00000',
+      subject: 'test@review.com'
+    });
+
+    expect(payload.act).to.equal('TEST_VERIFICATION');
+    expect(payload.sub).to.equal('test@review.com');
+    expect(payload.jti).to.equal('test-verification-jti');
+    expect(payload.otp).to.be.a('string');
+  });
 });
