@@ -1,3 +1,10 @@
+## [1.12.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.2...v1.12.0) (2026-02-02)
+
+### ✨ Features
+
+* add verification token middleware and utility functions ([2d6137c](https://github.com/prakashmahendran/node-server-engine/commit/2d6137c46d420bbce9a9a9fbd4ca81e3208d250b))
+* add verification token middleware and utility functions ([b6b5527](https://github.com/prakashmahendran/node-server-engine/commit/b6b55271fe4e75ffddfdd02a022fb664dd785375))
+
 ## [1.11.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.1...v1.11.2) (2026-01-29)
 
 ### 🐛 Bug Fixes
