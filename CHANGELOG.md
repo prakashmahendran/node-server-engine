@@ -1,3 +1,15 @@
+## [1.12.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.1...v1.12.2) (2026-03-23)
+
+### 🐛 Bug Fixes
+
+* simplify PubSub tests by mocking Google Cloud PubSub ([b0a00d2](https://github.com/prakashmahendran/node-server-engine/commit/b0a00d2be8cbc0498370f38615fd00151ad99d02))
+* simplify PubSub tests by mocking Google Cloud PubSub ([6fe55f7](https://github.com/prakashmahendran/node-server-engine/commit/6fe55f71ab7f1c1c2a4067513a43ebf382a094a5))
+
+### ♻️ Code Refactoring
+
+* enhance PubSub service with retry logic and safer defaults ([9c452be](https://github.com/prakashmahendran/node-server-engine/commit/9c452bea2b6d5c6b0804e449dcfabd1fd17c538b))
+* enhance PubSub service with retry logic and safer defaults  ([90a2925](https://github.com/prakashmahendran/node-server-engine/commit/90a29258032d5ed96c86c971c6f56c5940229ed3))
+
 ## [1.12.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.0...v1.12.1) (2026-02-02)
 
 ### 🐛 Bug Fixes
