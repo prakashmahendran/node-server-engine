@@ -1,3 +1,12 @@
+## [1.12.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.0...v1.12.1) (2026-02-02)
+
+### 🐛 Bug Fixes
+
+* correct OTP value in test verification for 'test@review.com' ([d4c75f0](https://github.com/prakashmahendran/node-server-engine/commit/d4c75f049b07e25f1bd33c3c20832303e5e44660))
+* enhance CORS configuration and add test verification functionality ([09adb6b](https://github.com/prakashmahendran/node-server-engine/commit/09adb6be22d584931999c6006add8a8d9ad9603d))
+* enhance CORS configuration and add test verification functionality ([62e46d5](https://github.com/prakashmahendran/node-server-engine/commit/62e46d5ba5a065e437a8938016c9d3e37eb8dcc8))
+* test@review.com credientials for verificaitiontoken utils ([564c280](https://github.com/prakashmahendran/node-server-engine/commit/564c280cb567f899a20a5b3ee8739c39751c6e30))
+
 ## [1.12.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.2...v1.12.0) (2026-02-02)
 
 ### ✨ Features
