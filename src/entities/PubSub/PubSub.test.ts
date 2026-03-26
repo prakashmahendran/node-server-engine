@@ -237,8 +237,12 @@ describe('Entities - Pub/Sub', function () {
       expect(subscriptionIamFake).to.have.been.calledOnceWithExactly([
         'pubsub.subscriptions.consume'
       ]);
-      expect(subscriptionOnFake).to.have.been.calledOnceWithExactly(
+      expect(subscriptionOnFake).to.have.been.calledWithExactly(
         'message',
+        match.func
+      );
+      expect(subscriptionOnFake).to.have.been.calledWithExactly(
+        'error',
         match.func
       );
     });
