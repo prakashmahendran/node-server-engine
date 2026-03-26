@@ -1,3 +1,10 @@
+## [1.12.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.2...v1.12.3) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* update pub sub ([0f0c956](https://github.com/prakashmahendran/node-server-engine/commit/0f0c9563c60ddffa38301bd7f29d489115b30aff))
+* update the testing package ([af92004](https://github.com/prakashmahendran/node-server-engine/commit/af92004212167dfc665e6e8c6d1bb8b17696acdf))
+
 ## [1.12.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.1...v1.12.2) (2026-03-23)
 
 ### 🐛 Bug Fixes
