@@ -1,3 +1,13 @@
+## [1.13.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.4...v1.13.0) (2026-03-26)
+
+### ✨ Features
+
+* enhance PubSub service with retry logic and project ID handling ([96c3569](https://github.com/prakashmahendran/node-server-engine/commit/96c3569972af8f6fb7e6017ca24cb40a3abeef65))
+
+### 🐛 Bug Fixes
+
+* enhance PubSub tests to validate error handling ([d943de9](https://github.com/prakashmahendran/node-server-engine/commit/d943de91491903ef0ba998f898eec5434fe1dcca))
+
 ## [1.12.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.3...v1.12.4) (2026-03-26)
 
 ### 🐛 Bug Fixes
