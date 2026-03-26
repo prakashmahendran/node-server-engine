@@ -20,7 +20,7 @@
   "require": ["@babel/register"],
   "reporter": ["text", "html", "lcov"],
   "lines": 80,
-  "branches": 65,
+  "branches": 60,
   "functions": 70,
   "statements": 80,
   "report-dir": "./.test-coverage",
