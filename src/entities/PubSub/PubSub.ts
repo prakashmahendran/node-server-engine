@@ -47,6 +47,34 @@ const pubSubClient = new PubsubClient({
   apiEndpoint: 'pubsub.googleapis.com'
 });
 
+/** Re-open a subscription's message stream after a transient error */
+function reattachSubscription(subscriptionName: string, delayMs = 5000): void {
+  setTimeout(() => {
+    const entry = subscriptions[subscriptionName];
+    if (!entry) return;
+    const { subscription, handlers, isDebezium } = entry;
+
+    reportDebug({ namespace, message: `Reattaching subscription '${subscriptionName}'` });
+
+    // Remove all existing listeners before re-adding to avoid duplicates
+    subscription.removeAllListeners('message');
+    subscription.removeAllListeners('error');
+
+    subscription.on('message', (message) => {
+      handleMessage(message as Message, subscription, handlers, isDebezium).catch(reportError);
+    });
+
+    subscription.on('error', (error) => {
+      reportError(error);
+      // Reconnect on transient errors (DEADLINE_EXCEEDED, UNAVAILABLE, INTERNAL)
+      const code = (error as any)?.code;
+      if (code === 4 || code === 14 || code === 13) {
+        reattachSubscription(subscriptionName, Math.min(delayMs * 2, 60000));
+      }
+    });
+  }, delayMs);
+}
+
 export const PubSub = {
   /**
    * ✅ FAST + NON-BLOCKING INIT
@@ -54,7 +82,7 @@ export const PubSub = {
   async init(): Promise<void> {
     reportDebug({ namespace, message: `Initializing Pub/Sub (safe mode)` });
 
-    for (const { subscription, handlers, isDebezium } of Object.values(
+    for (const [subscriptionName, { subscription, handlers, isDebezium }] of Object.entries(
       subscriptions
     )) {
       subscription.on('message', (message) => {
@@ -68,6 +96,11 @@ export const PubSub = {
 
       subscription.on('error', (error) => {
         reportError(error);
+        // Auto-reconnect on transient gRPC errors (DEADLINE_EXCEEDED=4, UNAVAILABLE=14, INTERNAL=13)
+        const code = (error as any)?.code;
+        if (code === 4 || code === 14 || code === 13) {
+          reattachSubscription(subscriptionName, 5000);
+        }
       });
     }
 
