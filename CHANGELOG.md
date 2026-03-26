@@ -1,3 +1,9 @@
+## [1.12.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.3...v1.12.4) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* enhance PubSub tests and service behavior ([4034f82](https://github.com/prakashmahendran/node-server-engine/commit/4034f8230cb7a55159e5e3a7f361fa34513c097b))
+
 ## [1.12.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.2...v1.12.3) (2026-03-26)
 
 ### 🐛 Bug Fixes
