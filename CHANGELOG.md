@@ -1,3 +1,9 @@
+## [1.14.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.14.0...v1.14.1) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Update test ([1ff765d](https://github.com/prakashmahendran/node-server-engine/commit/1ff765d0526b655241c5a5c0dcb11fa394f06f35))
+
 ## [1.14.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.13.0...v1.14.0) (2026-03-29)
 
 ### ✨ Features
