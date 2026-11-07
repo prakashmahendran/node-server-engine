@@ -6,7 +6,7 @@ import { SequelizeMeta } from 'db/models';
 export function defineSequelizeMetaFactory(factory: Factory): void {
   factory.define('sequelizeMeta', SequelizeMeta, () => {
     return {
-      name: faker.lorem.word()
+      name: faker.lorem.word() + ' ' + faker.lorem.word()
     };
   });
 }
