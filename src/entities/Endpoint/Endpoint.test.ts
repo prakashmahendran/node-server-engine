@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { generateAccessToken } from 'backend-test-tools';
+import { generateAccessToken } from 'test';
 import { expect } from 'chai';
 import express, { Request, Response, NextFunction } from 'express';
 import { faker } from '@faker-js/faker';

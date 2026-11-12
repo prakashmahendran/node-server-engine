@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { generateAccessToken } from 'backend-test-tools';
+import { generateAccessToken } from 'test';
 import { expect } from 'chai';
 import { faker } from '@faker-js/faker';
 import { jwtVerify, initKeySets, shutdownKeySets, keySet } from './jwt';

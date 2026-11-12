@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 // eslint-disable-next-line import/no-unresolved
 import { setTimeout } from 'timers/promises';
-import { generateAccessToken } from 'backend-test-tools';
+import { generateAccessToken, stubPubSub } from 'test';
 import Ajv, { JSONSchemaType } from 'ajv';
 import { expect } from 'chai';
 import { faker } from '@faker-js/faker';
@@ -12,7 +12,6 @@ import WS from 'ws';
 import { Server } from './Server';
 import { Endpoint, EndpointMethod, EndpointAuthType } from 'entities/Endpoint';
 import { SocketClient, SocketMessage } from 'entities/SocketClient';
-import { stubPubSub } from 'test';
 import { httpsAgent, loadTlsConfig } from 'utils';
 import * as jwt from 'utils/jwt/jwt';
 

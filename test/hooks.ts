@@ -1,7 +1,4 @@
-import {
-  generatePkiEnvironment,
-  generateEcdsaKeyPair
-} from 'backend-test-tools';
+import { generatePkiEnvironment, generateEcdsaKeyPair } from './helpers';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';

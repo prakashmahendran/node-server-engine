@@ -271,7 +271,7 @@ describe('Entity - SocketClient', () => {
 
   describe('authentication', () => {
     it('should authenticate with valid token', async () => {
-      const { generateAccessToken } = await import('backend-test-tools');
+      const { generateAccessToken } = await import('test');
       const token = generateAccessToken('test-user-id');
       
       const client = new SocketClient(mockWebSocket, mockRequest, {

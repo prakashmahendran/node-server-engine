@@ -1,4 +1,4 @@
-import { factory, getBearer } from 'backend-test-tools';
+import { buildUser, getBearer } from 'test';
 import { expect } from 'chai';
 import { Request, Response } from 'express';
 import { faker } from '@faker-js/faker';
@@ -7,7 +7,7 @@ import { authJwt } from './authJwt';
 
 describe('Middleware - Auth JWT', () => {
   it('should authenticate with a JWT (auth-service)', async () => {
-    const user = factory.build('user');
+    const user = buildUser();
     const request = { headers: { authorization: getBearer(user.id) } };
     const next = fake();
 
@@ -17,7 +17,7 @@ describe('Middleware - Auth JWT', () => {
   });
 
   it('should populate the user object in the request (auth-service)', async () => {
-    const user = factory.build('user');
+    const user = buildUser();
     const request = {
       headers: { authorization: getBearer(user.id) }
     } as Request;
@@ -39,7 +39,7 @@ describe('Middleware - Auth JWT', () => {
   });
 
   it('should throw an error if the audience is not valid', async () => {
-    const user = factory.build('user');
+    const user = buildUser();
     const request = {
       headers: {
         authorization: getBearer(user.id, { audience: faker.internet.url() })
