@@ -1,3 +1,30 @@
+## [2.0.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.14.1...v2.0.0) (2026-11-12)
+
+### ⚠ BREAKING CHANGES
+
+* Node.js >= 22 is required (Node 20 is end of life).
+mime-types 3 maps image/jpeg to the .jpg extension for generated file
+names. PubSub ackDeadline is applied as min/max ack deadline.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### ✨ Features
+
+* update dependencies and require Node.js 22 ([541087a](https://github.com/prakashmahendran/node-server-engine/commit/541087a41bdc972978aa70c2a0f38570405c5668))
+
+### 🐛 Bug Fixes
+
+* **ci:** use changelog preset compatible with semantic-release ([1f8d546](https://github.com/prakashmahendran/node-server-engine/commit/1f8d546dfde0ec6270e4150032e36e1ff529b91f))
+* **security:** harden uploads, auth and logging ([90742a3](https://github.com/prakashmahendran/node-server-engine/commit/90742a3a4eee53241aabf9bf9039a8375b11393b))
+
+### 📚 Documentation
+
+* add CLAUDE.md with architecture and conventions ([5e2aa03](https://github.com/prakashmahendran/node-server-engine/commit/5e2aa030a64d281bd33c3c956d7bfee384743f49))
+
+### ✅ Tests
+
+* use local test helpers instead of backend-test-tools ([fcb529d](https://github.com/prakashmahendran/node-server-engine/commit/fcb529d3cb91478240e4fb4aad699bd630fc57a9))
+
 ## [1.14.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.14.0...v1.14.1) (2026-11-07)
 
 ### 🐛 Bug Fixes
