@@ -1,4 +1,4 @@
-import { existsSync, lstatSync } from 'fs';
+import { existsSync, lstatSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { Sequelize, Transaction } from 'sequelize';
 import { Umzug, SequelizeStorage } from 'umzug';
@@ -12,15 +12,21 @@ import { semverCompare } from 'utils/semverCompare';
 
 const namespace = 'engine:utils:dbMigration';
 
-function getMigrationPaths(): Array<string> | undefined {
+export function getMigrationPaths(): Array<string> | undefined {
   // We look between possibilities for the first directory that exists and matches our expectations
   // First a user specified one, then the production default, then the development default
   const prodDefaultPath = join(process.cwd(), './dist/db/migrations');
   const devDefaultPath = join(process.cwd(), './src/db/migrations');
+  const isProduction = ['prod', 'production'].includes(
+    process.env.NODE_ENV ?? ''
+  );
   const path = [
     process.env.DB_MIGRATIONS_DIR,
-    process.env.NODE_ENV === 'prod' ? prodDefaultPath : devDefaultPath
-  ].filter((path) => path && existsSync(path) && lstatSync(path).isDirectory());
+    isProduction ? prodDefaultPath : devDefaultPath
+  ].filter(
+    (path): path is string =>
+      !!path && existsSync(path) && lstatSync(path).isDirectory()
+  );
   reportDebug({
     namespace,
     message: 'Obtaining Umzug migration options',
@@ -31,9 +37,18 @@ function getMigrationPaths(): Array<string> | undefined {
       customPath: process.env.DB_MIGRATIONS_DIR
     }
   });
-  return path.map((p) =>
-    process.env.NODE_ENV === 'prod' ? `${p}/*.js` : `${p}/*.ts`
+  return path.map((p) => `${p}/*.${getMigrationExtension(p)}`);
+}
+
+/**
+ * Detect whether a migration folder holds TypeScript sources or compiled JavaScript,
+ * so migrations are found regardless of the NODE_ENV value
+ */
+function getMigrationExtension(directory: string): 'ts' | 'js' {
+  const hasTypeScript = readdirSync(directory).some(
+    (file) => file.endsWith('.ts') && !file.endsWith('.d.ts')
   );
+  return hasTypeScript ? 'ts' : 'js';
 }
 
 /** Run all the non-executed migrations one by one */

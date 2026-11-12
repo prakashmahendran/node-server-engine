@@ -1,3 +1,6 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import * as dbMigration from './dbMigration';
@@ -14,6 +17,40 @@ describe('Utils - dbMigration', () => {
   afterEach(() => {
     process.env = originalEnv;
     sinon.restore();
+  });
+
+  describe('getMigrationPaths', () => {
+    let dir: string;
+
+    beforeEach(() => {
+      dir = fs.mkdtempSync(path.join(os.tmpdir(), 'migrations-'));
+    });
+
+    afterEach(() => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    it('should use compiled .js migrations when the folder has no TypeScript (e.g. NODE_ENV=production)', () => {
+      fs.writeFileSync(path.join(dir, '20240101-init.js'), '');
+      fs.writeFileSync(path.join(dir, '20240101-init.js.map'), '');
+      process.env.NODE_ENV = 'production';
+      process.env.DB_MIGRATIONS_DIR = dir;
+      expect(dbMigration.getMigrationPaths()).to.include(`${dir}/*.js`);
+    });
+
+    it('should use .ts migrations when the folder holds TypeScript sources', () => {
+      fs.writeFileSync(path.join(dir, '20240101-init.ts'), '');
+      process.env.NODE_ENV = 'development';
+      process.env.DB_MIGRATIONS_DIR = dir;
+      expect(dbMigration.getMigrationPaths()).to.include(`${dir}/*.ts`);
+    });
+
+    it('should ignore declaration files when detecting TypeScript', () => {
+      fs.writeFileSync(path.join(dir, '20240101-init.js'), '');
+      fs.writeFileSync(path.join(dir, '20240101-init.d.ts'), '');
+      process.env.DB_MIGRATIONS_DIR = dir;
+      expect(dbMigration.getMigrationPaths()).to.include(`${dir}/*.js`);
+    });
   });
 
   describe('runPendingMigrations', () => {
