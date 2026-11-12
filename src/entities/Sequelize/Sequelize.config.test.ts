@@ -39,4 +39,15 @@ describe('Entity - Sequelize config (mssql)', () => {
       trustServerCertificate: true
     });
   });
+
+  it('should return lower case GUIDs only when asked', () => {
+    process.env.SQL_TYPE = 'mssql';
+    expect(loadConfig().dialectOptions?.options).to.include({
+      lowerCaseGuids: false
+    });
+    process.env.SQL_LOWERCASE_GUIDS = 'true';
+    expect(loadConfig().dialectOptions?.options).to.include({
+      lowerCaseGuids: true
+    });
+  });
 });

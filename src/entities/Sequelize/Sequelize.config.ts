@@ -48,7 +48,9 @@ if (config.dialect === 'mssql') {
       // Encrypted connections by default; SQL_ENCRYPT=false only for servers without TLS
       encrypt: process.env.SQL_ENCRYPT !== 'false',
       // The server certificate is verified unless SQL_TRUST_SERVER_CERT=true (self-signed development servers)
-      trustServerCertificate: process.env.SQL_TRUST_SERVER_CERT === 'true'
+      trustServerCertificate: process.env.SQL_TRUST_SERVER_CERT === 'true',
+      // UNIQUEIDENTIFIER values come back upper case unless SQL_LOWERCASE_GUIDS=true (matches JS / client UUIDs)
+      lowerCaseGuids: process.env.SQL_LOWERCASE_GUIDS === 'true'
     }
   };
 }

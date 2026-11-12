@@ -1066,6 +1066,7 @@ It can be configured through environment variables
 | SQL_DB                | Database to which connect to                                                               |          |
 | SQL_TYPE              | SQL type which connect to                                                                  | postgres |
 | SQL_ENCRYPT           | `mssql` only: set to `false` to disable TLS                                                | true     |
+| SQL_LOWERCASE_GUIDS   | `mssql` only: `true` returns UNIQUEIDENTIFIER values in lower case, like JavaScript UUIDs  | false    |
 | SQL_TRUST_SERVER_CERT | `mssql` only: `true` skips certificate verification (self-signed development servers only) | false    |
 
 ---
