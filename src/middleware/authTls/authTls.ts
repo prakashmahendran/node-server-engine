@@ -79,8 +79,10 @@ export function authTlsMiddleware(
 
   // Extract the subjects for the client certificate
   const clientCertificate = socket.getPeerCertificate();
-  const subjects = [];
-  if (clientCertificate.subject.CN) subjects.push(clientCertificate.subject.CN);
+  const subjects: Array<string> = [];
+  const commonName = clientCertificate.subject.CN;
+  if (commonName)
+    subjects.push(...(Array.isArray(commonName) ? commonName : [commonName]));
   if (clientCertificate.subjectaltname?.length) {
     const altNames = clientCertificate.subjectaltname
       .split(',')

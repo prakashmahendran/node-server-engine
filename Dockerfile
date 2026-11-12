@@ -1,5 +1,5 @@
 # Instal package dependencies
-FROM node:20 AS dependency
+FROM node:22 AS dependency
 
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=$GITHUB_TOKEN

@@ -1,5 +1,6 @@
 import {
   Attributes,
+  Duration,
   PubSub as PubsubClient,
   Message
 } from '@google-cloud/pubsub';
@@ -95,9 +96,10 @@ const subscriptions: PubSubSubscriptionsMap = {};
  */
 const topics: PubSubTopicsMap = {};
 
-const pubSubClient = new PubsubClient(
-  resolvedProjectId ? { projectId: resolvedProjectId } : undefined
-);
+const pubSubClient = new PubsubClient({
+  ...(resolvedProjectId ? { projectId: resolvedProjectId } : {}),
+  enableOpenTelemetryTracing: true
+});
 
 /**
  * This is a singleton service who's role is to manage pub/sub connections
@@ -242,7 +244,6 @@ export const PubSub = {
     for (const topic of topicArray) {
       if (!Object.keys(topics).includes(topic)) {
         topics[topic] = pubSubClient.topic(topic, {
-          enableOpenTelemetryTracing: true,
           messageOrdering: options?.enableMessageOrdering ?? false,
           batching: options?.batching
             ? {
@@ -303,7 +304,6 @@ export const PubSub = {
     if (!Object.keys(subscriptions).includes(subscription)) {
       subscriptions[subscription] = {
         subscription: pubSubClient.subscription(subscription, {
-          enableOpenTelemetryTracing: true,
           flowControl: flowControl
             ? {
                 maxMessages: flowControl.maxMessages ?? 1000,
@@ -315,7 +315,9 @@ export const PubSub = {
                 maxBytes: 100 * 1024 * 1024,
                 allowExcessMessages: true
               },
-          ackDeadline: ackDeadline ?? 60
+          // A fixed ack deadline (in seconds) is expressed as equal min/max deadlines
+          minAckDeadline: Duration.from({ seconds: ackDeadline ?? 60 }),
+          maxAckDeadline: Duration.from({ seconds: ackDeadline ?? 60 })
         }),
         handlers: []
       };

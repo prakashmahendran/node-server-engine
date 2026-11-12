@@ -1,46 +1,70 @@
 import { expect } from 'chai';
-import { stub } from 'sinon';
-import fs from 'fs';
-import { GoogleAIFileManager } from '@google/generative-ai/server';
-import { geminiFileUpload } from './geminiFileUpload';
+import sinon from 'sinon';
+import { FileState } from '@google/genai';
+import { geminiFileUpload, getGeminiClient } from './geminiFileUpload';
 
 describe('Utils - geminiFileUpload', () => {
+  const uploaded = {
+    name: 'files/f1',
+    mimeType: 'image/png',
+    uri: 'uri',
+    displayName: 'a.png'
+  };
+
   afterEach(() => {
-    stub.restore && (stub as any).restore?.();
+    sinon.restore();
   });
 
   it('should upload and return success when file becomes ACTIVE', async () => {
-    const writeStub = stub(fs, 'writeFileSync');
-    const uploadStub = stub(GoogleAIFileManager.prototype, 'uploadFile').resolves({ file: { name: 'f1', mimeType: 'image/png', uri: 'uri', displayName: 'dn' } } as any);
-    const getFileStub = stub(GoogleAIFileManager.prototype, 'getFile').resolves({ state: 'ACTIVE' } as any);
+    const { files } = getGeminiClient();
+    const uploadStub = sinon.stub(files, 'upload').resolves(uploaded as any);
+    const getStub = sinon
+      .stub(files, 'get')
+      .resolves({ ...uploaded, state: FileState.ACTIVE } as any);
 
     const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png');
+
     expect(res.success).to.equal(true);
     expect((res as any).fileUri).to.equal('uri');
-    // tmp cleanup is handled internally; no assertion needed here
-    writeStub.restore();
-    uploadStub.restore();
-    getFileStub.restore();
+    expect((res as any).originalname).to.equal('files/f1');
+    expect(uploadStub.firstCall.args[0].config).to.deep.equal({
+      mimeType: 'image/png',
+      displayName: 'a.png'
+    });
+    expect(getStub.firstCall.args[0]).to.deep.equal({ name: 'files/f1' });
+  });
+
+  it('should wait while the file is PROCESSING', async () => {
+    const { files } = getGeminiClient();
+    sinon.stub(files, 'upload').resolves(uploaded as any);
+    const getStub = sinon.stub(files, 'get');
+    getStub.onFirstCall().resolves({ ...uploaded, state: FileState.PROCESSING } as any);
+    getStub.onSecondCall().resolves({ ...uploaded, state: FileState.ACTIVE } as any);
+
+    const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png', 1);
+
+    expect(res.success).to.equal(true);
+    expect(getStub.callCount).to.equal(2);
   });
 
   it('should return failure when upload returns no file', async () => {
-    stub(fs, 'writeFileSync');
-    stub(GoogleAIFileManager.prototype, 'uploadFile').resolves({} as any);
-    const getFileStub = stub(GoogleAIFileManager.prototype, 'getFile');
+    const { files } = getGeminiClient();
+    sinon.stub(files, 'upload').resolves({} as any);
+    const getStub = sinon.stub(files, 'get');
 
     const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png');
+
     expect(res.success).to.equal(false);
-    getFileStub.restore();
+    expect(getStub.called).to.equal(false);
   });
 
   it('should return failure when processing ends not ACTIVE', async () => {
-    stub(fs, 'writeFileSync');
-    stub(GoogleAIFileManager.prototype, 'uploadFile').resolves({ file: { name: 'f1', mimeType: 'image/png', uri: 'uri', displayName: 'dn' } } as any);
-    const getFileStub = stub(GoogleAIFileManager.prototype, 'getFile')
-      .onFirstCall().resolves({ state: 'FAILED' } as any);
+    const { files } = getGeminiClient();
+    sinon.stub(files, 'upload').resolves(uploaded as any);
+    sinon.stub(files, 'get').resolves({ ...uploaded, state: FileState.FAILED } as any);
 
     const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png');
+
     expect(res.success).to.equal(false);
-    getFileStub.restore();
   });
 });

@@ -150,7 +150,7 @@ describe('GoogleCloudStorage', function () {
 
     it('should handle various mime types', function () {
       const mimeTypes = [
-        { mime: 'image/jpeg', ext: 'jpeg' },
+        { mime: 'image/jpeg', ext: 'jpg' },
         { mime: 'application/pdf', ext: 'pdf' },
         { mime: 'video/mp4', ext: 'mp4' }
       ];
