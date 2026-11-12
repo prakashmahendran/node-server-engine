@@ -15,7 +15,7 @@ describe('Middleware - requestLogger', () => {
   beforeEach(() => {
     originalEnv = { ...process.env };
     outputStub = sinon.stub(outputModule, 'output');
-    
+
     req = {
       method: 'GET',
       url: '/api/test',
@@ -47,19 +47,19 @@ describe('Middleware - requestLogger', () => {
   it('should call next immediately', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
-    
+
     expect(next).to.have.been.calledOnce;
   });
 
   it('should log request on response finish', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
-    
+
     expect(outputStub).to.not.have.been.called;
-    
+
     // Trigger finish event
     onFinishCallback();
-    
+
     expect(outputStub).to.have.been.calledOnce;
   });
 
@@ -67,7 +67,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.message).to.match(/GET \/api\/test \[200\] \d+ms/);
   });
@@ -77,7 +77,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.message).to.match(/POST \/api\/test \[200\] \d+ms/);
   });
@@ -87,7 +87,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.severity).to.equal('DEBUG');
   });
@@ -97,7 +97,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.severity).to.equal('WARNING');
   });
@@ -107,7 +107,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.severity).to.equal('ERROR');
   });
@@ -115,10 +115,10 @@ describe('Middleware - requestLogger', () => {
   it('should include response time in message', (done) => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
-    
+
     setTimeout(() => {
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       const match = logEntry.message.match(/(\d+)ms$/);
       expect(match).to.exist;
@@ -134,7 +134,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.message).to.include('/api/v2/test');
   });
@@ -145,7 +145,7 @@ describe('Middleware - requestLogger', () => {
     const middleware = requestLogger();
     middleware(req as Request, res as Response, next);
     onFinishCallback();
-    
+
     const logEntry = outputStub.firstCall.args[0];
     expect(logEntry.message).to.include('/test');
   });
@@ -159,7 +159,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.context).to.exist;
       expect(logEntry.context.httpRequest).to.exist;
@@ -171,7 +171,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.data).to.exist;
       expect(logEntry.data.responseTime).to.match(/\d+ms/);
@@ -182,7 +182,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.data.contentLength).to.equal('5678');
     });
@@ -191,7 +191,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.context.httpRequest.userAgent).to.equal('Mozilla/5.0');
     });
@@ -200,7 +200,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.context.httpRequest.remoteIp).to.equal('127.0.0.1');
     });
@@ -215,7 +215,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.context).to.be.undefined;
     });
@@ -224,7 +224,7 @@ describe('Middleware - requestLogger', () => {
       const middleware = requestLogger();
       middleware(req as Request, res as Response, next);
       onFinishCallback();
-      
+
       const logEntry = outputStub.firstCall.args[0];
       expect(logEntry.data).to.be.undefined;
     });

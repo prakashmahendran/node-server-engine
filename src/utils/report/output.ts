@@ -53,78 +53,90 @@ export function formatTime(date?: Date): string {
 /**
  * Format log entry for human-readable local development output
  */
-export function formatLocalLog(severity: LogSeverity | string, message: string): void;
+export function formatLocalLog(
+  severity: LogSeverity | string,
+  message: string
+): void;
 export function formatLocalLog(entry: FullLogEntry): string;
-export function formatLocalLog(severityOrEntry: LogSeverity | string | FullLogEntry, message?: string): string | void {
+export function formatLocalLog(
+  severityOrEntry: LogSeverity | string | FullLogEntry,
+  message?: string
+): string | void {
   // Handle overloaded signature for testing
   if (typeof severityOrEntry === 'string' && message !== undefined) {
     const time = formatTime();
     const severityColor = getSeverityColor(severityOrEntry);
     const useColors = process.env.NODE_ENV !== 'production';
-    
-    const output = useColors 
+
+    const output = useColors
       ? `${colors.gray}[${time}]${colors.reset} ${severityColor}${severityOrEntry.padEnd(8)}${colors.reset} ${message}`
       : `[${time}] ${severityOrEntry.padEnd(8)} ${message}`;
-    
+
     console.log(output);
     return;
   }
-  
+
   // Original function implementation
   const entry = severityOrEntry as FullLogEntry;
   const time = formatTime();
   const severity = entry.severity || 'INFO';
   const severityColor = getSeverityColor(severity);
   const showDetailedLogs = process.env.DETAILED_LOGS === 'true';
-  
+
   const parts: string[] = [];
-  
+
   // Timestamp and severity
   parts.push(
     `${colors.gray}[${time}]${colors.reset} ${severityColor}${severity.padEnd(8)}${colors.reset}`
   );
-  
+
   // Message
   if (entry.message) {
     parts.push(`${entry.message}`);
   }
-  
+
   let output = parts.join(' ');
-  
+
   // Error details (compact format)
   if (entry.errorType || entry.errorCode || entry.statusCode) {
     const errorParts: string[] = [];
-    if (entry.errorCode) errorParts.push(`${colors.red}${entry.errorCode}${colors.reset}`);
+    if (entry.errorCode)
+      errorParts.push(`${colors.red}${entry.errorCode}${colors.reset}`);
     if (entry.statusCode) {
-      const statusColor = entry.statusCode >= 500 ? colors.red : entry.statusCode >= 400 ? colors.yellow : colors.green;
+      const statusColor =
+        entry.statusCode >= 500
+          ? colors.red
+          : entry.statusCode >= 400
+            ? colors.yellow
+            : colors.green;
       errorParts.push(`${statusColor}${entry.statusCode}${colors.reset}`);
     }
     if (errorParts.length > 0) {
       output += ` ${colors.dim}[${errorParts.join(' ')}]${colors.reset}`;
     }
   }
-  
+
   // HTTP request context (compact)
   if (entry.context?.httpRequest) {
     const req = entry.context.httpRequest;
     output += ` ${colors.dim}${req.method} ${req.url}${colors.reset}`;
   }
-  
+
   // Stack trace (only in detailed mode)
   if (showDetailedLogs && entry.stack_trace) {
     output += `\n${colors.gray}Stack Trace:${colors.reset}\n${colors.dim}${entry.stack_trace}${colors.reset}`;
   }
-  
+
   // Additional data (only in detailed mode or if no message)
   if (showDetailedLogs && entry.data && Object.keys(entry.data).length > 0) {
     output += `\n${colors.cyan}Data:${colors.reset}\n${colors.dim}${JSON.stringify(entry.data, null, 2)}${colors.reset}`;
   }
-  
+
   // File location (only in detailed mode)
   if (showDetailedLogs && entry.fileName) {
     output += `\n  ${colors.dim}${entry.fileName}:${entry.lineNumber || '?'}${colors.reset}`;
   }
-  
+
   return output;
 }
 
@@ -135,11 +147,13 @@ function isLocalDevelopment(): boolean {
   // Allow forcing local format via environment variable
   if (process.env.LOG_FORMAT === 'local') return true;
   if (process.env.LOG_FORMAT === 'json') return false;
-  
+
   return (
     process.env.NODE_ENV === 'development' ||
     process.env.NODE_ENV === 'dev' ||
-    (!process.env.NODE_ENV && !process.env.KUBERNETES_POD_NAME && !process.env.CLOUD_RUN_JOB)
+    (!process.env.NODE_ENV &&
+      !process.env.KUBERNETES_POD_NAME &&
+      !process.env.CLOUD_RUN_JOB)
   );
 }
 
@@ -206,7 +220,11 @@ export function output(data: LogEntry): FullLogEntry {
   } else if (isLocalDevelopment()) {
     // Local development: use formatted, colorized output
     const formattedLog = formatLocalLog(fullEntry);
-    if (data.severity === LogSeverity.ERROR || data.severity === LogSeverity.CRITICAL || (data.statusCode && data.statusCode >= 500)) {
+    if (
+      data.severity === LogSeverity.ERROR ||
+      data.severity === LogSeverity.CRITICAL ||
+      (data.statusCode && data.statusCode >= 500)
+    ) {
       console.error(formattedLog);
     } else {
       console.log(formattedLog);
@@ -220,6 +238,6 @@ export function output(data: LogEntry): FullLogEntry {
       console.log(entry);
     }
   }
-  
+
   return fullEntry;
 }

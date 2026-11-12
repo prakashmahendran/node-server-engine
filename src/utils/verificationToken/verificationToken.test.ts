@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import { WebError } from 'entities/WebError';
-import { createVerificationToken, verifyVerificationToken } from './verificationToken';
+import {
+  createVerificationToken,
+  verifyVerificationToken
+} from './verificationToken';
 
 describe('Utils - Verification Token', () => {
   beforeEach(() => {

@@ -32,8 +32,7 @@ describe('Entity - Server', function () {
     stubPubSub();
   });
 
-  afterEach(() => {
-  });
+  afterEach(() => {});
 
   it('init and shutdown', async () => {
     const server = new Server({ endpoints: [] });

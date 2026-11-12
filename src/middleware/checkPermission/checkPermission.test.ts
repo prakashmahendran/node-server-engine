@@ -31,7 +31,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('read');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;
@@ -44,7 +48,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('delete');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(mockResponse.status).to.have.been.calledWith(403);
       expect(mockResponse.json).to.have.been.calledWith({
@@ -60,7 +68,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('read');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;
@@ -73,7 +85,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('READ');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;
@@ -88,7 +104,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission(['admin', 'write', 'superuser']);
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;
@@ -101,7 +121,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission(['admin', 'superuser', 'moderator']);
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(mockResponse.status).to.have.been.calledWith(403);
       expect(mockResponse.json).to.have.been.calledWith({
@@ -117,7 +141,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission(['admin', 'write', 'superuser']);
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;
@@ -129,7 +157,11 @@ describe('Middleware - checkPermission', () => {
       mockRequest.user = undefined;
 
       const middleware = checkPermission('read');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(mockResponse.status).to.have.been.calledWith(403);
       expect(mockResponse.json).to.have.been.calledWith({
@@ -145,7 +177,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('read');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(mockResponse.status).to.have.been.calledWith(403);
       expect(mockResponse.json).to.have.been.calledWith({
@@ -161,7 +197,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('read');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(mockResponse.status).to.have.been.calledWith(403);
       expect(mockResponse.json).to.have.been.calledWith({
@@ -179,7 +219,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission([]);
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(mockResponse.status).to.have.been.calledWith(403);
       expect(nextFunction.called).to.be.false;
@@ -192,7 +236,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission(['rEaD', 'DeLeTe']);
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;
@@ -205,7 +253,11 @@ describe('Middleware - checkPermission', () => {
       };
 
       const middleware = checkPermission('user:read');
-      middleware(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware(
+        mockRequest as Request,
+        mockResponse as Response,
+        nextFunction
+      );
 
       expect(nextFunction.calledOnce).to.be.true;
       expect(mockResponse.status).to.not.have.been.called;

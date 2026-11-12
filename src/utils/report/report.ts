@@ -60,8 +60,7 @@ export function reportError(
     logEntry = {
       ...logEntry,
       context: {
-        user:
-          request.user?.id ?? request.hosts?.join(','),
+        user: request.user?.id ?? request.hosts?.join(','),
         httpRequest: {
           url: request.originalUrl,
           method: request.method,
@@ -109,7 +108,7 @@ export function reportDebug(data: DebugLogEntry): FullLogEntry | undefined {
   if (!NAMESPACE_SELECTORS) {
     initNamespaceSelector();
   }
-  
+
   let { namespace } = data;
   const isEngineReport = namespace?.startsWith('engine') ?? false;
 
@@ -121,7 +120,7 @@ export function reportDebug(data: DebugLogEntry): FullLogEntry | undefined {
     namespace &&
     NAMESPACE_SELECTORS &&
     NAMESPACE_SELECTORS.some((selector) => selector.test(namespace));
-    
+
   if (!match) return undefined;
 
   // Generate a prefix with the rightmost part of the namespace

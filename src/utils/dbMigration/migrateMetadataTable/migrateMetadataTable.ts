@@ -22,7 +22,8 @@ function listTablesQuery(sqlType?: string): string {
 function getTableName(row: unknown): string | undefined {
   if (typeof row === 'string') return row;
   if (Array.isArray(row)) return getTableName(row[0]);
-  if (row && typeof row === 'object') return getTableName(Object.values(row)[0]);
+  if (row && typeof row === 'object')
+    return getTableName(Object.values(row)[0]);
   return undefined;
 }
 
@@ -39,8 +40,8 @@ export async function migrateMetadataTable(
 
     const query = listTablesQuery(process.env.SQL_TYPE);
 
-    reportDebug({ 
-      namespace, 
+    reportDebug({
+      namespace,
       message: 'Checking for existing metadata tables',
       data: { sqlType: process.env.SQL_TYPE }
     });
@@ -51,66 +52,69 @@ export async function migrateMetadataTable(
     });
     const tableNames = tables.map(getTableName);
 
-  const hasCustomSequelizeMeta = tableNames.includes('sequelize_meta');
-  const hasLegacySequelizeMeta = tableNames.includes('SequelizeMeta');
-  if (!hasCustomSequelizeMeta) {
-    reportDebug({
-      namespace,
-      message: 'No metadata table found, creating new one'
-    });
+    const hasCustomSequelizeMeta = tableNames.includes('sequelize_meta');
+    const hasLegacySequelizeMeta = tableNames.includes('SequelizeMeta');
+    if (!hasCustomSequelizeMeta) {
+      reportDebug({
+        namespace,
+        message: 'No metadata table found, creating new one'
+      });
 
-    // Define SQL for creating the table based on the database type
-    let createTableQuery = '';
+      // Define SQL for creating the table based on the database type
+      let createTableQuery = '';
 
-    switch (process.env.SQL_TYPE) {
-      case 'mysql':
-      case 'postgres':
-      case 'sqlite':
-        createTableQuery = `
+      switch (process.env.SQL_TYPE) {
+        case 'mysql':
+        case 'postgres':
+        case 'sqlite':
+          createTableQuery = `
           CREATE TABLE sequelize_meta (
             name      VARCHAR(100) PRIMARY KEY,
             version   VARCHAR(25),
             createdAt TIMESTAMP NOT NULL,
             updatedAt TIMESTAMP NOT NULL
           )`;
-        break;
-      case 'mssql':
-        createTableQuery = `
+          break;
+        case 'mssql':
+          createTableQuery = `
           CREATE TABLE sequelize_meta (
             name      VARCHAR(100) PRIMARY KEY,
             version   VARCHAR(25),
             createdAt DATETIME NOT NULL,
             updatedAt DATETIME NOT NULL
           )`;
-        break;
-      default:
-        throw new Error('Unsupported SQL type');
-    }
+          break;
+        default:
+          throw new Error('Unsupported SQL type');
+      }
 
-    // Create the new sequelize_meta table if it does not exist
-    reportDebug({ 
-      namespace, 
-      message: 'Creating sequelize_meta table',
-      data: { sqlType: process.env.SQL_TYPE }
-    });
-    await sequelize.query(createTableQuery, { type: QueryTypes.RAW });
-    reportDebug({ namespace, message: 'sequelize_meta table created successfully' });
-
-    // Migrate the data from the old table to the new one if needed
-    if (hasLegacySequelizeMeta) {
+      // Create the new sequelize_meta table if it does not exist
       reportDebug({
         namespace,
-        message: 'Legacy metadata table found, migrating data'
+        message: 'Creating sequelize_meta table',
+        data: { sqlType: process.env.SQL_TYPE }
+      });
+      await sequelize.query(createTableQuery, { type: QueryTypes.RAW });
+      reportDebug({
+        namespace,
+        message: 'sequelize_meta table created successfully'
       });
 
-      const migrations = await sequelize.query<SequelizeMeta>(
-        'SELECT name FROM SequelizeMeta ORDER BY name',
-        {
-          type: QueryTypes.SELECT
-        }
-      );
+      // Migrate the data from the old table to the new one if needed
+      if (hasLegacySequelizeMeta) {
+        reportDebug({
+          namespace,
+          message: 'Legacy metadata table found, migrating data'
+        });
 
-      const insertQuery = `
+        const migrations = await sequelize.query<SequelizeMeta>(
+          'SELECT name FROM SequelizeMeta ORDER BY name',
+          {
+            type: QueryTypes.SELECT
+          }
+        );
+
+        const insertQuery = `
       INSERT INTO sequelize_meta (name, version, createdAt, updatedAt) VALUES
         ${migrations
           .map((migration) => {
@@ -129,9 +133,9 @@ export async function migrateMetadataTable(
           .join(',')}
     `;
 
-      await sequelize.query(insertQuery, { type: QueryTypes.INSERT });
+        await sequelize.query(insertQuery, { type: QueryTypes.INSERT });
+      }
     }
-  }
   } catch (error) {
     reportError({
       namespace,

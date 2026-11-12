@@ -15,14 +15,14 @@ helpers live in `test/helpers`.
 
 Node.js >= 22 (see `engines`).
 
-| Task | Command |
-| --- | --- |
-| Install | `npm ci` |
-| Tests (mocha + ts-node, sqlite in memory) | `npm test` |
-| Single test file | `npm run test:file -- src/path/to/file.test.ts` |
-| Lint | `npm run lint` |
-| Type check | `npx tsc -p tsconfig.build.json --noEmit` |
-| Build to `dist/` | `npm run build` |
+| Task                                      | Command                                         |
+| ----------------------------------------- | ----------------------------------------------- |
+| Install                                   | `npm ci`                                        |
+| Tests (mocha + ts-node, sqlite in memory) | `npm test`                                      |
+| Single test file                          | `npm run test:file -- src/path/to/file.test.ts` |
+| Lint                                      | `npm run lint`                                  |
+| Type check                                | `npx tsc -p tsconfig.build.json --noEmit`       |
+| Build to `dist/`                          | `npm run build`                                 |
 
 Set `SILENCE_REPORT=1` to hide log output while running tests.
 
@@ -46,6 +46,7 @@ Imports are absolute from `src` (`baseUrl: src`, for example `import { WebError 
 ## How a request flows
 
 `Server` (`entities/Server/Server.ts`) builds two Express apps:
+
 - Primary port (`PORT`): CORS (`CORS_ORIGIN`, a single origin or a comma-separated list), default
   middleware (health check, JSON body limit `REQUEST_SIZE_LIMIT`, metrics), then the global middleware,
   then each `Endpoint`, then the error middleware.

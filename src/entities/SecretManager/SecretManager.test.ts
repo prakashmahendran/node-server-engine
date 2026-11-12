@@ -15,7 +15,7 @@ describe('SecretManager', function () {
   beforeEach(function () {
     sandbox = sinon.createSandbox();
     originalEnv = { ...process.env };
-    
+
     // Reset SecretManager state
     SecretManager.client = undefined;
     SecretManager.options = undefined;
@@ -48,7 +48,7 @@ describe('SecretManager', function () {
 
     it('should skip initialization when NODE_ENV is not production by default', async function () {
       process.env.NODE_ENV = 'development';
-      
+
       const result = await SecretManager.init({
         projectId: 'test-project'
       });
@@ -59,7 +59,7 @@ describe('SecretManager', function () {
 
     it('should throw error when projectId is missing in production', async function () {
       process.env.NODE_ENV = 'production';
-      
+
       try {
         await SecretManager.init({
           enabled: true
@@ -72,11 +72,12 @@ describe('SecretManager', function () {
 
     it('should initialize with projectId from environment', async function () {
       process.env.GCP_PROJECT_ID = 'env-project';
-      
+
       // Mock the client creation
-      const SecretManagerServiceClient = require('@google-cloud/secret-manager').SecretManagerServiceClient;
+      const SecretManagerServiceClient =
+        require('@google-cloud/secret-manager').SecretManagerServiceClient;
       sandbox.stub(SecretManagerServiceClient.prototype, 'constructor' as any);
-      
+
       sandbox.stub(SecretManager, 'loadSecrets' as any).resolves({
         loaded: 0,
         failed: 0,
@@ -118,11 +119,13 @@ describe('SecretManager', function () {
     });
 
     it('should load env type secrets successfully', async function () {
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('secret-value')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('secret-value')
+          }
         }
-      }]);
+      ]);
 
       const result = await SecretManager.loadSecrets({
         projectId: 'test-project',
@@ -136,11 +139,13 @@ describe('SecretManager', function () {
     });
 
     it('should cache secrets when caching is enabled', async function () {
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('cached-value')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('cached-value')
+          }
         }
-      }]);
+      ]);
 
       await SecretManager.loadSecrets({
         projectId: 'test-project',
@@ -155,7 +160,7 @@ describe('SecretManager', function () {
 
     it('should use fallback when secret loading fails', async function () {
       process.env.FALLBACK_SECRET = 'fallback-value';
-      
+
       mockClient.accessSecretVersion.rejects(new Error('Not found'));
 
       const result = await SecretManager.loadSecrets({
@@ -189,11 +194,13 @@ describe('SecretManager', function () {
 
     it('should load file-based secret and write to temp file', async function () {
       const writeFileStub = sandbox.stub(fs, 'writeFile').resolves();
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('file-content')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('file-content')
+          }
         }
-      }]);
+      ]);
 
       const result = await SecretManager.loadSecret(
         {
@@ -217,11 +224,13 @@ describe('SecretManager', function () {
 
     it('should write file with specified mode', async function () {
       const writeFileStub = sandbox.stub(fs, 'writeFile').resolves();
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('secure-content')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('secure-content')
+          }
         }
-      }]);
+      ]);
 
       await SecretManager.loadSecret(
         {
@@ -239,11 +248,13 @@ describe('SecretManager', function () {
     });
 
     it('should set targetEnvVar for env type secrets', async function () {
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('custom-value')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('custom-value')
+          }
         }
-      }]);
+      ]);
 
       await SecretManager.loadSecret(
         {
@@ -274,9 +285,11 @@ describe('SecretManager', function () {
     });
 
     it('should handle secret with no data', async function () {
-      mockClient.accessSecretVersion.resolves([{
-        payload: {}
-      }]);
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {}
+        }
+      ]);
 
       try {
         await SecretManager.loadSecret(
@@ -351,11 +364,13 @@ describe('SecretManager', function () {
     });
 
     it('should fetch secret on-demand', async function () {
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('fresh-value')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('fresh-value')
+          }
         }
-      }]);
+      ]);
 
       const value = await SecretManager.fetchSecret('RUNTIME_SECRET');
 
@@ -363,16 +378,20 @@ describe('SecretManager', function () {
     });
 
     it('should fetch specific version', async function () {
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('v2-value')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('v2-value')
+          }
         }
-      }]);
+      ]);
 
       const value = await SecretManager.fetchSecret('VERSIONED_SECRET', '2');
 
       expect(value).to.equal('v2-value');
-      expect(mockClient.accessSecretVersion.firstCall.args[0].name).to.include('/versions/2');
+      expect(mockClient.accessSecretVersion.firstCall.args[0].name).to.include(
+        '/versions/2'
+      );
     });
 
     it('should throw error when not initialized', async function () {
@@ -404,11 +423,13 @@ describe('SecretManager', function () {
         config: { name: 'OLD_SECRET', type: 'env' }
       });
 
-      mockClient.accessSecretVersion.resolves([{
-        payload: {
-          data: Buffer.from('new-value')
+      mockClient.accessSecretVersion.resolves([
+        {
+          payload: {
+            data: Buffer.from('new-value')
+          }
         }
-      }]);
+      ]);
 
       const result = await SecretManager.reload();
 

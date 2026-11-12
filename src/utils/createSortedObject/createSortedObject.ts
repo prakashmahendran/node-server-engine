@@ -10,17 +10,19 @@ export function createSortedObject<T>(data: T): T {
 
   if (Array.isArray(data)) {
     return data.map((item) =>
-      typeof item === 'object' && item !== null ? createSortedObject(item) : item
+      typeof item === 'object' && item !== null
+        ? createSortedObject(item)
+        : item
     ) as T;
   }
 
   const result: Record<string, unknown> = {};
-  
+
   Object.keys(data)
     .sort()
     .forEach((key: string) => {
       const value = (data as Record<string, unknown>)[key];
-      
+
       if (value === null || typeof value !== 'object' || Array.isArray(value)) {
         result[key] = Array.isArray(value)
           ? value.map((item) =>
@@ -33,6 +35,6 @@ export function createSortedObject<T>(data: T): T {
         result[key] = createSortedObject(value);
       }
     });
-    
+
   return result as T;
 }

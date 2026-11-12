@@ -126,20 +126,22 @@ The server provides structured logging with automatic format detection. In local
 ### Log Format
 
 Logs automatically detect the environment:
+
 - **Local Development**: Colorized, concise format with time (HH:MM:SS)
 - **Production**: JSON structured logs for cloud log aggregation
 
 ### Environment Variables
 
-| Variable | Values | Description | Default |
-|----------|--------|-------------|---------|
-| `LOG_FORMAT` | `local`, `json` | Force specific log format | Auto-detect |
-| `DETAILED_LOGS` | `true`, `false` | Show stack traces and verbose details | `false` |
-| `DEBUG` | `namespace:*` | Enable debug logs for specific namespaces | Off |
+| Variable        | Values          | Description                               | Default     |
+| --------------- | --------------- | ----------------------------------------- | ----------- |
+| `LOG_FORMAT`    | `local`, `json` | Force specific log format                 | Auto-detect |
+| `DETAILED_LOGS` | `true`, `false` | Show stack traces and verbose details     | `false`     |
+| `DEBUG`         | `namespace:*`   | Enable debug logs for specific namespaces | Off         |
 
 ### Examples
 
 **Default Local Format** (clean, concise):
+
 ```
 [21:16:15] INFO     SERVER_RUNNING
 [21:16:15] INFO     Connected to database successfully
@@ -149,6 +151,7 @@ Logs automatically detect the environment:
 ```
 
 **Detailed Logs** (`DETAILED_LOGS=true`):
+
 ```
 [21:16:15] DEBUG    POST /auth/login [200] 154ms
 Data:
@@ -167,6 +170,7 @@ Error: No bearer token found
 ```
 
 **Production Format** (`LOG_FORMAT=json`):
+
 ```json
 {"severity":"INFO","message":"SERVER_RUNNING","timestamp":"2025-12-09T21:16:15.028Z","serviceContext":{"service":"my-service","version":"1.0.0"}}
 {"severity":"DEBUG","message":"POST /auth/login [200] 154ms","timestamp":"2025-12-09T21:16:15.182Z"}
@@ -378,22 +382,22 @@ new Endpoint({
 The middleware adds a `files` object to the `req` object, which contains information about the uploaded file.
 
 ```json
- [
-    {
-      "fieldname": "avatar",
-      "originalname": "profile.png",
-      "mimetype": "image/png",
-      "size": 204800,
-      "buffer":[]
-    },
-    {
-      "fieldname": "document",
-      "originalname": "resume.pdf",
-      "mimetype": "application/pdf",
-      "size": 512000,
-      "buffer":[]
-    }
-  ]
+[
+  {
+    "fieldname": "avatar",
+    "originalname": "profile.png",
+    "mimetype": "image/png",
+    "size": 204800,
+    "buffer": []
+  },
+  {
+    "fieldname": "document",
+    "originalname": "resume.pdf",
+    "mimetype": "application/pdf",
+    "size": 512000,
+    "buffer": []
+  }
+]
 ```
 
 ##### Features
@@ -481,6 +485,7 @@ new Endpoint({
   }
 });
 ```
+
 ---
 
 ### Socket Client
@@ -523,22 +528,22 @@ const server = new Server({
 });
 ```
 
-| Parameter         | Type                                       | Description                                                             | Default      |
-| ----------------- | ------------------------------------------ | ----------------------------------------------------------------------- | ------------ |
-| handlers          | Array\<[MessageHandler](#message-handler)> | A list of message handlers to use                                       | **required** |
-| authCallbacks     | Function \| Array\<Function>               | Callbacks called when a client successfully authenticates               | []           |
-| initCallbacks     | Function \| Array\<Function>               | Callbacks called when the socket client is created                      | []           |
-| shutdownCallbacks | Function \| Array\<Function>               | Callbacks called when the socket client is destroyed                    | []           |
+| Parameter         | Type                                       | Description                                               | Default      |
+| ----------------- | ------------------------------------------ | --------------------------------------------------------- | ------------ |
+| handlers          | Array\<[MessageHandler](#message-handler)> | A list of message handlers to use                         | **required** |
+| authCallbacks     | Function \| Array\<Function>               | Callbacks called when a client successfully authenticates | []           |
+| initCallbacks     | Function \| Array\<Function>               | Callbacks called when the socket client is created        | []           |
+| shutdownCallbacks | Function \| Array\<Function>               | Callbacks called when the socket client is destroyed      | []           |
 
 #### Client Properties & Methods
 
-| Property/Method   | Type                        | Description                                                               |
-| ----------------- | --------------------------- | ------------------------------------------------------------------------- |
-| id                | String                      | Unique identifier for the connection                                      |
-| establishedAt     | Date                        | Timestamp when connection was established                                 |
-| isAuthenticated() | () => Boolean               | Check if client is authenticated                                          |
-| getUser()         | () => SocketUser \| undefined | Get authenticated user data (userId, deviceId, tokenId, audience)         |
-| sendMessage()     | (type, payload, options)    | Send a message to the client                                              |
+| Property/Method   | Type                          | Description                                                       |
+| ----------------- | ----------------------------- | ----------------------------------------------------------------- |
+| id                | String                        | Unique identifier for the connection                              |
+| establishedAt     | Date                          | Timestamp when connection was established                         |
+| isAuthenticated() | () => Boolean                 | Check if client is authenticated                                  |
+| getUser()         | () => SocketUser \| undefined | Get authenticated user data (userId, deviceId, tokenId, audience) |
+| sendMessage()     | (type, payload, options)      | Send a message to the client                                      |
 
 #### Client Authentication
 
@@ -546,10 +551,12 @@ Clients authenticate by sending a message:
 
 ```javascript
 // Client-side
-websocket.send(JSON.stringify({
-  type: 'authenticate',
-  payload: { token: 'your-jwt-token' }
-}));
+websocket.send(
+  JSON.stringify({
+    type: 'authenticate',
+    payload: { token: 'your-jwt-token' }
+  })
+);
 
 // Server will:
 // 1. Verify the JWT token
@@ -561,10 +568,10 @@ websocket.send(JSON.stringify({
 
 #### Environment Variables
 
-| Variable            | Description                                     | Default |
-| ------------------- | ----------------------------------------------- | ------- |
-| WS_PING_INTERVAL    | Interval between ping checks (seconds)          | 30      |
-| WEBSOCKET_CLOSE_TIMEOUT | Timeout for graceful close (milliseconds)   | 3000    |
+| Variable                | Description                               | Default |
+| ----------------------- | ----------------------------------------- | ------- |
+| WS_PING_INTERVAL        | Interval between ping checks (seconds)    | 30      |
+| WEBSOCKET_CLOSE_TIMEOUT | Timeout for graceful close (milliseconds) | 3000    |
 
 ---
 
@@ -630,13 +637,13 @@ await Redis.shutdown();
 
 #### Environment Variables
 
-| Variable        | Description                            | Default | Required |
-| --------------- | -------------------------------------- | ------- | -------- |
-| REDIS_HOST      | Redis server hostname or IP            | -       | ✓        |
-| REDIS_PORT      | Redis server port                      | 6379    | ✗        |
-| REDIS_USERNAME  | Username for authentication            | -       | ✗        |
-| REDIS_PASSWORD  | Password for authentication            | -       | ✗        |
-| TLS_CA          | TLS certificate authority for SSL/TLS  | -       | ✗        |
+| Variable       | Description                           | Default | Required |
+| -------------- | ------------------------------------- | ------- | -------- |
+| REDIS_HOST     | Redis server hostname or IP           | -       | ✓        |
+| REDIS_PORT     | Redis server port                     | 6379    | ✗        |
+| REDIS_USERNAME | Username for authentication           | -       | ✗        |
+| REDIS_PASSWORD | Password for authentication           | -       | ✗        |
+| TLS_CA         | TLS certificate authority for SSL/TLS | -       | ✗        |
 
 #### Configuration Options
 
@@ -646,10 +653,11 @@ You can customize Redis client creation:
 import { createRedisClient } from 'node-server-engine';
 
 const client = createRedisClient({
-  db: 2,                    // Database index (default: 0)
-  lazyConnect: true,        // Don't connect until first command
-  enableReadyCheck: false,  // Disable ready check
-  redis: {                  // Override any ioredis options
+  db: 2, // Database index (default: 0)
+  lazyConnect: true, // Don't connect until first command
+  enableReadyCheck: false, // Disable ready check
+  redis: {
+    // Override any ioredis options
     connectTimeout: 10000,
     commandTimeout: 5000
   }
@@ -672,10 +680,10 @@ await SecretManager.init({
   cache: true,
   fallbackToEnv: true,
   secrets: [
-    'SQL_PASSWORD',          // Simple env variable
+    'SQL_PASSWORD', // Simple env variable
     'JWT_SECRET',
     {
-      name: 'PRIVATE_KEY',   // File-based secret
+      name: 'PRIVATE_KEY', // File-based secret
       type: 'file',
       targetEnvVar: 'PRIVATE_KEY_PATH',
       filename: 'private-key.pem'
@@ -739,25 +747,27 @@ await server.init(); // Secrets loaded before app starts
 
 #### Configuration Options
 
-| Property      | Type                          | Description                                                    | Default       |
-|---------------|-------------------------------|----------------------------------------------------------------|---------------|
-| enabled       | boolean                       | Enable Secret Manager (typically only in production)            | false         |
-| projectId     | string                        | GCP project ID                                                 | Required      |
-| cache         | boolean                       | Cache secret values in memory                                  | true          |
-| fallbackToEnv | boolean                       | Fall back to `process.env` if secret loading fails             | true          |
-| tempDir       | string                        | Directory for file-based secrets                               | `os.tmpdir()` |
-| secrets       | Array<string \| SecretConfig> | List of secrets to load                                        | []            |
+| Property      | Type                          | Description                                          | Default       |
+| ------------- | ----------------------------- | ---------------------------------------------------- | ------------- |
+| enabled       | boolean                       | Enable Secret Manager (typically only in production) | false         |
+| projectId     | string                        | GCP project ID                                       | Required      |
+| cache         | boolean                       | Cache secret values in memory                        | true          |
+| fallbackToEnv | boolean                       | Fall back to `process.env` if secret loading fails   | true          |
+| tempDir       | string                        | Directory for file-based secrets                     | `os.tmpdir()` |
+| secrets       | Array<string \| SecretConfig> | List of secrets to load                              | []            |
 
 #### Secret Configuration
 
 Secrets can be specified as strings (simple env variables) or objects for advanced configuration:
 
 **String format** (simple env variable):
+
 ```javascript
-'SQL_PASSWORD'  // Loads GCP secret "SQL_PASSWORD" → process.env.SQL_PASSWORD
+'SQL_PASSWORD'; // Loads GCP secret "SQL_PASSWORD" → process.env.SQL_PASSWORD
 ```
 
 **Object format** (advanced configuration):
+
 ```javascript
 {
   name: 'PRIVATE_KEY',              // Secret name in GCP Secret Manager
@@ -771,11 +781,13 @@ Secrets can be specified as strings (simple env variables) or objects for advanc
 #### Secret Types
 
 **Environment Variable Secrets** (`type: 'env'`):
+
 - Loaded directly into `process.env`
 - Good for passwords, API keys, tokens
 - Example: `'SQL_PASSWORD'` → `process.env.SQL_PASSWORD`
 
 **File-based Secrets** (`type: 'file'`):
+
 - Written to temp files with secure permissions (0o600)
 - Good for certificates, private keys, JSON credentials
 - Environment variable points to file path
@@ -783,10 +795,10 @@ Secrets can be specified as strings (simple env variables) or objects for advanc
 
 #### Environment Variables
 
-| Variable         | Description                           | Required |
-|------------------|---------------------------------------|----------|
-| GCP_PROJECT_ID   | GCP project containing secrets        | ✓        |
-| NODE_ENV         | Environment (production/development)  | -        |
+| Variable       | Description                          | Required |
+| -------------- | ------------------------------------ | -------- |
+| GCP_PROJECT_ID | GCP project containing secrets       | ✓        |
+| NODE_ENV       | Environment (production/development) | -        |
 
 #### Load Results
 
@@ -820,11 +832,11 @@ const secretConfig = {
     // Database credentials
     'SQL_PASSWORD',
     'SQL_USER',
-    
+
     // API keys
     'STRIPE_API_KEY',
     'SENDGRID_API_KEY',
-    
+
     // Certificate files
     {
       name: 'TLS_CERT',
@@ -838,7 +850,7 @@ const secretConfig = {
       targetEnvVar: 'TLS_KEY_PATH',
       filename: 'tls.key'
     },
-    
+
     // Service account key
     {
       name: 'GCP_SERVICE_ACCOUNT',
@@ -868,7 +880,7 @@ import fs from 'fs';
 AWSS3.init({
   region: 'us-east-1',
   accessKeyId: 'YOUR_ACCESS_KEY',
-  secretAccessKey: 'YOUR_SECRET_KEY',
+  secretAccessKey: 'YOUR_SECRET_KEY'
   // For S3-compatible services
   // endpoint: 'http://localhost:4566',
   // forcePathStyle: true
@@ -907,7 +919,10 @@ const head = await AWSS3.getMetadata('my-bucket', uploaded.Key);
 await AWSS3.delete('my-bucket', uploaded.Key);
 
 // Generate unique destination path
-const key = AWSS3.generateFileDestination({ directory: 'uploads/images', mime: 'image/png' });
+const key = AWSS3.generateFileDestination({
+  directory: 'uploads/images',
+  mime: 'image/png'
+});
 ```
 
 #### Features
@@ -971,14 +986,14 @@ Generates a unique key using UUID with optional directory and extension (from `m
 
 #### Environment Variables
 
-| Variable | Description | Required |
-| --- | --- | --- |
-| `AWS_REGION` | AWS region (e.g., `us-east-1`) | ✗* |
-| `AWS_ACCESS_KEY_ID` | Access key ID | ✗* |
-| `AWS_SECRET_ACCESS_KEY` | Secret access key | ✗* |
-| `AWS_SESSION_TOKEN` | Session token (temporary creds) | ✗ |
-| `AWS_S3_ENDPOINT` | Custom S3-compatible endpoint (MinIO/LocalStack) | ✗ |
-| `AWS_S3_FORCE_PATH_STYLE` | Use path-style addressing (`true`/`false`) | ✗ |
+| Variable                  | Description                                      | Required |
+| ------------------------- | ------------------------------------------------ | -------- |
+| `AWS_REGION`              | AWS region (e.g., `us-east-1`)                   | ✗*       |
+| `AWS_ACCESS_KEY_ID`       | Access key ID                                    | ✗*       |
+| `AWS_SECRET_ACCESS_KEY`   | Secret access key                                | ✗*       |
+| `AWS_SESSION_TOKEN`       | Session token (temporary creds)                  | ✗        |
+| `AWS_S3_ENDPOINT`         | Custom S3-compatible endpoint (MinIO/LocalStack) | ✗        |
+| `AWS_S3_FORCE_PATH_STYLE` | Use path-style addressing (`true`/`false`)       | ✗        |
 
 \* Not required if you call `init()` with a config object.
 
@@ -988,6 +1003,7 @@ Generates a unique key using UUID with optional directory and extension (from `m
 - Other errors bubble up from AWS SDK v3 commands
 
 **Example:**
+
 ```javascript
 try {
   await AWSS3.upload(stream, 'bucket', {}, { maxSize: '1MB' });
@@ -1012,11 +1028,10 @@ new Endpoint({
     const file = req.files[0];
     const stream = Readable.from(file.buffer);
 
-    const result = await AWSS3.upload(
-      stream,
-      process.env.S3_UPLOAD_BUCKET,
-      { directory: 'user-uploads', mime: file.mimetype }
-    );
+    const result = await AWSS3.upload(stream, process.env.S3_UPLOAD_BUCKET, {
+      directory: 'user-uploads',
+      mime: file.mimetype
+    });
 
     res.json({ key: result.Key, url: result.Location });
   }
@@ -1070,14 +1085,14 @@ import { PubSub } from 'node-server-engine';
 PubSub.addPublisher(topic, {
   enableMessageOrdering: false, // Enable ordering (requires orderingKey when publishing)
   batching: {
-    maxMessages: 100,        // Max messages per batch
-    maxBytes: 1024 * 1024,   // Max bytes per batch (1MB)
-    maxMilliseconds: 100     // Max delay before sending batch
+    maxMessages: 100, // Max messages per batch
+    maxBytes: 1024 * 1024, // Max bytes per batch (1MB)
+    maxMilliseconds: 100 // Max delay before sending batch
   },
   retry: {
-    initialDelayMillis: 100,  // Initial retry delay
-    maxDelayMillis: 60000,    // Max retry delay (60s)
-    delayMultiplier: 1.3      // Exponential backoff multiplier
+    initialDelayMillis: 100, // Initial retry delay
+    maxDelayMillis: 60000, // Max retry delay (60s)
+    delayMultiplier: 1.3 // Exponential backoff multiplier
   }
 });
 
@@ -1091,13 +1106,13 @@ PubSub.addPublisher(topic, {
  * @param {Object} [options] - Subscriber configuration options
  */
 PubSub.addSubscriber(subscription, handler, {
-  first: false,              // Put handler at beginning of chain
-  isDebezium: false,         // Handle Debezium CDC events
-  ackDeadline: 60,           // Acknowledgement deadline (10-600 seconds)
+  first: false, // Put handler at beginning of chain
+  isDebezium: false, // Handle Debezium CDC events
+  ackDeadline: 60, // Acknowledgement deadline (10-600 seconds)
   flowControl: {
-    maxMessages: 1000,         // Max concurrent messages
+    maxMessages: 1000, // Max concurrent messages
     maxBytes: 100 * 1024 * 1024, // Max concurrent bytes (100MB)
-    allowExcessMessages: true  // Allow excess messages if under maxBytes
+    allowExcessMessages: true // Allow excess messages if under maxBytes
   }
 });
 
@@ -1132,10 +1147,10 @@ async function messageHandler(payload, attributes, publishedAt) {
   // payload: The JSON message content
   // attributes: Message attributes (key-value pairs)
   // publishedAt: Date when message was published
-  
+
   // Process the message
   await processData(payload);
-  
+
   // Message will be ack'd automatically after successful processing
   // If an error is thrown, message will be nack'd for redelivery
 }
@@ -1203,13 +1218,14 @@ await PushNotification.sendPush(userId, {
 
 #### Environment Variables
 
-| Variable | Description | Required |
-| -------- | ----------- | -------- |
-| `PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC` | Pub/Sub topic name for push notifications | ✓ |
+| Variable                               | Description                               | Required |
+| -------------------------------------- | ----------------------------------------- | -------- |
+| `PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC` | Pub/Sub topic name for push notifications | ✓        |
 
 #### Configuration
 
 The PushNotification entity is pre-configured with optimal settings:
+
 - **Batching**: Up to 100 messages, 1MB max, 50ms delay for fast delivery
 - **Retry**: Exponential backoff with 100ms initial delay, up to 60s max delay
 - **No Ordering**: Push notifications don't require strict ordering for better throughput
@@ -1315,6 +1331,7 @@ export async function migrate(client: Client): Promise<void> {
 ```
 
 Migrations are:
+
 - Run automatically on `init()`
 - Tracked in the `migrations` index
 - Executed once per file
@@ -1322,17 +1339,18 @@ Migrations are:
 
 #### Environment Variables
 
-| Variable                       | Description                                | Required |
-| ------------------------------ | ------------------------------------------ | -------- |
-| ELASTIC_SEARCH_HOST            | Elasticsearch cluster URL                  | ✓        |
-| ELASTIC_SEARCH_USERNAME        | Username for authentication                | ✓        |
-| ELASTIC_SEARCH_PASSWORD        | Password for authentication                | ✓        |
-| ELASTIC_SEARCH_MIGRATION_PATH  | Absolute path to migrations directory      | ✓        |
-| TLS_CA                         | TLS certificate authority for SSL/TLS      | ✗        |
+| Variable                      | Description                           | Required |
+| ----------------------------- | ------------------------------------- | -------- |
+| ELASTIC_SEARCH_HOST           | Elasticsearch cluster URL             | ✓        |
+| ELASTIC_SEARCH_USERNAME       | Username for authentication           | ✓        |
+| ELASTIC_SEARCH_PASSWORD       | Password for authentication           | ✓        |
+| ELASTIC_SEARCH_MIGRATION_PATH | Absolute path to migrations directory | ✓        |
+| TLS_CA                        | TLS certificate authority for SSL/TLS | ✗        |
 
 #### Configuration
 
 The client is configured with:
+
 - **Max Retries**: 3 attempts
 - **Request Timeout**: 30 seconds
 - **Sniff on Start**: Disabled (use with clusters)
@@ -1371,12 +1389,18 @@ const result = await GoogleCloudStorage.upload(
 console.log(result.name); // photos/uuid.jpeg
 
 // Download file as Buffer
-const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
+const { data, metadata } = await GoogleCloudStorage.get(
+  'my-bucket',
+  'photos/image.jpg'
+);
 console.log(metadata.size); // File size in bytes
 fs.writeFileSync('downloaded.jpg', data);
 
 // Stream a file (for large files)
-const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/video.mp4');
+const { stream, metadata } = await GoogleCloudStorage.download(
+  'my-bucket',
+  'videos/video.mp4'
+);
 stream.pipe(res); // Stream to HTTP response
 
 // Get file stream directly (fastest, no metadata)
@@ -1430,6 +1454,7 @@ GoogleCloudStorage.init({
 Upload a file to Google Cloud Storage.
 
 **Parameters:**
+
 - `stream` (Readable): Node.js readable stream of file content
 - `bucket` (string): Bucket name
 - `destinationOptions` (object, optional):
@@ -1444,6 +1469,7 @@ Upload a file to Google Cloud Storage.
 **Returns:** Promise\<StorageUploadedFile> - Metadata of uploaded file
 
 **Example:**
+
 ```javascript
 const fileStream = fs.createReadStream('document.pdf');
 const result = await GoogleCloudStorage.upload(
@@ -1460,14 +1486,19 @@ const result = await GoogleCloudStorage.upload(
 Download a file and return its content as a Buffer along with metadata.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `path` (string): File path in the bucket
 
 **Returns:** Promise\<{data: Buffer, metadata: StorageUploadedFile}>
 
 **Example:**
+
 ```javascript
-const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
+const { data, metadata } = await GoogleCloudStorage.get(
+  'my-bucket',
+  'photos/image.jpg'
+);
 console.log(metadata.contentType); // 'image/jpeg'
 console.log(data.length); // File size in bytes
 ```
@@ -1477,14 +1508,19 @@ console.log(data.length); // File size in bytes
 Get a readable stream for a file along with its metadata. Use this for large files or when you need to stream content.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `path` (string): File path in the bucket
 
 **Returns:** Promise\<{stream: Readable, metadata: StorageUploadedFile}>
 
 **Example:**
+
 ```javascript
-const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/large-video.mp4');
+const { stream, metadata } = await GoogleCloudStorage.download(
+  'my-bucket',
+  'videos/large-video.mp4'
+);
 console.log(metadata.size); // File size
 stream.pipe(response); // Stream to HTTP response
 ```
@@ -1494,12 +1530,14 @@ stream.pipe(response); // Stream to HTTP response
 Get a readable stream for a file without fetching metadata. Fastest option when metadata is not needed.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `path` (string): File path in the bucket
 
 **Returns:** Readable - Node.js readable stream
 
 **Example:**
+
 ```javascript
 const stream = GoogleCloudStorage.getFileStream('my-bucket', 'audio/song.mp3');
 stream.pipe(response); // Direct streaming
@@ -1510,12 +1548,14 @@ stream.pipe(response); // Direct streaming
 Delete a file from Google Cloud Storage.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `path` (string): File path in the bucket
 
 **Returns:** Promise\<void>
 
 **Example:**
+
 ```javascript
 await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
 ```
@@ -1525,6 +1565,7 @@ await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
 Generate a unique file path with optional directory and extension.
 
 **Parameters:**
+
 - `options` (object, optional):
   - `directory` (string): Subdirectory path
   - `mime` (string): MIME type for extension detection
@@ -1533,6 +1574,7 @@ Generate a unique file path with optional directory and extension.
 **Returns:** string - Generated file path
 
 **Examples:**
+
 ```javascript
 // UUID only
 GoogleCloudStorage.generateFileDestination();
@@ -1555,10 +1597,10 @@ GoogleCloudStorage.generateFileDestination({
 
 #### Environment Variables
 
-| Variable                        | Description                          | Required |
-| ------------------------------- | ------------------------------------ | -------- |
-| GC_PROJECT                      | Google Cloud Project ID              | ✗*       |
-| GOOGLE_APPLICATION_CREDENTIALS  | Path to service account key file     | ✗*       |
+| Variable                       | Description                      | Required |
+| ------------------------------ | -------------------------------- | -------- |
+| GC_PROJECT                     | Google Cloud Project ID          | ✗*       |
+| GOOGLE_APPLICATION_CREDENTIALS | Path to service account key file | ✗*       |
 
 \* Not required if you call `init()` with a config object
 
@@ -1570,6 +1612,7 @@ The entity throws `WebError` with appropriate status codes:
 - Other errors are passed through from Google Cloud Storage SDK
 
 **Example:**
+
 ```javascript
 try {
   await GoogleCloudStorage.upload(stream, 'bucket', {}, {}, { maxSize: '1MB' });
@@ -1595,13 +1638,13 @@ new Endpoint({
   async handler(req, res) {
     const file = req.files[0];
     const stream = Readable.from(file.buffer);
-    
+
     const result = await GoogleCloudStorage.upload(
       stream,
       process.env.UPLOAD_BUCKET,
       { directory: 'user-uploads', mime: file.mimetype }
     );
-    
+
     res.json({ path: result.name, url: result.mediaLink });
   }
 });
@@ -1662,6 +1705,7 @@ Errors are a crucial part of the application, they are what helps us to properly
 The engine automatically adapts log output based on the environment:
 
 **Local Development (Readable Format)**
+
 - Colorized output with severity levels
 - Formatted timestamps and file locations
 - Pretty-printed data objects
@@ -1669,6 +1713,7 @@ The engine automatically adapts log output based on the environment:
 - HTTP request context when available
 
 **Production/GCP (JSON Format)**
+
 - Structured JSON for log aggregation
 - Google Cloud Error Reporting integration
 - Kubernetes pod information
@@ -1687,6 +1732,7 @@ LOG_FORMAT=json npm start
 ```
 
 **Example Local Output:**
+
 ```
 [2025-12-10T10:30:45.123Z] ERROR    src/endpoints/users.ts:42 User not found
   Error Code: user-not-found
@@ -1943,15 +1989,15 @@ interface User {
 
 ```javascript
 // Case-insensitive matching
-checkPermission('ADMIN')  // Matches: 'admin', 'Admin', 'ADMIN'
-checkPermission(['READ', 'write'])  // Matches any case variation
+checkPermission('ADMIN'); // Matches: 'admin', 'Admin', 'ADMIN'
+checkPermission(['READ', 'write']); // Matches any case variation
 
 // Namespace-style permissions
-checkPermission('users:read')
-checkPermission(['users:write', 'users:delete'])
+checkPermission('users:read');
+checkPermission(['users:write', 'users:delete']);
 
 // Role-based permissions
-checkPermission(['admin', 'moderator'])
+checkPermission(['admin', 'moderator']);
 ```
 
 #### Response Codes
@@ -1975,8 +2021,10 @@ checkPermission(['admin', 'moderator'])
   "message": "Permission denied"
 }
 ```
+
 };
-```
+
+````
 
 ---
 
@@ -2006,7 +2054,7 @@ new Endpoint({
     res.json({ ok: true });
   }
 });
-```
+````
 
 #### Defaults
 
@@ -2147,7 +2195,10 @@ The function returns an object with the following status options:
 Generate and verify a short-lived verification token + OTP for sensitive operations.
 
 ```javascript
-import { createVerificationToken, verifyVerificationToken } from 'node-server-engine';
+import {
+  createVerificationToken,
+  verifyVerificationToken
+} from 'node-server-engine';
 
 // Generate token + OTP
 const { token, otp, expiresAt } = createVerificationToken({
@@ -2435,17 +2486,17 @@ npm run coverage
 
 ### Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run build` | Compile TypeScript and generate distribution files |
-| `npm run lint` | Check code for linting errors |
-| `npm run lint:fix` | Automatically fix linting errors |
-| `npm run format` | Format code with Prettier |
-| `npm run format:check` | Check code formatting without modifying files |
-| `npm test` | Run all tests with coverage |
-| `npm run test:file` | Run a specific test file |
-| `npm run coverage` | Generate HTML coverage report |
-| `npm run coverage:ci` | Generate coverage summary for CI |
+| Script                 | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `npm run build`        | Compile TypeScript and generate distribution files |
+| `npm run lint`         | Check code for linting errors                      |
+| `npm run lint:fix`     | Automatically fix linting errors                   |
+| `npm run format`       | Format code with Prettier                          |
+| `npm run format:check` | Check code formatting without modifying files      |
+| `npm test`             | Run all tests with coverage                        |
+| `npm run test:file`    | Run a specific test file                           |
+| `npm run coverage`     | Generate HTML coverage report                      |
+| `npm run coverage:ci`  | Generate coverage summary for CI                   |
 
 ### Commit Convention
 
@@ -2454,6 +2505,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) f
 **Format:** `type(scope): subject`
 
 **Types:**
+
 - `feat`: New feature (triggers minor version bump)
 - `fix`: Bug fix (triggers patch version bump)
 - `docs`: Documentation changes
@@ -2465,6 +2517,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) f
 - `ci`: CI/CD changes
 
 **Examples:**
+
 ```bash
 git commit -m "feat(endpoints): add support for GraphQL endpoints"
 git commit -m "fix(auth): resolve JWT token validation issue"
@@ -2472,6 +2525,7 @@ git commit -m "docs(readme): update installation instructions"
 ```
 
 **Breaking Changes:** Add `BREAKING CHANGE:` in the commit body to trigger a major version bump:
+
 ```bash
 git commit -m "feat(api): redesign authentication flow" -m "BREAKING CHANGE: AuthType enum values changed"
 ```
@@ -2481,6 +2535,7 @@ git commit -m "feat(api): redesign authentication flow" -m "BREAKING CHANGE: Aut
 This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated version management and package publishing.
 
 **How it works:**
+
 1. Commits are analyzed based on conventional commit format
 2. Version number is automatically determined (major.minor.patch)
 3. Changelog is generated from commit messages
@@ -2489,6 +2544,7 @@ This project uses [semantic-release](https://github.com/semantic-release/semanti
 6. GitHub release is created
 
 **When releases happen:**
+
 - Automatically on every push to `main` branch
 - Only if there are release-worthy commits (feat, fix, perf, BREAKING CHANGE)
 - Releases are skipped for commits with `[skip ci]` in the message

@@ -34,12 +34,9 @@ describe('Entity - SocketClient', () => {
     const ajv = new Ajv();
     const schema = { type: 'object', properties: {} };
     const validator = ajv.compile(schema);
-    mockHandler = new MessageHandler(
-      'test-type',
-      async () => {},
-      validator,
-      { authenticated: false }
-    );
+    mockHandler = new MessageHandler('test-type', async () => {}, validator, {
+      authenticated: false
+    });
   });
 
   afterEach(() => {
@@ -93,7 +90,10 @@ describe('Entity - SocketClient', () => {
         handlers: [mockHandler]
       });
 
-      const mockWebSocket2 = { ...mockWebSocket, on: sinon.stub().returnsThis() };
+      const mockWebSocket2 = {
+        ...mockWebSocket,
+        on: sinon.stub().returnsThis()
+      };
       const client2 = new SocketClient(mockWebSocket2, mockRequest, {
         handlers: [mockHandler]
       });
@@ -151,7 +151,9 @@ describe('Entity - SocketClient', () => {
       });
 
       expect(mockWebSocket.on.called).to.be.true;
-      const events = mockWebSocket.on.getCalls().map((call: any) => call.args[0]);
+      const events = mockWebSocket.on
+        .getCalls()
+        .map((call: any) => call.args[0]);
       expect(events).to.include('message');
       expect(events).to.include('close');
       expect(events).to.include('pong');
@@ -250,7 +252,9 @@ describe('Entity - SocketClient', () => {
       });
 
       expect(mockWebSocket.on.called).to.be.true;
-      const events = mockWebSocket.on.getCalls().map((call: any) => call.args[0]);
+      const events = mockWebSocket.on
+        .getCalls()
+        .map((call: any) => call.args[0]);
       expect(events).to.include('message');
       expect(events).to.include('close');
       expect(events).to.include('pong');
@@ -273,7 +277,7 @@ describe('Entity - SocketClient', () => {
     it('should authenticate with valid token', async () => {
       const { generateAccessToken } = await import('test');
       const token = generateAccessToken('test-user-id');
-      
+
       const client = new SocketClient(mockWebSocket, mockRequest, {
         handlers: [mockHandler]
       });
@@ -288,10 +292,10 @@ describe('Entity - SocketClient', () => {
       });
 
       await messageHandler(Buffer.from(authMessage));
-      
+
       // Wait a tick for authentication to complete
-      await new Promise(resolve => setImmediate(resolve));
-      
+      await new Promise((resolve) => setImmediate(resolve));
+
       expect(client.isAuthenticated()).to.be.true;
       expect(client.getUser()).to.have.property('userId', 'test-user-id');
     });
@@ -402,4 +406,3 @@ describe('Entity - SocketClient', () => {
     });
   });
 });
-

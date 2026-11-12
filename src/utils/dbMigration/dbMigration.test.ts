@@ -94,9 +94,11 @@ describe('Utils - dbMigration', () => {
     it('should return early if no rollback target found', async () => {
       process.env.BUILD_ID = '1.0.0';
 
-      const findAllStub = sinon.stub(SequelizeMeta, 'findAll').resolves([
-        { name: '20240101-migration.ts', version: '0.9.0' } as SequelizeMeta
-      ]);
+      const findAllStub = sinon
+        .stub(SequelizeMeta, 'findAll')
+        .resolves([
+          { name: '20240101-migration.ts', version: '0.9.0' } as SequelizeMeta
+        ]);
 
       // Should not throw, just return early
       await dbMigration.rollbackMigrations();
@@ -121,11 +123,13 @@ describe('Utils - dbMigration', () => {
 
     it('should handle rollback with valid BUILD_ID and migration target', async () => {
       process.env.BUILD_ID = '2.0.0';
-      
-      const findAllStub = sinon.stub(SequelizeMeta, 'findAll').resolves([
-        { name: '20240101-migration.ts', version: '1.0.0' } as SequelizeMeta,
-        { name: '20240201-migration.ts', version: '2.5.0' } as SequelizeMeta
-      ]);
+
+      const findAllStub = sinon
+        .stub(SequelizeMeta, 'findAll')
+        .resolves([
+          { name: '20240101-migration.ts', version: '1.0.0' } as SequelizeMeta,
+          { name: '20240201-migration.ts', version: '2.5.0' } as SequelizeMeta
+        ]);
 
       try {
         await dbMigration.rollbackMigrations();
@@ -142,7 +146,7 @@ describe('Utils - dbMigration', () => {
   describe('testRecreateDB', () => {
     it('should handle testRecreateDB with clean option', async () => {
       process.env.SQL_TYPE = 'postgres';
-      
+
       try {
         await dbMigration.testRecreateDB({ clean: true });
         // Success is acceptable
@@ -155,7 +159,7 @@ describe('Utils - dbMigration', () => {
 
     it('should handle testRecreateDB without clean option', async () => {
       process.env.SQL_TYPE = 'mysql';
-      
+
       try {
         await dbMigration.testRecreateDB({ clean: false });
         // Success is acceptable
@@ -179,7 +183,7 @@ describe('Utils - dbMigration', () => {
   describe('testClearDB', () => {
     it('should handle testClearDB gracefully', async () => {
       process.env.SQL_TYPE = 'postgres';
-      
+
       try {
         await dbMigration.testClearDB();
         // Success is acceptable
@@ -192,7 +196,7 @@ describe('Utils - dbMigration', () => {
 
     it('should handle testClearDB with includeMetadata option', async () => {
       process.env.SQL_TYPE = 'mysql';
-      
+
       try {
         await dbMigration.testClearDB({ includeMetadata: true });
         // Success is acceptable

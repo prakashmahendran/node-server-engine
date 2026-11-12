@@ -184,7 +184,7 @@ export class Server {
       // Give time for logs to flush before exiting
       setTimeout(() => process.exit(1), 1000);
     });
-    
+
     process.on('unhandledRejection', (reason: unknown) => {
       reportError(reason instanceof Error ? reason : new Error(String(reason)));
       reportInfo('💥 Unhandled rejection - process will exit');
@@ -197,12 +197,12 @@ export class Server {
   public async init(): Promise<void> {
     this.setupGlobalErrorLogging();
     reportDebug({ namespace, message: `Starting Server` });
-    
+
     // Load secrets from Secret Manager FIRST (before anything else that might need them)
     if (this.secretManagerConfig) {
       await SecretManager.init(this.secretManagerConfig);
     }
-    
+
     // Fetch the keys for JWT authentication
     // Ignore in test environment as we do symmetrical token signing
     if (process.env.NODE_ENV !== 'test' && !this.auth.noFetch)
@@ -273,9 +273,9 @@ export class Server {
               resolve();
               return;
             }
-            
+
             const { port } = server.address() as AddressInfo;
-            
+
             server.close((error) => {
               if (error) {
                 reportError(error);
@@ -297,14 +297,14 @@ export class Server {
       this.wss.clients.forEach((socket) => {
         socket.close();
       });
-      
+
       // Hard terminate all connections still open after a defined time
       const socketKillTimeout = process.env.WEBSOCKET_CLOSE_TIMEOUT
         ? parseInt(process.env.WEBSOCKET_CLOSE_TIMEOUT, 10)
         : 5000;
-        
+
       await setTimeoutPromise(socketKillTimeout);
-      
+
       this.wss.clients.forEach((socket) => {
         if (
           socket.readyState === socket.CLOSING ||
@@ -313,7 +313,7 @@ export class Server {
           socket.terminate();
         }
       });
-      
+
       // Close the WebSocket server itself
       await new Promise<void>((resolve, reject) => {
         this.wss?.close((error) => {
@@ -409,7 +409,7 @@ export class Server {
   /** Call shutdown if signal gets sent to the process */
   private handleSignal(): void {
     let isShuttingDown = false;
-    
+
     shutdownSignals.forEach((signal) =>
       process.on(signal, () => {
         // Prevent multiple shutdown attempts
@@ -417,10 +417,10 @@ export class Server {
           reportInfo(`Already shutting down, ignoring ${signal}`);
           return;
         }
-        
+
         isShuttingDown = true;
         reportInfo(`Received shutdown signal [${signal}]`);
-        
+
         this.shutdown()
           .then(() => {
             reportInfo('Graceful shutdown completed successfully');

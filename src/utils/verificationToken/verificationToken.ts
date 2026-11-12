@@ -107,7 +107,9 @@ function normalizeAudience(
   return audience;
 }
 
-function buildVerifyOptions(options: VerifyVerificationTokenOptions): VerifyOptions {
+function buildVerifyOptions(
+  options: VerifyVerificationTokenOptions
+): VerifyOptions {
   const verifyOptions: VerifyOptions = {
     algorithms: ['HS256'],
     issuer: buildIssuer(options.issuer)
@@ -164,7 +166,9 @@ export function verifyVerificationToken(
     safeEqual(options.otp, bypassOtp)
   ) {
     return {
-      act: options.action ? normalizeAction(options.action) : 'TEST_VERIFICATION',
+      act: options.action
+        ? normalizeAction(options.action)
+        : 'TEST_VERIFICATION',
       otp: hashOtp(bypassOtp, getOtpSecret()),
       jti: 'test-verification-jti',
       sub: bypassSubject,
@@ -178,7 +182,11 @@ export function verifyVerificationToken(
   let payload: VerificationTokenPayload;
 
   try {
-    payload = verify(token, tokenSecret, buildVerifyOptions(options)) as VerificationTokenPayload;
+    payload = verify(
+      token,
+      tokenSecret,
+      buildVerifyOptions(options)
+    ) as VerificationTokenPayload;
   } catch (error: unknown) {
     throw new WebError({
       errorCode: 'unauthorized',

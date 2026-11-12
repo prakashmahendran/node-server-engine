@@ -25,7 +25,7 @@ const namespace = 'engine:google-cloud-storage';
 /**
  * Generic Google Cloud Storage wrapper for easy file operations
  * Provides methods for uploading, downloading, streaming, and deleting files
- * 
+ *
  * @example
  * ```typescript
  * // Initialize with custom configuration
@@ -33,17 +33,17 @@ const namespace = 'engine:google-cloud-storage';
  *   projectId: 'my-project',
  *   keyFilename: '/path/to/keyfile.json'
  * });
- * 
+ *
  * // Upload a file
  * const result = await GoogleCloudStorage.upload(
  *   fileStream,
  *   'my-bucket',
  *   { directory: 'uploads', mime: 'image/png' }
  * );
- * 
+ *
  * // Download a file
  * const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'uploads/file.png');
- * 
+ *
  * // Delete a file
  * await GoogleCloudStorage.delete('my-bucket', 'uploads/file.png');
  * ```
@@ -66,7 +66,8 @@ export const GoogleCloudStorage = {
       if (config.apiEndpoint) storageConfig.apiEndpoint = config.apiEndpoint;
     } else {
       // Use environment variables as fallback
-      if (process.env.GC_PROJECT) storageConfig.projectId = process.env.GC_PROJECT;
+      if (process.env.GC_PROJECT)
+        storageConfig.projectId = process.env.GC_PROJECT;
       if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
         storageConfig.keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
       }
@@ -99,7 +100,7 @@ export const GoogleCloudStorage = {
    * @param storageOptions - Google Cloud Storage write stream options
    * @param uploaderOptions - Additional options like maxSize
    * @returns Promise with file metadata
-   * 
+   *
    * @example
    * ```typescript
    * const fileStream = fs.createReadStream('photo.jpg');
@@ -136,7 +137,9 @@ export const GoogleCloudStorage = {
     // Upload file with given file name
     if (fileName) {
       const trimmedDirectory = trimPathSlash(directory ?? '/');
-      const path = trimmedDirectory ? `${trimmedDirectory}/${fileName}` : fileName;
+      const path = trimmedDirectory
+        ? `${trimmedDirectory}/${fileName}`
+        : fileName;
       file = storage.bucket(bucket).file(path);
     }
     // Generate random destination for file and check that it is not already occupied
@@ -152,7 +155,7 @@ export const GoogleCloudStorage = {
       let receivedSize = 0;
       const writeStream = file.createWriteStream(storageOptions);
       const intMaxSize = maxSize && fileSizeParser(maxSize);
-      
+
       // Calculate transferred size and write to storage stream
       readStream.on('data', function (data: Buffer) {
         receivedSize += data.length;
@@ -177,7 +180,7 @@ export const GoogleCloudStorage = {
         }
         writeStream.write(data);
       });
-      
+
       // Error handling
       readStream.on('error', (err) => {
         reject(err);
@@ -185,12 +188,12 @@ export const GoogleCloudStorage = {
       writeStream.on('error', (err) => {
         reject(err);
       });
-      
+
       // Graceful termination of the read
       readStream.on('end', () => {
         writeStream.end();
       });
-      
+
       // Graceful termination of the write
       writeStream.on('finish', () => {
         (async (): Promise<void> => {
@@ -216,7 +219,7 @@ export const GoogleCloudStorage = {
    * @param bucket - Bucket name
    * @param path - File path in the bucket
    * @returns Promise with file data and metadata
-   * 
+   *
    * @example
    * ```typescript
    * const { data, metadata } = await GoogleCloudStorage.get('my-bucket', 'photos/image.jpg');
@@ -248,7 +251,7 @@ export const GoogleCloudStorage = {
    * @param bucket - Bucket name
    * @param path - File path in the bucket
    * @returns Promise with readable stream and metadata
-   * 
+   *
    * @example
    * ```typescript
    * const { stream, metadata } = await GoogleCloudStorage.download('my-bucket', 'videos/video.mp4');
@@ -282,7 +285,7 @@ export const GoogleCloudStorage = {
    * @param bucket - Bucket name
    * @param path - File path in the bucket
    * @returns Readable stream
-   * 
+   *
    * @example
    * ```typescript
    * const stream = GoogleCloudStorage.getFileStream('my-bucket', 'audio/song.mp3');
@@ -305,7 +308,7 @@ export const GoogleCloudStorage = {
    * @param bucket - Bucket name
    * @param path - File path in the bucket
    * @returns Promise that resolves when deletion is complete
-   * 
+   *
    * @example
    * ```typescript
    * await GoogleCloudStorage.delete('my-bucket', 'temp/old-file.txt');
@@ -326,13 +329,13 @@ export const GoogleCloudStorage = {
    * Useful for creating unique file names
    * @param options - Options for file destination generation
    * @returns Generated file path
-   * 
+   *
    * @example
    * ```typescript
    * // Generate UUID only
    * const path1 = GoogleCloudStorage.generateFileDestination();
    * // 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
-   * 
+   *
    * // With directory and MIME type
    * const path2 = GoogleCloudStorage.generateFileDestination({
    *   directory: 'uploads/images',
@@ -347,11 +350,11 @@ export const GoogleCloudStorage = {
     // Determine file extension from MIME type
     const extension =
       mime && mimeTypes.extension(mime) ? mimeTypes.extension(mime) : undefined;
-    
+
     // Build the full name with or without extension
     const fullName =
       extension && !noExtension ? `${randomUUID()}.${extension}` : randomUUID();
-    
+
     // Clean up directory path
     const trimmedDirectory = trimPathSlash(directory);
     return `${trimmedDirectory ? `${trimmedDirectory}/` : ''}${fullName}`;

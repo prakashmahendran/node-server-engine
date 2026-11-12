@@ -55,7 +55,7 @@ function getMigrationExtension(directory: string): 'ts' | 'js' {
 export async function runPendingMigrations(): Promise<void> {
   if (!sequelize)
     throw new EngineError({ message: 'Sequelize is not initialized' });
-  
+
   try {
     reportDebug({
       namespace,
@@ -74,7 +74,7 @@ export async function runPendingMigrations(): Promise<void> {
       message: 'Migrating metadata table'
     });
     await migrateMetadataTable(sequelize);
-    
+
     const migrationPaths = getMigrationPaths();
 
     if (!migrationPaths || migrationPaths.length <= 0) {
@@ -99,7 +99,7 @@ export async function runPendingMigrations(): Promise<void> {
           glob: path,
           resolve: ({ name, path, context }) => {
             const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
-            
+
             // Use dynamic import for better TypeScript/ES module support
             const migrationPromise = import(path || '');
             return {
@@ -129,9 +129,9 @@ export async function runPendingMigrations(): Promise<void> {
         message: 'Starting pending database migrations',
         data: { path }
       });
-      
+
       await migrator.up();
-      
+
       reportInfo({
         message: 'Database migration completed successfully',
         data: { path }
@@ -198,7 +198,7 @@ export async function rollbackMigrations(): Promise<void> {
         resolve: ({ name, path, context }) => {
           // Strip file extension to ensure consistent naming across .ts and .js files
           const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
-          
+
           const migrationPromise = import(path || '');
           return {
             name: nameWithoutExtension,

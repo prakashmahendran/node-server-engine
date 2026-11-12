@@ -48,9 +48,7 @@ export type Middleware<T extends EndpointAuthType> = (
 ) => unknown | Promise<unknown>;
 
 export type MiddlewareChainElement<T extends EndpointAuthType> =
-  | Array<Middleware<T>>
-  | Middleware<T>
-  | any;
+  Array<Middleware<T>> | Middleware<T> | any;
 
 /** Auth related parameters used with HMAC authentication  */
 interface EndpointAuthHmacParams {

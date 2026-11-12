@@ -8,10 +8,21 @@ import {
   httpResponseSize
 } from 'metrics';
 
-const excludedPrefixes = ['/swagger', '/docs', '/api-docs', '/metrics', '/favicon.ico', '/.well-known'];
+const excludedPrefixes = [
+  '/swagger',
+  '/docs',
+  '/api-docs',
+  '/metrics',
+  '/favicon.ico',
+  '/.well-known'
+];
 
 /** Composite middleware that tracks in-flight requests, errors, response size and timings */
-export const requestMetrics = (request: Request, response: Response, next: NextFunction) => {
+export const requestMetrics = (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   const path = (request.route?.path ?? request.path) as string;
 
   // Skip operational/static routes
@@ -41,10 +52,16 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
   response.once('finish', () => {
     // record errors
     const statusCode = response.statusCode ?? 0;
-    const statusClass = statusCode ? `${statusCode.toString().substring(0, 1)}XX` : '';
+    const statusClass = statusCode
+      ? `${statusCode.toString().substring(0, 1)}XX`
+      : '';
     if (statusCode >= 400) {
       try {
-        httpErrorCount.inc({ service: process.env.CHART, status: statusClass, method: request.method });
+        httpErrorCount.inc({
+          service: process.env.CHART,
+          status: statusClass,
+          method: request.method
+        });
       } catch {
         // Ignore metric collection errors
       }
@@ -55,7 +72,15 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
     const len = lenHeader ? parseInt(String(lenHeader), 10) : NaN;
     if (!Number.isNaN(len)) {
       try {
-        httpResponseSize.observe({ service: process.env.CHART, path, method: request.method, status: statusClass }, len);
+        httpResponseSize.observe(
+          {
+            service: process.env.CHART,
+            path,
+            method: request.method,
+            status: statusClass
+          },
+          len
+        );
       } catch {
         // Ignore metric collection errors
       }
@@ -71,7 +96,9 @@ export const requestMetrics = (request: Request, response: Response, next: NextF
     const labels = {
       path,
       method: request.method,
-      status: res.statusCode ? `${res.statusCode.toString().substring(0, 1)}XX` : '',
+      status: res.statusCode
+        ? `${res.statusCode.toString().substring(0, 1)}XX`
+        : '',
       service: process.env.CHART || 'unknown'
     };
 

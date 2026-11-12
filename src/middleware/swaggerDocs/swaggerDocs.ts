@@ -109,6 +109,6 @@ export function swaggerDocs(): Router {
     (match: string, p1: string): string => process.env[p1] ?? ''
   );
   const config = JSON.parse(overwrittenDocumentation) as EndpointDocumentation;
-  
+
   return Router().use('/docs', swaggerUi.serve, swaggerUi.setup(config));
 }

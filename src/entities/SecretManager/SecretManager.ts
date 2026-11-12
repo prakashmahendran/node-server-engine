@@ -17,7 +17,7 @@ const namespace = 'engine:SecretManager';
 /**
  * Generic GCP Secret Manager wrapper for managing application secrets
  * Provides methods for loading secrets at startup, runtime fetching, and cleanup
- * 
+ *
  * @example
  * ```typescript
  * // Initialize with configuration
@@ -27,10 +27,10 @@ const namespace = 'engine:SecretManager';
  *   prefix: 'my-service',
  *   secrets: ['DB_PASSWORD', { name: 'PRIVATE_KEY', type: 'file' }]
  * });
- * 
+ *
  * // Get a cached secret
  * const password = SecretManager.getSecret('DB_PASSWORD');
- * 
+ *
  * // Fetch a secret on-demand
  * const apiKey = await SecretManager.fetchSecret('API_KEY');
  * ```
@@ -126,13 +126,15 @@ export const SecretManager = {
     }
 
     // Normalize secret configurations
-    const secretConfigs: SecretConfig[] = config.secrets.map(this.normalizeSecretConfig);
+    const secretConfigs: SecretConfig[] = config.secrets.map(
+      this.normalizeSecretConfig
+    );
 
     // Load each secret
     for (const secretConfig of secretConfigs) {
       try {
         const loaded = await this.loadSecret(secretConfig, config);
-        
+
         if (loaded) {
           result.loaded++;
           result.details.push({
@@ -149,9 +151,12 @@ export const SecretManager = {
         }
       } catch (error) {
         reportError(error);
-        
+
         // Try fallback
-        if (config.fallbackToEnv && process.env[secretConfig.targetEnvVar || secretConfig.name]) {
+        if (
+          config.fallbackToEnv &&
+          process.env[secretConfig.targetEnvVar || secretConfig.name]
+        ) {
           result.fallback++;
           result.details.push({
             name: secretConfig.name,
@@ -161,10 +166,12 @@ export const SecretManager = {
           reportInfo(`Using fallback value for secret: ${secretConfig.name}`);
         } else {
           result.failed++;
-          reportError(new EngineError({
-            message: `Failed to load secret: ${secretConfig.name}`,
-            data: { error: (error as Error).message }
-          }));
+          reportError(
+            new EngineError({
+              message: `Failed to load secret: ${secretConfig.name}`,
+              data: { error: (error as Error).message }
+            })
+          );
         }
       }
     }
@@ -185,9 +192,10 @@ export const SecretManager = {
     }
 
     // Build secret name with prefix (unless it's a common secret)
-    const secretName = config.common || !globalConfig.prefix
-      ? config.name
-      : `${globalConfig.prefix}-${config.name}`;
+    const secretName =
+      config.common || !globalConfig.prefix
+        ? config.name
+        : `${globalConfig.prefix}-${config.name}`;
 
     const version = config.version || 'latest';
     const name = `projects/${globalConfig.projectId}/secrets/${secretName}/versions/${version}`;
@@ -201,7 +209,7 @@ export const SecretManager = {
     try {
       // Access the secret
       const [response] = await this.client.accessSecretVersion({ name });
-      
+
       if (!response.payload?.data) {
         throw new EngineError({
           message: `Secret ${secretName} has no data`
@@ -222,7 +230,7 @@ export const SecretManager = {
         // Set environment variable
         const envVarName = config.targetEnvVar || config.name;
         process.env[envVarName] = secretValue;
-        
+
         reportDebug({
           namespace,
           message: `Set environment variable: ${envVarName}`
@@ -231,18 +239,18 @@ export const SecretManager = {
         // Write to temp file
         const filename = config.filename || config.name;
         const filePath = path.join(globalConfig.tempDir!, filename);
-        
+
         await fs.writeFile(filePath, secretValue, {
           mode: config.mode || 0o600
         });
-        
+
         loaded.filePath = filePath;
         this.tempFiles.push(filePath);
 
         // Update environment variable to point to file
         const envVarName = config.targetEnvVar || `${config.name}_PATH`;
         process.env[envVarName] = filePath;
-        
+
         reportDebug({
           namespace,
           message: `Wrote secret to file: ${filePath}`,
@@ -285,7 +293,7 @@ export const SecretManager = {
     if (cached) {
       return cached.value;
     }
-    
+
     // Fallback to environment variable
     return process.env[name];
   },
@@ -296,19 +304,20 @@ export const SecretManager = {
    * @param version - Secret version (default: 'latest')
    * @returns Promise with secret value
    */
-  async fetchSecret(
-    name: string,
-    version: string = 'latest'
-  ): Promise<string> {
+  async fetchSecret(name: string, version: string = 'latest'): Promise<string> {
     if (!this.client || !this.options?.projectId) {
       throw new EngineError({ message: 'Secret Manager not initialized' });
     }
 
-    const secretName = this.options.prefix ? `${this.options.prefix}-${name}` : name;
+    const secretName = this.options.prefix
+      ? `${this.options.prefix}-${name}`
+      : name;
     const secretPath = `projects/${this.options.projectId}/secrets/${secretName}/versions/${version}`;
 
-    const [response] = await this.client.accessSecretVersion({ name: secretPath });
-    
+    const [response] = await this.client.accessSecretVersion({
+      name: secretPath
+    });
+
     if (!response.payload?.data) {
       throw new EngineError({ message: `Secret ${secretName} has no data` });
     }
@@ -322,7 +331,7 @@ export const SecretManager = {
    */
   async reload(): Promise<SecretLoadResult> {
     reportInfo({ message: 'Reloading secrets from Secret Manager' });
-    
+
     if (!this.options) {
       throw new EngineError({ message: 'Secret Manager not initialized' });
     }
@@ -364,7 +373,7 @@ export const SecretManager = {
     }
 
     this.options = undefined;
-    
+
     reportDebug({ namespace, message: 'Secret Manager shut down' });
   },
 
@@ -382,7 +391,7 @@ export const SecretManager = {
    */
   getConfig(): Partial<SecretManagerOptions> | undefined {
     if (!this.options) return undefined;
-    
+
     return {
       enabled: this.options.enabled,
       projectId: this.options.projectId,

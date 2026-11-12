@@ -185,9 +185,11 @@ describe('GoogleCloudStorage', function () {
         ])
       };
 
-      const bucketStub = sandbox.stub(GoogleCloudStorage.cloudStorage!, 'bucket').returns({
-        file: sandbox.stub().returns(mockFile)
-      } as any);
+      const bucketStub = sandbox
+        .stub(GoogleCloudStorage.cloudStorage!, 'bucket')
+        .returns({
+          file: sandbox.stub().returns(mockFile)
+        } as any);
 
       const result = await GoogleCloudStorage.upload(readStream, testBucket);
 
@@ -247,7 +249,10 @@ describe('GoogleCloudStorage', function () {
         file: fileStub
       } as any);
 
-      await GoogleCloudStorage.upload(readStream, testBucket, { fileName, directory });
+      await GoogleCloudStorage.upload(readStream, testBucket, {
+        fileName,
+        directory
+      });
 
       expect(fileStub.calledWith(`${directory}/${fileName}`)).to.be.true;
     });
@@ -268,7 +273,13 @@ describe('GoogleCloudStorage', function () {
       } as any);
 
       try {
-        await GoogleCloudStorage.upload(readStream, testBucket, {}, {}, { maxSize });
+        await GoogleCloudStorage.upload(
+          readStream,
+          testBucket,
+          {},
+          {},
+          { maxSize }
+        );
         expect.fail('Should have thrown WebError');
       } catch (error) {
         expect(error).to.be.instanceOf(WebError);

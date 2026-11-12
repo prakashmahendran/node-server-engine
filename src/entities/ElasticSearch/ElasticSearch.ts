@@ -101,7 +101,8 @@ export const ElasticSearch = {
    * Manages the database structure
    */
   async migrate(): Promise<void> {
-    if (!client) throw new EngineError({ message: 'ElasticSearch was not initialized' });
+    if (!client)
+      throw new EngineError({ message: 'ElasticSearch was not initialized' });
 
     reportDebug({
       namespace,
@@ -115,7 +116,7 @@ export const ElasticSearch = {
     let files: string[];
     try {
       files = readdirSync(migrationPath).filter(
-        f => f.endsWith('.ts') || f.endsWith('.js')
+        (f) => f.endsWith('.ts') || f.endsWith('.js')
       );
     } catch (error) {
       throw new EngineError({
@@ -137,9 +138,10 @@ export const ElasticSearch = {
           query: { match: { file } }
         });
 
-        const total = typeof result.hits.total === 'number'
-          ? result.hits.total
-          : result.hits.total?.value ?? 0;
+        const total =
+          typeof result.hits.total === 'number'
+            ? result.hits.total
+            : (result.hits.total?.value ?? 0);
 
         if (total > 0) {
           reportDebug({
@@ -178,7 +180,10 @@ export const ElasticSearch = {
         reportError(
           new EngineError({
             message: `Migration failed: ${file}`,
-            data: { error: (error as Error).message, stack: (error as Error).stack }
+            data: {
+              error: (error as Error).message,
+              stack: (error as Error).stack
+            }
           })
         );
         throw error;

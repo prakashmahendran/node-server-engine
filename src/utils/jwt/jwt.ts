@@ -178,7 +178,7 @@ export function generateJwtToken(user: unknown) {
 
   // Get private key - can be either the key content directly or a file path
   let privateKey: string;
-  
+
   if (process.env.PRIVATE_KEY) {
     // Direct key content in environment variable
     privateKey = process.env.PRIVATE_KEY;
@@ -193,8 +193,9 @@ export function generateJwtToken(user: unknown) {
       });
     }
   } else {
-    throw new EngineError({ 
-      message: 'Neither PRIVATE_KEY nor PRIVATE_KEY_PATH environment variable is set' 
+    throw new EngineError({
+      message:
+        'Neither PRIVATE_KEY nor PRIVATE_KEY_PATH environment variable is set'
     });
   }
 

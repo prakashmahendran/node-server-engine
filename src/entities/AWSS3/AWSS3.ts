@@ -29,7 +29,7 @@ const namespace = 'engine:aws-s3';
  * Generic AWS S3 wrapper for easy file operations
  * Provides methods for uploading, downloading, streaming, and deleting files
  * Compatible with AWS S3 and S3-compatible services (MinIO, LocalStack, etc.)
- * 
+ *
  * @example
  * ```typescript
  * // Initialize with custom configuration
@@ -38,17 +38,17 @@ const namespace = 'engine:aws-s3';
  *   accessKeyId: 'YOUR_ACCESS_KEY',
  *   secretAccessKey: 'YOUR_SECRET_KEY'
  * });
- * 
+ *
  * // Upload a file
  * const result = await AWSS3.upload(
  *   fileStream,
  *   'my-bucket',
  *   { directory: 'uploads', mime: 'image/png' }
  * );
- * 
+ *
  * // Download a file
  * const { data, metadata } = await AWSS3.get('my-bucket', 'uploads/file.png');
- * 
+ *
  * // Delete a file
  * await AWSS3.delete('my-bucket', 'uploads/file.png');
  * ```
@@ -67,8 +67,9 @@ export const AWSS3 = {
     if (config) {
       if (config.region) s3Config.region = config.region;
       if (config.endpoint) s3Config.endpoint = config.endpoint;
-      if (config.forcePathStyle !== undefined) s3Config.forcePathStyle = config.forcePathStyle;
-      
+      if (config.forcePathStyle !== undefined)
+        s3Config.forcePathStyle = config.forcePathStyle;
+
       if (config.accessKeyId && config.secretAccessKey) {
         s3Config.credentials = {
           accessKeyId: config.accessKeyId,
@@ -79,14 +80,18 @@ export const AWSS3 = {
     } else {
       // Use environment variables as fallback
       if (process.env.AWS_REGION) s3Config.region = process.env.AWS_REGION;
-      if (process.env.AWS_S3_ENDPOINT) s3Config.endpoint = process.env.AWS_S3_ENDPOINT;
-      if (process.env.AWS_S3_FORCE_PATH_STYLE === 'true') s3Config.forcePathStyle = true;
-      
+      if (process.env.AWS_S3_ENDPOINT)
+        s3Config.endpoint = process.env.AWS_S3_ENDPOINT;
+      if (process.env.AWS_S3_FORCE_PATH_STYLE === 'true')
+        s3Config.forcePathStyle = true;
+
       if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
         s3Config.credentials = {
           accessKeyId: process.env.AWS_ACCESS_KEY_ID,
           secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-          ...(process.env.AWS_SESSION_TOKEN && { sessionToken: process.env.AWS_SESSION_TOKEN })
+          ...(process.env.AWS_SESSION_TOKEN && {
+            sessionToken: process.env.AWS_SESSION_TOKEN
+          })
         };
       }
     }
@@ -118,7 +123,7 @@ export const AWSS3 = {
    * @param uploaderOptions - Additional options like maxSize
    * @param metadata - Optional metadata to attach to the file
    * @returns Promise with file upload result
-   * 
+   *
    * @example
    * ```typescript
    * const fileStream = fs.createReadStream('photo.jpg');
@@ -166,7 +171,7 @@ export const AWSS3 = {
 
     for await (const chunk of readStream) {
       receivedSize += chunk.length;
-      
+
       if (intMaxSize && receivedSize > intMaxSize) {
         throw new WebError({
           statusCode: 413,
@@ -181,7 +186,7 @@ export const AWSS3 = {
           }
         });
       }
-      
+
       chunks.push(chunk);
     }
 
@@ -221,7 +226,7 @@ export const AWSS3 = {
    * @param bucket - Bucket name
    * @param key - File key (path) in the bucket
    * @returns Promise with file data and metadata
-   * 
+   *
    * @example
    * ```typescript
    * const { data, metadata } = await AWSS3.get('my-bucket', 'photos/image.jpg');
@@ -271,7 +276,7 @@ export const AWSS3 = {
    * @param bucket - Bucket name
    * @param key - File key (path) in the bucket
    * @returns Promise with readable stream and metadata
-   * 
+   *
    * @example
    * ```typescript
    * const { stream, metadata } = await AWSS3.download('my-bucket', 'videos/video.mp4');
@@ -316,7 +321,7 @@ export const AWSS3 = {
    * @param bucket - Bucket name
    * @param key - File key (path) in the bucket
    * @returns Promise with readable stream
-   * 
+   *
    * @example
    * ```typescript
    * const stream = await AWSS3.getFileStream('my-bucket', 'audio/song.mp3');
@@ -347,7 +352,7 @@ export const AWSS3 = {
    * @param bucket - Bucket name
    * @param key - File key (path) in the bucket
    * @returns Promise with file metadata
-   * 
+   *
    * @example
    * ```typescript
    * const metadata = await AWSS3.getMetadata('my-bucket', 'photos/image.jpg');
@@ -381,7 +386,7 @@ export const AWSS3 = {
    * @param bucket - Bucket name
    * @param key - File key (path) in the bucket
    * @returns Promise that resolves when deletion is complete
-   * 
+   *
    * @example
    * ```typescript
    * await AWSS3.delete('my-bucket', 'temp/old-file.txt');
@@ -409,13 +414,13 @@ export const AWSS3 = {
    * Useful for creating unique file names
    * @param options - Options for file destination generation
    * @returns Generated file path
-   * 
+   *
    * @example
    * ```typescript
    * // Generate UUID only
    * const path1 = AWSS3.generateFileDestination();
    * // 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
-   * 
+   *
    * // With directory and MIME type
    * const path2 = AWSS3.generateFileDestination({
    *   directory: 'uploads/images',
@@ -430,11 +435,11 @@ export const AWSS3 = {
     // Determine file extension from MIME type
     const extension =
       mime && mimeTypes.extension(mime) ? mimeTypes.extension(mime) : undefined;
-    
+
     // Build the full name with or without extension
     const fullName =
       extension && !noExtension ? `${randomUUID()}.${extension}` : randomUUID();
-    
+
     // Clean up directory path
     const trimmedDirectory = trimPathSlash(directory);
     return `${trimmedDirectory ? `${trimmedDirectory}/` : ''}${fullName}`;

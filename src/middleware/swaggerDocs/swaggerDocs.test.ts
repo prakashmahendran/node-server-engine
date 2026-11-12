@@ -16,7 +16,7 @@ describe('Middleware - swaggerDocs', () => {
 
   beforeEach(() => {
     process.env = { ...savedEnv };
-    
+
     // Stub glob.sync to return different results for different paths
     globSyncStub = sinon.stub(glob, 'sync').callsFake((pattern: string) => {
       // Return a test file for endpoints pattern
@@ -29,7 +29,9 @@ describe('Middleware - swaggerDocs', () => {
     yamlStub = sinon.stub(YAML, 'load').callsFake((file: string) => {
       if (file.endsWith('index.yaml')) return {} as any;
       if (file.endsWith('.docs.yaml'))
-        return { '/hello': { get: { summary: 'Hi ##NAME## ##MISSING_VAR##' } } } as any;
+        return {
+          '/hello': { get: { summary: 'Hi ##NAME## ##MISSING_VAR##' } }
+        } as any;
       return {} as any;
     });
 
@@ -60,8 +62,16 @@ describe('Middleware - swaggerDocs', () => {
     existsStub.restore();
     sinon.stub(fs, 'existsSync').returns(true);
     yamlStub.callsFake((file: string) => {
-      if (file.endsWith('index.yaml')) return { openapi: '3.0.0', info: { title: 'Test' }, components: {} } as any;
-      if (file.endsWith('.docs.yaml')) return { '/hello': { get: { summary: 'Hi ##NAME## ##MISSING_VAR##' } } } as any;
+      if (file.endsWith('index.yaml'))
+        return {
+          openapi: '3.0.0',
+          info: { title: 'Test' },
+          components: {}
+        } as any;
+      if (file.endsWith('.docs.yaml'))
+        return {
+          '/hello': { get: { summary: 'Hi ##NAME## ##MISSING_VAR##' } }
+        } as any;
       return {} as any;
     });
     const router = swaggerDocs();

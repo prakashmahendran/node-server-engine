@@ -28,7 +28,9 @@ describe('Middleware - multiPartFileUploader', () => {
     // Provide our multer stub
     mockRequire('multer', multerDefault as any);
     // Re-require module under test with env + stubbed multer
-    delete (require as any).cache[(require as any).resolve('./multiPartFileUploader')];
+    delete (require as any).cache[
+      (require as any).resolve('./multiPartFileUploader')
+    ];
   });
 
   afterEach(() => {
@@ -54,11 +56,19 @@ describe('Middleware - multiPartFileUploader', () => {
     const validator = {} as any; // empty schema -> no validation errors
     const middleware = multiPartFileUploader({}, validator);
 
-    const req = buildReq({
-      // missing filename/uniqueID/totalChunks
-      chunkIndex: 0
-    },
-    { buffer: Buffer.from('data'), size: 4, fieldname: 'file', originalname: 'a.txt', mimetype: 'text/plain' });
+    const req = buildReq(
+      {
+        // missing filename/uniqueID/totalChunks
+        chunkIndex: 0
+      },
+      {
+        buffer: Buffer.from('data'),
+        size: 4,
+        fieldname: 'file',
+        originalname: 'a.txt',
+        mimetype: 'text/plain'
+      }
+    );
 
     const nextSpy = sinon.spy();
     const err: any = await new Promise((resolve) =>
@@ -81,8 +91,16 @@ describe('Middleware - multiPartFileUploader', () => {
     const validator = {} as any;
     const middleware = multiPartFileUploader({ maxSize: '1b' }, validator);
 
-    const req = buildReq({ filename: 'b.txt', totalChunks: '2', chunkIndex: 0, uniqueID: 'u1' },
-      { buffer: Buffer.from('big'), size: 10, fieldname: 'file', originalname: 'b.txt', mimetype: 'text/plain' });
+    const req = buildReq(
+      { filename: 'b.txt', totalChunks: '2', chunkIndex: 0, uniqueID: 'u1' },
+      {
+        buffer: Buffer.from('big'),
+        size: 10,
+        fieldname: 'file',
+        originalname: 'b.txt',
+        mimetype: 'text/plain'
+      }
+    );
 
     const nextSpy = sinon.spy();
     const err: any = await new Promise((resolve) =>
@@ -105,8 +123,16 @@ describe('Middleware - multiPartFileUploader', () => {
     const middleware = multiPartFileUploader({}, validator);
 
     // First chunk (pending)
-    const req1 = buildReq({ filename: 'c.txt', totalChunks: '2', chunkIndex: 0, uniqueID: 'u2' },
-      { buffer: Buffer.from('A'), size: 1, fieldname: 'file', originalname: 'c.txt', mimetype: 'text/plain' });
+    const req1 = buildReq(
+      { filename: 'c.txt', totalChunks: '2', chunkIndex: 0, uniqueID: 'u2' },
+      {
+        buffer: Buffer.from('A'),
+        size: 1,
+        fieldname: 'file',
+        originalname: 'c.txt',
+        mimetype: 'text/plain'
+      }
+    );
     const nextSpy1 = sinon.spy();
     await new Promise((resolve) =>
       middleware(
@@ -119,11 +145,23 @@ describe('Middleware - multiPartFileUploader', () => {
       )
     );
     expect(nextSpy1.calledOnce).to.be.true;
-    expect(req1.multipartFile).to.deep.include({ isPending: true, originalname: 'c.txt', uniqueID: 'u2' });
+    expect(req1.multipartFile).to.deep.include({
+      isPending: true,
+      originalname: 'c.txt',
+      uniqueID: 'u2'
+    });
 
     // Second chunk (complete)
-    const req2 = buildReq({ filename: 'c.txt', totalChunks: '2', chunkIndex: 1, uniqueID: 'u2' },
-      { buffer: Buffer.from('B'), size: 1, fieldname: 'file', originalname: 'c.txt', mimetype: 'text/plain' });
+    const req2 = buildReq(
+      { filename: 'c.txt', totalChunks: '2', chunkIndex: 1, uniqueID: 'u2' },
+      {
+        buffer: Buffer.from('B'),
+        size: 1,
+        fieldname: 'file',
+        originalname: 'c.txt',
+        mimetype: 'text/plain'
+      }
+    );
     const nextSpy2 = sinon.spy();
     await new Promise((resolve) =>
       middleware(
@@ -136,21 +174,69 @@ describe('Middleware - multiPartFileUploader', () => {
       )
     );
     expect(nextSpy2.calledOnce).to.be.true;
-    expect(req2.multipartFile).to.deep.include({ isPending: false, originalname: 'c.txt', uniqueID: 'u2' });
+    expect(req2.multipartFile).to.deep.include({
+      isPending: false,
+      originalname: 'c.txt',
+      uniqueID: 'u2'
+    });
     expect(req2.multipartFile.filePath).to.be.a('string');
     const merged = await fs.readFile(req2.multipartFile.filePath, 'utf-8');
     expect(merged).to.equal('AB');
   });
 
   const traversalCases: Array<[string, Record<string, unknown>]> = [
-    ['uniqueID with parent segments', { filename: 'a.txt', totalChunks: '1', chunkIndex: 0, uniqueID: '../../escape' }],
-    ['uniqueID with a slash', { filename: 'a.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'a/b' }],
-    ['filename with parent segments', { filename: '../../escape.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }],
-    ['filename equal to ..', { filename: '..', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }],
-    ['filename with a backslash', { filename: '..\\escape.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }],
-    ['non numeric chunkIndex', { filename: 'a.txt', totalChunks: '2', chunkIndex: '../x', uniqueID: 'u3' }],
-    ['chunkIndex out of range', { filename: 'a.txt', totalChunks: '2', chunkIndex: 2, uniqueID: 'u3' }],
-    ['zero totalChunks', { filename: 'a.txt', totalChunks: '0', chunkIndex: 0, uniqueID: 'u3' }]
+    [
+      'uniqueID with parent segments',
+      {
+        filename: 'a.txt',
+        totalChunks: '1',
+        chunkIndex: 0,
+        uniqueID: '../../escape'
+      }
+    ],
+    [
+      'uniqueID with a slash',
+      { filename: 'a.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'a/b' }
+    ],
+    [
+      'filename with parent segments',
+      {
+        filename: '../../escape.txt',
+        totalChunks: '1',
+        chunkIndex: 0,
+        uniqueID: 'u3'
+      }
+    ],
+    [
+      'filename equal to ..',
+      { filename: '..', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }
+    ],
+    [
+      'filename with a backslash',
+      {
+        filename: '..\\escape.txt',
+        totalChunks: '1',
+        chunkIndex: 0,
+        uniqueID: 'u3'
+      }
+    ],
+    [
+      'non numeric chunkIndex',
+      {
+        filename: 'a.txt',
+        totalChunks: '2',
+        chunkIndex: '../x',
+        uniqueID: 'u3'
+      }
+    ],
+    [
+      'chunkIndex out of range',
+      { filename: 'a.txt', totalChunks: '2', chunkIndex: 2, uniqueID: 'u3' }
+    ],
+    [
+      'zero totalChunks',
+      { filename: 'a.txt', totalChunks: '0', chunkIndex: 0, uniqueID: 'u3' }
+    ]
   ];
 
   traversalCases.forEach(([label, body]) => {
@@ -160,7 +246,11 @@ describe('Middleware - multiPartFileUploader', () => {
       const req = buildReq(body, { buffer: Buffer.from('X'), size: 1 });
       const next = sinon.spy();
 
-      await middleware(req as any, buildRes() as any, next as unknown as NextFunction);
+      await middleware(
+        req as any,
+        buildRes() as any,
+        next as unknown as NextFunction
+      );
       await new Promise((r) => setImmediate(r));
 
       expect(next.calledOnce).to.be.true;
@@ -170,7 +260,8 @@ describe('Middleware - multiPartFileUploader', () => {
       expect(req.multipartFile).to.be.undefined;
       // Nothing must have been written outside of the storage folder
       expect(fs.existsSync(path.join(tmpRoot, '..', 'escape'))).to.be.false;
-      expect(fs.existsSync(path.join(tmpRoot, '..', 'escape.txt.part0'))).to.be.false;
+      expect(fs.existsSync(path.join(tmpRoot, '..', 'escape.txt.part0'))).to.be
+        .false;
     });
   });
 });

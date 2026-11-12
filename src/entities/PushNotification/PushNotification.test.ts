@@ -39,7 +39,10 @@ describe('Entity - PushNotification', () => {
     const publishStub = stub(PubSub, 'publish').resolves();
 
     try {
-      await PushNotification.sendPush('user-1', { title: 'Hello', body: 'World' });
+      await PushNotification.sendPush('user-1', {
+        title: 'Hello',
+        body: 'World'
+      });
       expect(publishStub.calledOnce).to.equal(true);
       const [topic, payload] = publishStub.firstCall.args as [string, any];
       expect(topic).to.equal('push-topic');

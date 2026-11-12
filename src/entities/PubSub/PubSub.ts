@@ -124,52 +124,52 @@ export const PubSub = {
     // Check that all topics/permissions exist, and that we have permission on them
     if (!skipValidation) {
       await Promise.all([
-      // Test that all topics actually exist and that we have permissions
-      ...Object.values(topics).map(async (topic) => {
-        const [exists] = await withRetry(
-          `topic.exists:${topic.name}`,
-          async () => topic.exists()
-        );
-        if (!exists)
-          throw new EngineError(`Topic ${topic.name} does not exist`);
-        // Test permission ton publish to topic
-        const [permissions] = await withRetry(
-          `topic.permissions:${topic.name}`,
-          async () => topic.iam.testPermissions(['pubsub.topics.publish'])
-        );
-        const hasPermissions = Object.values(permissions).every(
-          (success) => success
-        );
-        if (!hasPermissions)
-          throw new EngineError(
-            `Instance does not have appropriate permissions to publish to topic ${topic.name}`
+        // Test that all topics actually exist and that we have permissions
+        ...Object.values(topics).map(async (topic) => {
+          const [exists] = await withRetry(
+            `topic.exists:${topic.name}`,
+            async () => topic.exists()
           );
-      }),
-      // Test that all subscriptions actually exist and that we have permissions
-      ...Object.values(subscriptions).map(async ({ subscription }) => {
-        const [exists] = await withRetry(
-          `subscription.exists:${subscription.name}`,
-          async () => subscription.exists()
-        );
-        if (!exists)
-          throw new EngineError(
-            `Subscription ${subscription.name} does not exist`
+          if (!exists)
+            throw new EngineError(`Topic ${topic.name} does not exist`);
+          // Test permission ton publish to topic
+          const [permissions] = await withRetry(
+            `topic.permissions:${topic.name}`,
+            async () => topic.iam.testPermissions(['pubsub.topics.publish'])
           );
-        // Test permission ton consume subscription
-        const [permissions] = await withRetry(
-          `subscription.permissions:${subscription.name}`,
-          async () =>
-            subscription.iam.testPermissions(['pubsub.subscriptions.consume'])
-        );
-        const hasPermissions = Object.values(permissions).every(
-          (success) => success
-        );
-        if (!hasPermissions)
-          throw new EngineError(
-            `Instance does not have appropriate permissions to subscribe to subscription ${subscription.name}`
+          const hasPermissions = Object.values(permissions).every(
+            (success) => success
           );
-      })
-    ]);
+          if (!hasPermissions)
+            throw new EngineError(
+              `Instance does not have appropriate permissions to publish to topic ${topic.name}`
+            );
+        }),
+        // Test that all subscriptions actually exist and that we have permissions
+        ...Object.values(subscriptions).map(async ({ subscription }) => {
+          const [exists] = await withRetry(
+            `subscription.exists:${subscription.name}`,
+            async () => subscription.exists()
+          );
+          if (!exists)
+            throw new EngineError(
+              `Subscription ${subscription.name} does not exist`
+            );
+          // Test permission ton consume subscription
+          const [permissions] = await withRetry(
+            `subscription.permissions:${subscription.name}`,
+            async () =>
+              subscription.iam.testPermissions(['pubsub.subscriptions.consume'])
+          );
+          const hasPermissions = Object.values(permissions).every(
+            (success) => success
+          );
+          if (!hasPermissions)
+            throw new EngineError(
+              `Instance does not have appropriate permissions to subscribe to subscription ${subscription.name}`
+            );
+        })
+      ]);
     } else {
       reportDebug({
         namespace,

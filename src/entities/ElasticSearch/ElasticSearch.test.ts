@@ -75,7 +75,9 @@ describe('Entity - ElasticSearch', () => {
       await ElasticSearch.init();
       expect.fail('Expected init to throw');
     } catch (err: any) {
-      expect(String(err?.message || err)).to.contain('ElasticSearch Host not set in environment');
+      expect(String(err?.message || err)).to.contain(
+        'ElasticSearch Host not set in environment'
+      );
     }
   });
 
@@ -95,7 +97,8 @@ describe('Entity - ElasticSearch', () => {
     // TLS should be enabled in the config passed to the client
     expect(FakeESClient.lastConfig).to.have.property('tls');
     // In test env, indices.delete should have been called to flush
-    expect((ElasticSearch.getClient() as any).indices.delete).to.have.been.called;
+    expect((ElasticSearch.getClient() as any).indices.delete).to.have.been
+      .called;
 
     // Shutdown should close the client gracefully
     await ElasticSearch.shutdown();
@@ -103,8 +106,14 @@ describe('Entity - ElasticSearch', () => {
 
   it('should skip already ran migrations', async () => {
     // Prepare two migration files
-    fs.writeFileSync(path.join(tmpDir, '001-a.js'), 'module.exports.migrate = async function(){};');
-    fs.writeFileSync(path.join(tmpDir, '002-b.js'), 'module.exports.migrate = async function(){};');
+    fs.writeFileSync(
+      path.join(tmpDir, '001-a.js'),
+      'module.exports.migrate = async function(){};'
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, '002-b.js'),
+      'module.exports.migrate = async function(){};'
+    );
 
     // Mock search to return a hit for the first file so it is skipped
     const ElasticSearch = requireElastic();
@@ -129,13 +138,18 @@ describe('Entity - ElasticSearch', () => {
 
   it('should throw EngineError when migration directory cannot be read', async () => {
     // Point to a non-existent directory to trigger fs error on readdirSync
-    process.env.ELASTIC_SEARCH_MIGRATION_PATH = path.join(os.tmpdir(), 'non-existent-dir-zzz');
+    process.env.ELASTIC_SEARCH_MIGRATION_PATH = path.join(
+      os.tmpdir(),
+      'non-existent-dir-zzz'
+    );
     const ElasticSearch = requireElastic();
     try {
       await ElasticSearch.init();
       expect.fail('Expected init to throw');
     } catch (err: any) {
-      expect(String(err?.message || err)).to.contain('Failed to read migration directory');
+      expect(String(err?.message || err)).to.contain(
+        'Failed to read migration directory'
+      );
     }
   });
 
@@ -154,7 +168,9 @@ describe('Entity - ElasticSearch', () => {
       await ElasticSearch.init();
       expect.fail('Expected init to throw');
     } catch (err: any) {
-      expect(String(err?.message || err)).to.contain('Failed to connect to ElasticSearch');
+      expect(String(err?.message || err)).to.contain(
+        'Failed to connect to ElasticSearch'
+      );
     }
   });
 });

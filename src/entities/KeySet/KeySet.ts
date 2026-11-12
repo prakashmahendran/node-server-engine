@@ -120,7 +120,7 @@ export class KeySet {
 
       // Create a node.crypto public key object for each key in the set
       this.keySet = set.keys.reduce(
-        (set: { [x: string]: string; }, key: { kid: string | number; }) => {
+        (set: { [x: string]: string }, key: { kid: string | number }) => {
           set[key.kid] = createPublicKey({ key, format: 'jwk' }).export({
             format: 'pem',
             type: 'spki'

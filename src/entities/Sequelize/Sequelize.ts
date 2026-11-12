@@ -39,7 +39,7 @@ export const sequelize = new Proxy<SequelizeInterface>(
 export async function init(): Promise<void> {
   // Ignore if already initialized
   if (sequelizeClient) return;
-  
+
   reportInfo({
     message: 'Initializing Sequelize client',
     data: {
@@ -51,13 +51,14 @@ export async function init(): Promise<void> {
       isUnixSocket: process.env.SQL_HOST?.startsWith('/'),
       sqlStorage:
         (process.env.SQL_TYPE ?? '').toLowerCase() === 'sqlite'
-          ? process.env.SQL_STORAGE || path.join(process.cwd(), 'database.sqlite')
+          ? process.env.SQL_STORAGE ||
+            path.join(process.cwd(), 'database.sqlite')
           : undefined
     }
   });
-  
+
   sequelizeClient = createSequelizeClient();
-  
+
   // In test environment, authentication happens automatically with SQLite
   // For other environments, authenticate and log the result
   if (process.env.NODE_ENV !== 'test') {
@@ -67,7 +68,7 @@ export async function init(): Promise<void> {
 
     try {
       await sequelizeClient.authenticate();
-      reportInfo({ 
+      reportInfo({
         message: 'Connected to database successfully',
         data: {
           host: process.env.SQL_HOST,
@@ -93,7 +94,7 @@ export async function init(): Promise<void> {
       throw err;
     }
   }
-  
+
   LifecycleController.register(sequelize);
 }
 
@@ -120,33 +121,35 @@ export function addModels(models: Array<ModelCtor>): void {
       message: 'Sequelize client was not initialized'
     });
   sequelizeClient.addModels(models);
-  
+
   // Override toJSON behavior globally to ensure consistency between dev and prod
   // In dev (ts-node), property access works directly on instances
   // In prod (compiled), we need explicit serialization
   // This hook intercepts all afterFind results and converts them to plain objects
   sequelizeClient.addHook('afterFind', (result) => {
     if (!result) return;
-    
+
     const convertToPlain = (instance: unknown) => {
       if (!instance || typeof instance !== 'object') return instance;
-      const modelInstance = instance as { toJSON?: () => Record<string, unknown> } & Record<string, unknown>;
+      const modelInstance = instance as {
+        toJSON?: () => Record<string, unknown>;
+      } & Record<string, unknown>;
       if (!modelInstance.toJSON) return instance;
       const plain = modelInstance.toJSON();
       // Copy the plain object properties back to the instance
       // This makes property access work without .toJSON() in compiled code
-      Object.keys(plain).forEach(key => {
+      Object.keys(plain).forEach((key) => {
         modelInstance[key] = plain[key];
       });
     };
-    
+
     if (Array.isArray(result)) {
       result.forEach(convertToPlain);
     } else {
       convertToPlain(result);
     }
   });
-  
+
   sequelizeClient.sync();
 }
 
@@ -181,7 +184,7 @@ export function createSequelizeClient(): Sequelize {
 
   // Throw an error if there is no host initial
   validateSequelizeEnvironment();
-  
+
   reportInfo({
     message: 'Creating Sequelize client with config',
     data: {
@@ -195,7 +198,7 @@ export function createSequelizeClient(): Sequelize {
       poolMin: dbConfig.pool?.min
     }
   });
-  
+
   return new Sequelize(
     process.env.SQL_DB as string,
     process.env.SQL_USER as string,

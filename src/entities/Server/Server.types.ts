@@ -64,8 +64,7 @@ export interface ServerObjectGlobalMiddleware {
   middleware: RequestHandler;
 }
 export type ServerGlobalMiddleware =
-  | RequestHandler
-  | ServerObjectGlobalMiddleware;
+  RequestHandler | ServerObjectGlobalMiddleware;
 
 /** Error middleware function definition with path */
 export interface ServerObjectErrorMiddleware {
@@ -75,8 +74,7 @@ export interface ServerObjectErrorMiddleware {
   middleware: ErrorRequestHandler;
 }
 export type ServerErrorMiddleWare =
-  | ErrorRequestHandler
-  | ServerObjectErrorMiddleware;
+  ErrorRequestHandler | ServerObjectErrorMiddleware;
 
 type ServerFunctionCallback = (...args: Array<unknown>) => unknown;
 

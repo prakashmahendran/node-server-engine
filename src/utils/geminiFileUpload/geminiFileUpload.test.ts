@@ -22,7 +22,11 @@ describe('Utils - geminiFileUpload', () => {
       .stub(files, 'get')
       .resolves({ ...uploaded, state: FileState.ACTIVE } as any);
 
-    const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png');
+    const res = await geminiFileUpload(
+      Buffer.from('abc'),
+      'image/png',
+      'a.png'
+    );
 
     expect(res.success).to.equal(true);
     expect((res as any).fileUri).to.equal('uri');
@@ -38,10 +42,19 @@ describe('Utils - geminiFileUpload', () => {
     const { files } = getGeminiClient();
     sinon.stub(files, 'upload').resolves(uploaded as any);
     const getStub = sinon.stub(files, 'get');
-    getStub.onFirstCall().resolves({ ...uploaded, state: FileState.PROCESSING } as any);
-    getStub.onSecondCall().resolves({ ...uploaded, state: FileState.ACTIVE } as any);
+    getStub
+      .onFirstCall()
+      .resolves({ ...uploaded, state: FileState.PROCESSING } as any);
+    getStub
+      .onSecondCall()
+      .resolves({ ...uploaded, state: FileState.ACTIVE } as any);
 
-    const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png', 1);
+    const res = await geminiFileUpload(
+      Buffer.from('abc'),
+      'image/png',
+      'a.png',
+      1
+    );
 
     expect(res.success).to.equal(true);
     expect(getStub.callCount).to.equal(2);
@@ -52,7 +65,11 @@ describe('Utils - geminiFileUpload', () => {
     sinon.stub(files, 'upload').resolves({} as any);
     const getStub = sinon.stub(files, 'get');
 
-    const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png');
+    const res = await geminiFileUpload(
+      Buffer.from('abc'),
+      'image/png',
+      'a.png'
+    );
 
     expect(res.success).to.equal(false);
     expect(getStub.called).to.equal(false);
@@ -61,9 +78,15 @@ describe('Utils - geminiFileUpload', () => {
   it('should return failure when processing ends not ACTIVE', async () => {
     const { files } = getGeminiClient();
     sinon.stub(files, 'upload').resolves(uploaded as any);
-    sinon.stub(files, 'get').resolves({ ...uploaded, state: FileState.FAILED } as any);
+    sinon
+      .stub(files, 'get')
+      .resolves({ ...uploaded, state: FileState.FAILED } as any);
 
-    const res = await geminiFileUpload(Buffer.from('abc'), 'image/png', 'a.png');
+    const res = await geminiFileUpload(
+      Buffer.from('abc'),
+      'image/png',
+      'a.png'
+    );
 
     expect(res.success).to.equal(false);
   });

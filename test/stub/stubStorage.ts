@@ -22,7 +22,8 @@ export function stubStorage(
       storageOptions: CreateWriteStreamOptions = {}
     ) => {
       readStream.resume(); // Pause the stream
-      const path = GoogleCloudStorage.generateFileDestination(destinationOptions);
+      const path =
+        GoogleCloudStorage.generateFileDestination(destinationOptions);
       return {
         kind: 'storage#object',
         id: `${bucket}/${path}/${randomUUID()}`,

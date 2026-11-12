@@ -13,7 +13,11 @@ const config: Options = {
   database: process.env.SQL_DB,
   host: process.env.SQL_HOST,
   // Don't set port for Unix socket connections (Cloud SQL)
-  port: isUnixSocket ? undefined : (process.env.SQL_PORT ? parseInt(process.env.SQL_PORT) : 5432),
+  port: isUnixSocket
+    ? undefined
+    : process.env.SQL_PORT
+      ? parseInt(process.env.SQL_PORT)
+      : 5432,
   dialect: (process.env.SQL_TYPE ?? 'postgres') as Dialect, // Dynamically set the dialect (postgres, mysql, mssql)
   logging: process.env.SQL_LOGGING === 'true' ? console.log : false, // Enable SQL logging with SQL_LOGGING=true
   define: {
@@ -31,7 +35,7 @@ const config: Options = {
     acquire: process.env.NODE_ENV === 'test' ? 1000 : 30000, // Reduce acquire timeout in test
     idle: process.env.NODE_ENV === 'test' ? 1000 : 10000, // Reduce idle time in test
     evict: process.env.NODE_ENV === 'test' ? 100 : 1000 // How often to check for idle connections
-  },
+  }
 };
 
 // Additional configurations for MSSQL
@@ -40,20 +44,20 @@ if (config.dialect === 'mssql') {
     requestTimeout: 30000, // Increase request timeout for MSSQL
     connectTimeout: 30000, // Increase connection timeout for MSSQL
     encrypt: true, // Use encryption for MSSQL (set to false if not needed)
-    trustServerCertificate: true, // Set to true if using self-signed certificates
+    trustServerCertificate: true // Set to true if using self-signed certificates
   };
 }
 
 // Add specific dialect configurations if necessary for MySQL/PostgreSQL
 if (config.dialect === 'mysql') {
   config.dialectOptions = {
-    timezone: 'Z', // Set timezone for MySQL
+    timezone: 'Z' // Set timezone for MySQL
   };
 }
 
 if (config.dialect === 'postgres') {
   config.dialectOptions = {
-    ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false, // SSL options for PostgreSQL (if required)
+    ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false // SSL options for PostgreSQL (if required)
   };
 }
 

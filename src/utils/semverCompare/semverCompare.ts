@@ -13,7 +13,7 @@ const SEMVER_REGEX =
  */
 export function semverCompare(v1: string, v2: string): 1 | -1 | 0 {
   const [match1, match2] = [v1, v2].map((v) => v.match(SEMVER_REGEX));
-  
+
   if (!match1 || !match2) {
     throw new EngineError({
       message: 'Provided invalid SemVer string, cannot compare',
@@ -26,7 +26,9 @@ export function semverCompare(v1: string, v2: string): 1 | -1 | 0 {
     [, major2, minor2, patch2, preType2, preVersion2]
   ] = [match1, match2].map((group) =>
     // Parse numeric values
-    group.map((item) => (item && validator.isInt(item) ? parseInt(item, 10) : item))
+    group.map((item) =>
+      item && validator.isInt(item) ? parseInt(item, 10) : item
+    )
   );
 
   // Compare majors first

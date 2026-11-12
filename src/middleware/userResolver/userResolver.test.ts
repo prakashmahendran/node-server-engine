@@ -106,7 +106,7 @@ describe('Middleware - userResolver', () => {
       axiosRequestStub.resolves({ data: mockUser });
 
       expect(next).to.not.have.been.called;
-      
+
       await userResolver(req as Request, res as Response, next);
 
       expect(next).to.have.been.calledOnce;
@@ -154,7 +154,9 @@ describe('Middleware - userResolver', () => {
         await getUserById(123);
         expect.fail('Should have thrown error');
       } catch (error) {
-        expect((error as Error).message).to.include('USER_SERVICE_URL is not defined');
+        expect((error as Error).message).to.include(
+          'USER_SERVICE_URL is not defined'
+        );
       }
     });
 

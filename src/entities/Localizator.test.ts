@@ -11,7 +11,7 @@ describe('Localizator', () => {
   beforeEach(() => {
     originalEnv = process.env.LOCALES_BUCKET;
     process.env.LOCALES_BUCKET = 'test-locales-bucket';
-    
+
     storageGetStub = sinon.stub(GoogleCloudStorage, 'get');
     // Don't stub setInterval - let it run and we'll clear it in afterEach
   });
@@ -36,7 +36,8 @@ describe('Localizator', () => {
       const result = await Localizator.getLocaleFile('test.json');
 
       expect(result).to.deep.equal(mockData);
-      expect(storageGetStub.calledWith('test-locales-bucket', 'test.json')).to.be.true;
+      expect(storageGetStub.calledWith('test-locales-bucket', 'test.json')).to
+        .be.true;
     });
 
     it('should handle different file names', async () => {
@@ -46,7 +47,9 @@ describe('Localizator', () => {
 
       await Localizator.getLocaleFile('localeData.json');
 
-      expect(storageGetStub.calledWith('test-locales-bucket', 'localeData.json')).to.be.true;
+      expect(
+        storageGetStub.calledWith('test-locales-bucket', 'localeData.json')
+      ).to.be.true;
     });
 
     it('should handle UTF-8 content', async () => {
@@ -69,8 +72,11 @@ describe('Localizator', () => {
 
       await Localizator.synchronize();
 
-      expect(storageGetStub.calledWith('test-locales-bucket', 'localeData.json')).to.be.true;
-      expect(storageGetStub.calledWith('test-locales-bucket', 'scripts.json')).to.be.true;
+      expect(
+        storageGetStub.calledWith('test-locales-bucket', 'localeData.json')
+      ).to.be.true;
+      expect(storageGetStub.calledWith('test-locales-bucket', 'scripts.json'))
+        .to.be.true;
     });
 
     it('should handle storage errors gracefully', async () => {
@@ -117,19 +123,25 @@ describe('Localizator', () => {
 
   describe('guessNamingConvention', () => {
     it('should guess naming convention after initialization', async () => {
-      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
-        data: Buffer.from(JSON.stringify({
-          'en-US': { namingConvention: 'first-last' }
-        }))
-      });
+      storageGetStub
+        .withArgs('test-locales-bucket', 'localeData.json')
+        .resolves({
+          data: Buffer.from(
+            JSON.stringify({
+              'en-US': { namingConvention: 'first-last' }
+            })
+          )
+        });
       storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
-        data: Buffer.from(JSON.stringify({
-          latin: { ranges: [] }
-        }))
+        data: Buffer.from(
+          JSON.stringify({
+            latin: { ranges: [] }
+          })
+        )
       });
 
       await Localizator.synchronize();
-      
+
       const result = Localizator.guessNamingConvention('John', 'Doe', 'en-US');
       expect(result).to.exist;
     });
@@ -137,19 +149,25 @@ describe('Localizator', () => {
 
   describe('getDisplayNames', () => {
     it('should return display names with placeholders replaced', async () => {
-      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
-        data: Buffer.from(JSON.stringify({
-          'en-US': { namingConvention: 'first-last' }
-        }))
-      });
+      storageGetStub
+        .withArgs('test-locales-bucket', 'localeData.json')
+        .resolves({
+          data: Buffer.from(
+            JSON.stringify({
+              'en-US': { namingConvention: 'first-last' }
+            })
+          )
+        });
       storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
-        data: Buffer.from(JSON.stringify({
-          latin: { ranges: [] }
-        }))
+        data: Buffer.from(
+          JSON.stringify({
+            latin: { ranges: [] }
+          })
+        )
       });
 
       await Localizator.synchronize();
-      
+
       const result = Localizator.getDisplayNames('John', 'Doe', 'en-US');
       expect(result).to.exist;
     });
@@ -158,15 +176,17 @@ describe('Localizator', () => {
   describe('getLocaleData', () => {
     it('should return locale data after initialization', async () => {
       const mockLocaleData = { 'en-US': { namingConvention: 'first-last' } };
-      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
-        data: Buffer.from(JSON.stringify(mockLocaleData))
-      });
+      storageGetStub
+        .withArgs('test-locales-bucket', 'localeData.json')
+        .resolves({
+          data: Buffer.from(JSON.stringify(mockLocaleData))
+        });
       storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
         data: Buffer.from(JSON.stringify({ latin: { ranges: [] } }))
       });
 
       await Localizator.synchronize();
-      
+
       const result = Localizator.getLocaleData('en-US');
       expect(result).to.deep.equal(mockLocaleData['en-US']);
     });
@@ -174,28 +194,32 @@ describe('Localizator', () => {
 
   describe('isValidLocale', () => {
     it('should return true for valid locale', async () => {
-      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
-        data: Buffer.from(JSON.stringify({ 'en-US': {} }))
-      });
+      storageGetStub
+        .withArgs('test-locales-bucket', 'localeData.json')
+        .resolves({
+          data: Buffer.from(JSON.stringify({ 'en-US': {} }))
+        });
       storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
         data: Buffer.from(JSON.stringify({ latin: { ranges: [] } }))
       });
 
       await Localizator.synchronize();
-      
+
       expect(Localizator.isValidLocale('en-US')).to.be.true;
     });
 
     it('should return false for invalid locale', async () => {
-      storageGetStub.withArgs('test-locales-bucket', 'localeData.json').resolves({
-        data: Buffer.from(JSON.stringify({ 'en-US': {} }))
-      });
+      storageGetStub
+        .withArgs('test-locales-bucket', 'localeData.json')
+        .resolves({
+          data: Buffer.from(JSON.stringify({ 'en-US': {} }))
+        });
       storageGetStub.withArgs('test-locales-bucket', 'scripts.json').resolves({
         data: Buffer.from(JSON.stringify({ latin: { ranges: [] } }))
       });
 
       await Localizator.synchronize();
-      
+
       expect(Localizator.isValidLocale('invalid-locale')).to.be.false;
     });
   });

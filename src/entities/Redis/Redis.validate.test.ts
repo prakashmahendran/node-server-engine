@@ -31,6 +31,10 @@ describe('Entity - Redis.validate', () => {
   });
 
   it('should pass when host and port are provided via options', () => {
-    expect(() => validateRedisEnvironment({ redis: { host: '127.0.0.1', port: 6380 } } as any)).to.not.throw();
+    expect(() =>
+      validateRedisEnvironment({
+        redis: { host: '127.0.0.1', port: 6380 }
+      } as any)
+    ).to.not.throw();
   });
 });

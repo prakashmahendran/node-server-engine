@@ -9,5 +9,5 @@ export const serviceRegistry = new Registry();
 // Collect default Node.js process metrics (includes process_start_time_seconds)
 collectDefaultMetrics({
   register: instanceRegistry,
-  prefix: '',
+  prefix: ''
 });

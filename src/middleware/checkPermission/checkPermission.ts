@@ -16,7 +16,9 @@ function checkPermission(requiredActions: string | string[]) {
       : [requiredActions];
 
     // Normalize required actions to lowercase
-    const requiredActionsLower = requiredActionsArray.map(action => action.toLowerCase());
+    const requiredActionsLower = requiredActionsArray.map((action) =>
+      action.toLowerCase()
+    );
 
     // Check if the user has any of the required permissions (case-insensitive)
     const hasPermission = user.permissions.some((permission: string) =>

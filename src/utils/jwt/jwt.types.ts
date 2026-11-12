@@ -1,4 +1,3 @@
-
 /** Content of the payload of user authentication tokens */
 export interface UserTokenPayload {
   /** ID of the user */

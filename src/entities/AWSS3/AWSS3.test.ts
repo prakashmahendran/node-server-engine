@@ -219,7 +219,10 @@ describe('AWSS3', function () {
         ETag: '"test-etag"'
       });
 
-      const result = await AWSS3.upload(readStream, testBucket, { fileName, directory });
+      const result = await AWSS3.upload(readStream, testBucket, {
+        fileName,
+        directory
+      });
 
       expect(sendStub.calledOnce).to.be.true;
       expect(result.Key).to.equal(`${directory}/${fileName}`);

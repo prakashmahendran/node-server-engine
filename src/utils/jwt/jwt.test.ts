@@ -31,7 +31,7 @@ describe('Utils - JWT', () => {
     const token = generateAccessToken(id, {
       issuer: 'wrong-issuer'
     });
-    
+
     try {
       await jwtVerify(token);
       expect.fail('Should have rejected token with wrong issuer');
@@ -46,7 +46,7 @@ describe('Utils - JWT', () => {
     const token = generateAccessToken(id, {
       audience: ['wrong-audience']
     });
-    
+
     try {
       await jwtVerify(token);
       expect.fail('Should have rejected token with wrong audience');
@@ -61,7 +61,7 @@ describe('Utils - JWT', () => {
     const token = generateAccessToken(id, {
       expiresIn: -1 // Already expired
     });
-    
+
     try {
       await jwtVerify(token);
       expect.fail('Should have rejected expired token');
@@ -79,7 +79,7 @@ describe('Utils - JWT', () => {
   it('should throw error for invalid token issuer', async () => {
     const id = randomUUID();
     const token = generateAccessToken(id);
-    
+
     try {
       await jwtVerify(token, 'invalid-issuer' as any);
       expect.fail('Should have thrown error for invalid issuer');
@@ -97,11 +97,11 @@ describe('Utils - JWT', () => {
   it('should throw error when ECDSA_PUBLIC_KEY missing for auth-service', async () => {
     const originalChart = process.env.CHART;
     const originalPublicKey = process.env.ECDSA_PUBLIC_KEY;
-    
+
     try {
       process.env.CHART = 'auth-service';
       delete process.env.ECDSA_PUBLIC_KEY;
-      
+
       await initKeySets();
       expect.fail('Should have thrown error for missing ECDSA_PUBLIC_KEY');
     } catch (error: any) {

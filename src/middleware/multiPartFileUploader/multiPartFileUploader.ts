@@ -66,7 +66,9 @@ export function multiPartFileUploader(
         limits: { fileSize: chunkSizeLimit, files: 1 }
       }).single('file');
       uploadSingle(req, res, async (err) => {
-        if ((err as { code?: string } | undefined)?.code === 'LIMIT_FILE_SIZE') {
+        if (
+          (err as { code?: string } | undefined)?.code === 'LIMIT_FILE_SIZE'
+        ) {
           return next(
             new WebError({
               statusCode: 413,
@@ -289,9 +291,13 @@ async function mergeChunks(
       chunks.push(chunkData);
     } catch (error) {
       // Cleanup on error
-      await fs.remove(sessionFolder).catch((cleanupErr: Error) =>
-        reportError(`Error cleaning up folder ${sessionFolder}: ${cleanupErr.message}`)
-      );
+      await fs
+        .remove(sessionFolder)
+        .catch((cleanupErr: Error) =>
+          reportError(
+            `Error cleaning up folder ${sessionFolder}: ${cleanupErr.message}`
+          )
+        );
       throw new WebError({
         statusCode: 500,
         errorCode: 'chunk-read-failed',
@@ -330,7 +336,9 @@ async function mergeChunks(
     writeStream.on('error', (error) => {
       // Cleanup on write error
       fs.remove(sessionFolder).catch((cleanupErr: Error) =>
-        reportError(`Error cleaning up folder after write error: ${cleanupErr.message}`)
+        reportError(
+          `Error cleaning up folder after write error: ${cleanupErr.message}`
+        )
       );
       reject(
         new WebError({

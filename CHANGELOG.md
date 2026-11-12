@@ -2,326 +2,326 @@
 
 ### 🐛 Bug Fixes
 
-* **migrations:** detect the metadata table per dialect ([b0709b1](https://github.com/prakashmahendran/node-server-engine/commit/b0709b169e80997fa1f16959cb5610459aad264f))
-* **migrations:** find compiled migrations when NODE_ENV=production ([2e8fd08](https://github.com/prakashmahendran/node-server-engine/commit/2e8fd08184d84045fc2767ef3fba7b9ae43c64a8))
+- **migrations:** detect the metadata table per dialect ([b0709b1](https://github.com/prakashmahendran/node-server-engine/commit/b0709b169e80997fa1f16959cb5610459aad264f))
+- **migrations:** find compiled migrations when NODE_ENV=production ([2e8fd08](https://github.com/prakashmahendran/node-server-engine/commit/2e8fd08184d84045fc2767ef3fba7b9ae43c64a8))
 
 ## [2.0.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.14.1...v2.0.0) (2026-11-12)
 
 ### ⚠ BREAKING CHANGES
 
-* Node.js >= 22 is required (Node 20 is end of life).
-mime-types 3 maps image/jpeg to the .jpg extension for generated file
-names. PubSub ackDeadline is applied as min/max ack deadline.
+- Node.js >= 22 is required (Node 20 is end of life).
+  mime-types 3 maps image/jpeg to the .jpg extension for generated file
+  names. PubSub ackDeadline is applied as min/max ack deadline.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ### ✨ Features
 
-* update dependencies and require Node.js 22 ([541087a](https://github.com/prakashmahendran/node-server-engine/commit/541087a41bdc972978aa70c2a0f38570405c5668))
+- update dependencies and require Node.js 22 ([541087a](https://github.com/prakashmahendran/node-server-engine/commit/541087a41bdc972978aa70c2a0f38570405c5668))
 
 ### 🐛 Bug Fixes
 
-* **ci:** use changelog preset compatible with semantic-release ([1f8d546](https://github.com/prakashmahendran/node-server-engine/commit/1f8d546dfde0ec6270e4150032e36e1ff529b91f))
-* **security:** harden uploads, auth and logging ([90742a3](https://github.com/prakashmahendran/node-server-engine/commit/90742a3a4eee53241aabf9bf9039a8375b11393b))
+- **ci:** use changelog preset compatible with semantic-release ([1f8d546](https://github.com/prakashmahendran/node-server-engine/commit/1f8d546dfde0ec6270e4150032e36e1ff529b91f))
+- **security:** harden uploads, auth and logging ([90742a3](https://github.com/prakashmahendran/node-server-engine/commit/90742a3a4eee53241aabf9bf9039a8375b11393b))
 
 ### 📚 Documentation
 
-* add CLAUDE.md with architecture and conventions ([5e2aa03](https://github.com/prakashmahendran/node-server-engine/commit/5e2aa030a64d281bd33c3c956d7bfee384743f49))
+- add CLAUDE.md with architecture and conventions ([5e2aa03](https://github.com/prakashmahendran/node-server-engine/commit/5e2aa030a64d281bd33c3c956d7bfee384743f49))
 
 ### ✅ Tests
 
-* use local test helpers instead of backend-test-tools ([fcb529d](https://github.com/prakashmahendran/node-server-engine/commit/fcb529d3cb91478240e4fb4aad699bd630fc57a9))
+- use local test helpers instead of backend-test-tools ([fcb529d](https://github.com/prakashmahendran/node-server-engine/commit/fcb529d3cb91478240e4fb4aad699bd630fc57a9))
 
 ## [1.14.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.14.0...v1.14.1) (2026-11-07)
 
 ### 🐛 Bug Fixes
 
-* Update test ([1ff765d](https://github.com/prakashmahendran/node-server-engine/commit/1ff765d0526b655241c5a5c0dcb11fa394f06f35))
+- Update test ([1ff765d](https://github.com/prakashmahendran/node-server-engine/commit/1ff765d0526b655241c5a5c0dcb11fa394f06f35))
 
 ## [1.14.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.13.0...v1.14.0) (2026-03-29)
 
 ### ✨ Features
 
-* add SQLite support for local offline development ([0b585ff](https://github.com/prakashmahendran/node-server-engine/commit/0b585ff360c65730f05349598ecee7ad11d17515))
+- add SQLite support for local offline development ([0b585ff](https://github.com/prakashmahendran/node-server-engine/commit/0b585ff360c65730f05349598ecee7ad11d17515))
 
 ## [1.13.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.4...v1.13.0) (2026-03-26)
 
 ### ✨ Features
 
-* enhance PubSub service with retry logic and project ID handling ([96c3569](https://github.com/prakashmahendran/node-server-engine/commit/96c3569972af8f6fb7e6017ca24cb40a3abeef65))
+- enhance PubSub service with retry logic and project ID handling ([96c3569](https://github.com/prakashmahendran/node-server-engine/commit/96c3569972af8f6fb7e6017ca24cb40a3abeef65))
 
 ### 🐛 Bug Fixes
 
-* enhance PubSub tests to validate error handling ([d943de9](https://github.com/prakashmahendran/node-server-engine/commit/d943de91491903ef0ba998f898eec5434fe1dcca))
+- enhance PubSub tests to validate error handling ([d943de9](https://github.com/prakashmahendran/node-server-engine/commit/d943de91491903ef0ba998f898eec5434fe1dcca))
 
 ## [1.12.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.3...v1.12.4) (2026-03-26)
 
 ### 🐛 Bug Fixes
 
-* enhance PubSub tests and service behavior ([4034f82](https://github.com/prakashmahendran/node-server-engine/commit/4034f8230cb7a55159e5e3a7f361fa34513c097b))
+- enhance PubSub tests and service behavior ([4034f82](https://github.com/prakashmahendran/node-server-engine/commit/4034f8230cb7a55159e5e3a7f361fa34513c097b))
 
 ## [1.12.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.2...v1.12.3) (2026-03-26)
 
 ### 🐛 Bug Fixes
 
-* update pub sub ([0f0c956](https://github.com/prakashmahendran/node-server-engine/commit/0f0c9563c60ddffa38301bd7f29d489115b30aff))
-* update the testing package ([af92004](https://github.com/prakashmahendran/node-server-engine/commit/af92004212167dfc665e6e8c6d1bb8b17696acdf))
+- update pub sub ([0f0c956](https://github.com/prakashmahendran/node-server-engine/commit/0f0c9563c60ddffa38301bd7f29d489115b30aff))
+- update the testing package ([af92004](https://github.com/prakashmahendran/node-server-engine/commit/af92004212167dfc665e6e8c6d1bb8b17696acdf))
 
 ## [1.12.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.1...v1.12.2) (2026-03-23)
 
 ### 🐛 Bug Fixes
 
-* simplify PubSub tests by mocking Google Cloud PubSub ([b0a00d2](https://github.com/prakashmahendran/node-server-engine/commit/b0a00d2be8cbc0498370f38615fd00151ad99d02))
-* simplify PubSub tests by mocking Google Cloud PubSub ([6fe55f7](https://github.com/prakashmahendran/node-server-engine/commit/6fe55f71ab7f1c1c2a4067513a43ebf382a094a5))
+- simplify PubSub tests by mocking Google Cloud PubSub ([b0a00d2](https://github.com/prakashmahendran/node-server-engine/commit/b0a00d2be8cbc0498370f38615fd00151ad99d02))
+- simplify PubSub tests by mocking Google Cloud PubSub ([6fe55f7](https://github.com/prakashmahendran/node-server-engine/commit/6fe55f71ab7f1c1c2a4067513a43ebf382a094a5))
 
 ### ♻️ Code Refactoring
 
-* enhance PubSub service with retry logic and safer defaults ([9c452be](https://github.com/prakashmahendran/node-server-engine/commit/9c452bea2b6d5c6b0804e449dcfabd1fd17c538b))
-* enhance PubSub service with retry logic and safer defaults  ([90a2925](https://github.com/prakashmahendran/node-server-engine/commit/90a29258032d5ed96c86c971c6f56c5940229ed3))
+- enhance PubSub service with retry logic and safer defaults ([9c452be](https://github.com/prakashmahendran/node-server-engine/commit/9c452bea2b6d5c6b0804e449dcfabd1fd17c538b))
+- enhance PubSub service with retry logic and safer defaults ([90a2925](https://github.com/prakashmahendran/node-server-engine/commit/90a29258032d5ed96c86c971c6f56c5940229ed3))
 
 ## [1.12.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.12.0...v1.12.1) (2026-02-02)
 
 ### 🐛 Bug Fixes
 
-* correct OTP value in test verification for 'test@review.com' ([d4c75f0](https://github.com/prakashmahendran/node-server-engine/commit/d4c75f049b07e25f1bd33c3c20832303e5e44660))
-* enhance CORS configuration and add test verification functionality ([09adb6b](https://github.com/prakashmahendran/node-server-engine/commit/09adb6be22d584931999c6006add8a8d9ad9603d))
-* enhance CORS configuration and add test verification functionality ([62e46d5](https://github.com/prakashmahendran/node-server-engine/commit/62e46d5ba5a065e437a8938016c9d3e37eb8dcc8))
-* test@review.com credientials for verificaitiontoken utils ([564c280](https://github.com/prakashmahendran/node-server-engine/commit/564c280cb567f899a20a5b3ee8739c39751c6e30))
+- correct OTP value in test verification for 'test@review.com' ([d4c75f0](https://github.com/prakashmahendran/node-server-engine/commit/d4c75f049b07e25f1bd33c3c20832303e5e44660))
+- enhance CORS configuration and add test verification functionality ([09adb6b](https://github.com/prakashmahendran/node-server-engine/commit/09adb6be22d584931999c6006add8a8d9ad9603d))
+- enhance CORS configuration and add test verification functionality ([62e46d5](https://github.com/prakashmahendran/node-server-engine/commit/62e46d5ba5a065e437a8938016c9d3e37eb8dcc8))
+- test@review.com credientials for verificaitiontoken utils ([564c280](https://github.com/prakashmahendran/node-server-engine/commit/564c280cb567f899a20a5b3ee8739c39751c6e30))
 
 ## [1.12.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.2...v1.12.0) (2026-02-02)
 
 ### ✨ Features
 
-* add verification token middleware and utility functions ([2d6137c](https://github.com/prakashmahendran/node-server-engine/commit/2d6137c46d420bbce9a9a9fbd4ca81e3208d250b))
-* add verification token middleware and utility functions ([b6b5527](https://github.com/prakashmahendran/node-server-engine/commit/b6b55271fe4e75ffddfdd02a022fb664dd785375))
+- add verification token middleware and utility functions ([2d6137c](https://github.com/prakashmahendran/node-server-engine/commit/2d6137c46d420bbce9a9a9fbd4ca81e3208d250b))
+- add verification token middleware and utility functions ([b6b5527](https://github.com/prakashmahendran/node-server-engine/commit/b6b55271fe4e75ffddfdd02a022fb664dd785375))
 
 ## [1.11.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.1...v1.11.2) (2026-01-29)
 
 ### 🐛 Bug Fixes
 
-* add PATCH method to CORS configuration ([3155551](https://github.com/prakashmahendran/node-server-engine/commit/31555518533bf32d54a68fdf0a79a8d82935ef05))
-* add PATCH method to CORS configuration ([4841e9f](https://github.com/prakashmahendran/node-server-engine/commit/4841e9fa0b5a74a722636978e2e9059b7d4d4deb))
+- add PATCH method to CORS configuration ([3155551](https://github.com/prakashmahendran/node-server-engine/commit/31555518533bf32d54a68fdf0a79a8d82935ef05))
+- add PATCH method to CORS configuration ([4841e9f](https://github.com/prakashmahendran/node-server-engine/commit/4841e9fa0b5a74a722636978e2e9059b7d4d4deb))
 
 ## [1.11.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.11.0...v1.11.1) (2026-01-25)
 
 ### 🐛 Bug Fixes
 
-* jwks path ([c5c4a4a](https://github.com/prakashmahendran/node-server-engine/commit/c5c4a4a04f4d626493e0968315f622159715433c))
+- jwks path ([c5c4a4a](https://github.com/prakashmahendran/node-server-engine/commit/c5c4a4a04f4d626493e0968315f622159715433c))
 
 ## [1.11.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.15...v1.11.0) (2026-01-25)
 
 ### ✨ Features
 
-* fix build issue ([a2106f9](https://github.com/prakashmahendran/node-server-engine/commit/a2106f935f679d19bceac670a10da0712df39a73))
-* implement secret manager ([b225aa0](https://github.com/prakashmahendran/node-server-engine/commit/b225aa059de9583d1e57de6e894786e0d5c743e6))
-* secret manager unit test fix ([36cc4a1](https://github.com/prakashmahendran/node-server-engine/commit/36cc4a14ba0306dbfda921521afd84c644a81561))
+- fix build issue ([a2106f9](https://github.com/prakashmahendran/node-server-engine/commit/a2106f935f679d19bceac670a10da0712df39a73))
+- implement secret manager ([b225aa0](https://github.com/prakashmahendran/node-server-engine/commit/b225aa059de9583d1e57de6e894786e0d5c743e6))
+- secret manager unit test fix ([36cc4a1](https://github.com/prakashmahendran/node-server-engine/commit/36cc4a14ba0306dbfda921521afd84c644a81561))
 
 ### 🐛 Bug Fixes
 
-* remove secret engine ([59eec40](https://github.com/prakashmahendran/node-server-engine/commit/59eec40c8c56496178814943f9bc04da8c49fa6b))
+- remove secret engine ([59eec40](https://github.com/prakashmahendran/node-server-engine/commit/59eec40c8c56496178814943f9bc04da8c49fa6b))
 
 ## [1.10.15](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.14...v1.10.15) (2026-01-22)
 
 ### 🐛 Bug Fixes
 
-* email server ([ed49546](https://github.com/prakashmahendran/node-server-engine/commit/ed4954617204a1f9c2bea8001568f61dc734f2fa))
+- email server ([ed49546](https://github.com/prakashmahendran/node-server-engine/commit/ed4954617204a1f9c2bea8001568f61dc734f2fa))
 
 ## [1.10.14](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.13...v1.10.14) (2026-01-19)
 
 ### 🐛 Bug Fixes
 
-* update package ([55011eb](https://github.com/prakashmahendran/node-server-engine/commit/55011ebbc3de066f6cd838910b826422d76d44b5))
+- update package ([55011eb](https://github.com/prakashmahendran/node-server-engine/commit/55011ebbc3de066f6cd838910b826422d76d44b5))
 
 ## [1.10.13](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.12...v1.10.13) (2026-01-04)
 
 ### 🐛 Bug Fixes
 
-* pubsub issues ([228471c](https://github.com/prakashmahendran/node-server-engine/commit/228471c14ea873ed6c1eee7cb9d55c15de84e276))
+- pubsub issues ([228471c](https://github.com/prakashmahendran/node-server-engine/commit/228471c14ea873ed6c1eee7cb9d55c15de84e276))
 
 ## [1.10.12](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.11...v1.10.12) (2025-12-29)
 
 ### 🐛 Bug Fixes
 
-* update the metrics time ([ff744bc](https://github.com/prakashmahendran/node-server-engine/commit/ff744bc23f681de437c00c7130b85cab171526cd))
+- update the metrics time ([ff744bc](https://github.com/prakashmahendran/node-server-engine/commit/ff744bc23f681de437c00c7130b85cab171526cd))
 
 ## [1.10.11](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.10...v1.10.11) (2025-12-26)
 
 ### 🐛 Bug Fixes
 
-* add metrics in the server engine ([0758026](https://github.com/prakashmahendran/node-server-engine/commit/07580269e16cd363df19b5b19a98639da9657848))
+- add metrics in the server engine ([0758026](https://github.com/prakashmahendran/node-server-engine/commit/07580269e16cd363df19b5b19a98639da9657848))
 
 ## [1.10.10](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.9...v1.10.10) (2025-12-24)
 
 ### 🐛 Bug Fixes
 
-* Multipart upload ([f7a2e7e](https://github.com/prakashmahendran/node-server-engine/commit/f7a2e7e77a928592b4ba81fcd4337bb8f3bde78d))
+- Multipart upload ([f7a2e7e](https://github.com/prakashmahendran/node-server-engine/commit/f7a2e7e77a928592b4ba81fcd4337bb8f3bde78d))
 
 ## [1.10.9](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.8...v1.10.9) (2025-12-24)
 
 ### 🐛 Bug Fixes
 
-* package json ([a5ceb78](https://github.com/prakashmahendran/node-server-engine/commit/a5ceb78b41b47b4b28f9da54a718cfbc1468f981))
+- package json ([a5ceb78](https://github.com/prakashmahendran/node-server-engine/commit/a5ceb78b41b47b4b28f9da54a718cfbc1468f981))
 
 ## [1.10.8](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.7...v1.10.8) (2025-12-24)
 
 ### 🐛 Bug Fixes
 
-* package version ([9f6ed34](https://github.com/prakashmahendran/node-server-engine/commit/9f6ed342abb45a07ad725fa869b2307010121a4a))
+- package version ([9f6ed34](https://github.com/prakashmahendran/node-server-engine/commit/9f6ed342abb45a07ad725fa869b2307010121a4a))
 
 ## [1.10.7](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.6...v1.10.7) (2025-12-24)
 
 ### 🐛 Bug Fixes
 
-* fileupload size limit ([f1b7726](https://github.com/prakashmahendran/node-server-engine/commit/f1b77266199b1d1a743b2bc64c1739e6e6f5bd1e))
+- fileupload size limit ([f1b7726](https://github.com/prakashmahendran/node-server-engine/commit/f1b77266199b1d1a743b2bc64c1739e6e6f5bd1e))
 
 ## [1.10.6](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.5...v1.10.6) (2025-12-22)
 
 ### 🐛 Bug Fixes
 
-* Sequlize package ([c04ddb6](https://github.com/prakashmahendran/node-server-engine/commit/c04ddb60890790bbfec5ac861624cae69dff30b6))
+- Sequlize package ([c04ddb6](https://github.com/prakashmahendran/node-server-engine/commit/c04ddb60890790bbfec5ac861624cae69dff30b6))
 
 ## [1.10.5](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.4...v1.10.5) (2025-12-22)
 
 ### 🐛 Bug Fixes
 
-* sequlize issue ([60a0202](https://github.com/prakashmahendran/node-server-engine/commit/60a0202821548ea3cb83c35727d6f918f9c63584))
+- sequlize issue ([60a0202](https://github.com/prakashmahendran/node-server-engine/commit/60a0202821548ea3cb83c35727d6f918f9c63584))
 
 ## [1.10.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.3...v1.10.4) (2025-12-22)
 
 ### 🐛 Bug Fixes
 
-* update logs to sequlize ([6c9869b](https://github.com/prakashmahendran/node-server-engine/commit/6c9869bb1a2d8f80d9af7c30afd933963b81ee7c))
+- update logs to sequlize ([6c9869b](https://github.com/prakashmahendran/node-server-engine/commit/6c9869bb1a2d8f80d9af7c30afd933963b81ee7c))
 
 ## [1.10.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.2...v1.10.3) (2025-12-22)
 
 ### 🐛 Bug Fixes
 
-* update package json ([e72ed79](https://github.com/prakashmahendran/node-server-engine/commit/e72ed79e8f1f3c95f8d00cade71d2b5e811de410))
+- update package json ([e72ed79](https://github.com/prakashmahendran/node-server-engine/commit/e72ed79e8f1f3c95f8d00cade71d2b5e811de410))
 
 ## [1.10.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.1...v1.10.2) (2025-12-22)
 
 ### 🐛 Bug Fixes
 
-* migration script issue ([9b964f5](https://github.com/prakashmahendran/node-server-engine/commit/9b964f51f3ecddd1ff0871dd40be333f5c471358))
+- migration script issue ([9b964f5](https://github.com/prakashmahendran/node-server-engine/commit/9b964f51f3ecddd1ff0871dd40be333f5c471358))
 
 ## [1.10.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.10.0...v1.10.1) (2025-12-10)
 
 ### 🐛 Bug Fixes
 
-* lint issues ([b821efd](https://github.com/prakashmahendran/node-server-engine/commit/b821efd91c2384ddbdc50e21b4eabb4e733c08b0))
+- lint issues ([b821efd](https://github.com/prakashmahendran/node-server-engine/commit/b821efd91c2384ddbdc50e21b4eabb4e733c08b0))
 
 ## [1.10.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.9.0...v1.10.0) (2025-12-10)
 
 ### ✨ Features
 
-* unit test coverage ([2dd1971](https://github.com/prakashmahendran/node-server-engine/commit/2dd1971eda021e06c452ebfd3b3b452997548741))
+- unit test coverage ([2dd1971](https://github.com/prakashmahendran/node-server-engine/commit/2dd1971eda021e06c452ebfd3b3b452997548741))
 
 ### 🐛 Bug Fixes
 
-* rebuild sqllite3 ([421cf5a](https://github.com/prakashmahendran/node-server-engine/commit/421cf5a36c6d71dcbe2a107b2b127cd718cd79e2))
-* unit test coverage ([ae37665](https://github.com/prakashmahendran/node-server-engine/commit/ae3766574a7d4be28d83869ece255976bdb6c94d))
-* unit test fix ([b25e68b](https://github.com/prakashmahendran/node-server-engine/commit/b25e68b7f397528d30c9a4adcf9ba483f7d89373))
+- rebuild sqllite3 ([421cf5a](https://github.com/prakashmahendran/node-server-engine/commit/421cf5a36c6d71dcbe2a107b2b127cd718cd79e2))
+- unit test coverage ([ae37665](https://github.com/prakashmahendran/node-server-engine/commit/ae3766574a7d4be28d83869ece255976bdb6c94d))
+- unit test fix ([b25e68b](https://github.com/prakashmahendran/node-server-engine/commit/b25e68b7f397528d30c9a4adcf9ba483f7d89373))
 
 ## [1.9.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.8.0...v1.9.0) (2025-12-10)
 
 ### ✨ Features
 
-* add s3 and unit test for storage ([e650bcd](https://github.com/prakashmahendran/node-server-engine/commit/e650bcddec69e4d51714455b9ac5ef23be8cac65))
+- add s3 and unit test for storage ([e650bcd](https://github.com/prakashmahendran/node-server-engine/commit/e650bcddec69e4d51714455b9ac5ef23be8cac65))
 
 ### 🐛 Bug Fixes
 
-* unit test ([808a094](https://github.com/prakashmahendran/node-server-engine/commit/808a0943b3394ae1f0e70e61c3452511e4064a0b))
-* unit test ([68fb500](https://github.com/prakashmahendran/node-server-engine/commit/68fb5003e5abb6748810ed670c8e354d9c19444a))
+- unit test ([808a094](https://github.com/prakashmahendran/node-server-engine/commit/808a0943b3394ae1f0e70e61c3452511e4064a0b))
+- unit test ([68fb500](https://github.com/prakashmahendran/node-server-engine/commit/68fb5003e5abb6748810ed670c8e354d9c19444a))
 
 ## [1.8.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.4...v1.8.0) (2025-12-10)
 
 ### ✨ Features
 
-* update Redis implementation with modern features ([d68e0e4](https://github.com/prakashmahendran/node-server-engine/commit/d68e0e473c7d33c4edc508ae718026866119b13a))
+- update Redis implementation with modern features ([d68e0e4](https://github.com/prakashmahendran/node-server-engine/commit/d68e0e473c7d33c4edc508ae718026866119b13a))
 
 ### 🐛 Bug Fixes
 
-* cover utils test ([ff63fa5](https://github.com/prakashmahendran/node-server-engine/commit/ff63fa548f9c71b6958812a279622eea8f4e8779))
+- cover utils test ([ff63fa5](https://github.com/prakashmahendran/node-server-engine/commit/ff63fa548f9c71b6958812a279622eea8f4e8779))
 
 ## [1.7.4](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.3...v1.7.4) (2025-12-10)
 
 ### 🐛 Bug Fixes
 
-* unit test ([a0ade0d](https://github.com/prakashmahendran/node-server-engine/commit/a0ade0d7785d5821d9b745287ff64cac7d194294))
+- unit test ([a0ade0d](https://github.com/prakashmahendran/node-server-engine/commit/a0ade0d7785d5821d9b745287ff64cac7d194294))
 
 ## [1.7.3](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.2...v1.7.3) (2025-12-09)
 
 ### 🐛 Bug Fixes
 
-* unit testing ([ee4100e](https://github.com/prakashmahendran/node-server-engine/commit/ee4100ea5eb21099f4bbebb785c812ecfd564899))
+- unit testing ([ee4100e](https://github.com/prakashmahendran/node-server-engine/commit/ee4100ea5eb21099f4bbebb785c812ecfd564899))
 
 ## [1.7.2](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.1...v1.7.2) (2025-12-09)
 
 ### 🐛 Bug Fixes
 
-* remove unused packages ([caa872d](https://github.com/prakashmahendran/node-server-engine/commit/caa872dd91ad726f30635028ad4b6949b290c48b))
+- remove unused packages ([caa872d](https://github.com/prakashmahendran/node-server-engine/commit/caa872dd91ad726f30635028ad4b6949b290c48b))
 
 ## [1.7.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.7.0...v1.7.1) (2025-12-09)
 
 ### 🐛 Bug Fixes
 
-* add catch error logs ([8f9f6d7](https://github.com/prakashmahendran/node-server-engine/commit/8f9f6d762384c5af24b1c8f521bb1b8f9fefc8d5))
+- add catch error logs ([8f9f6d7](https://github.com/prakashmahendran/node-server-engine/commit/8f9f6d762384c5af24b1c8f521bb1b8f9fefc8d5))
 
 ## [1.7.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.6.0...v1.7.0) (2025-12-09)
 
 ### ✨ Features
 
-* fix logging ([3ce6196](https://github.com/prakashmahendran/node-server-engine/commit/3ce61961441db2637c1a33605a3102d7f15252b7))
+- fix logging ([3ce6196](https://github.com/prakashmahendran/node-server-engine/commit/3ce61961441db2637c1a33605a3102d7f15252b7))
 
 ## [1.6.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.5.1...v1.6.0) (2025-12-09)
 
 ### ✨ Features
 
-* add human-readable log formatting for local development ([4a21133](https://github.com/prakashmahendran/node-server-engine/commit/4a2113332434c1349ce3da2950356c2e69a43066))
+- add human-readable log formatting for local development ([4a21133](https://github.com/prakashmahendran/node-server-engine/commit/4a2113332434c1349ce3da2950356c2e69a43066))
 
 ## [1.5.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.5.0...v1.5.1) (2025-12-09)
 
 ### ♻️ Code Refactoring
 
-* modernize codebase with latest JavaScript/TypeScript patterns ([7cebb71](https://github.com/prakashmahendran/node-server-engine/commit/7cebb7148b957cfdded14a121baaf655027adb9b))
+- modernize codebase with latest JavaScript/TypeScript patterns ([7cebb71](https://github.com/prakashmahendran/node-server-engine/commit/7cebb7148b957cfdded14a121baaf655027adb9b))
 
 ## [1.5.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.4.9...v1.5.0) (2025-12-09)
 
 ### ✨ Features
 
-* update sequlize ([c7d173f](https://github.com/prakashmahendran/node-server-engine/commit/c7d173f843c0119f8646386b68cfd2cd0463eac8))
+- update sequlize ([c7d173f](https://github.com/prakashmahendran/node-server-engine/commit/c7d173f843c0119f8646386b68cfd2cd0463eac8))
 
 ## [1.1.1](https://github.com/prakashmahendran/node-server-engine/compare/v1.1.0...v1.1.1) (2025-12-09)
 
 ### 🐛 Bug Fixes
 
-* add npmignore file to explicitly control published files ([93cf89b](https://github.com/prakashmahendran/node-server-engine/commit/93cf89b45f4a456b7c364a6ed9a3cc8eb75dcff0))
+- add npmignore file to explicitly control published files ([93cf89b](https://github.com/prakashmahendran/node-server-engine/commit/93cf89b45f4a456b7c364a6ed9a3cc8eb75dcff0))
 
 ## [1.1.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.0.0...v1.1.0) (2025-12-09)
 
 ### ✨ Features
 
-* update documentation ([d62f8e9](https://github.com/prakashmahendran/node-server-engine/commit/d62f8e987142a8e3554164051bb6a6e739b77f8c))
+- update documentation ([d62f8e9](https://github.com/prakashmahendran/node-server-engine/commit/d62f8e987142a8e3554164051bb6a6e739b77f8c))
 
 ## 1.0.0 (2025-12-09)
 
 ### ✨ Features
 
-* backend tools update ([c5c68ca](https://github.com/prakashmahendran/node-server-engine/commit/c5c68ca7aea644a6cbe789fe7c803445f5094bd6))
-* modernization ([0163026](https://github.com/prakashmahendran/node-server-engine/commit/01630260ed084858c7318bf11d9bb739b9ef889f))
-* mordenization ([c753a60](https://github.com/prakashmahendran/node-server-engine/commit/c753a60bb1a12256070a1e11e282c7b7f77462ea))
-* mordenization ([c87348f](https://github.com/prakashmahendran/node-server-engine/commit/c87348f363e41df1f3503c52642dd2acfb969fa6))
-* mordenzation ([b84fbd2](https://github.com/prakashmahendran/node-server-engine/commit/b84fbd2ed52aeb7f684d16bf54dca8bb18828c01))
-* update pacakges ([8c1e625](https://github.com/prakashmahendran/node-server-engine/commit/8c1e625cc7d4cb92724e273b4529cd72554a2424))
+- backend tools update ([c5c68ca](https://github.com/prakashmahendran/node-server-engine/commit/c5c68ca7aea644a6cbe789fe7c803445f5094bd6))
+- modernization ([0163026](https://github.com/prakashmahendran/node-server-engine/commit/01630260ed084858c7318bf11d9bb739b9ef889f))
+- mordenization ([c753a60](https://github.com/prakashmahendran/node-server-engine/commit/c753a60bb1a12256070a1e11e282c7b7f77462ea))
+- mordenization ([c87348f](https://github.com/prakashmahendran/node-server-engine/commit/c87348f363e41df1f3503c52642dd2acfb969fa6))
+- mordenzation ([b84fbd2](https://github.com/prakashmahendran/node-server-engine/commit/b84fbd2ed52aeb7f684d16bf54dca8bb18828c01))
+- update pacakges ([8c1e625](https://github.com/prakashmahendran/node-server-engine/commit/8c1e625cc7d4cb92724e273b4529cd72554a2424))
 
 ### 🐛 Bug Fixes
 
-* revert to unscoped package name node-server-engine ([a739078](https://github.com/prakashmahendran/node-server-engine/commit/a73907884ca13eed6c9eed2fed450303b5c68d6b))
-* update package name to scoped @prakashmahendran/node-server-engine with public access ([d178dcd](https://github.com/prakashmahendran/node-server-engine/commit/d178dcde4b873dc90bd1e6a7774ad1ba7017396d))
+- revert to unscoped package name node-server-engine ([a739078](https://github.com/prakashmahendran/node-server-engine/commit/a73907884ca13eed6c9eed2fed450303b5c68d6b))
+- update package name to scoped @prakashmahendran/node-server-engine with public access ([d178dcd](https://github.com/prakashmahendran/node-server-engine/commit/d178dcde4b873dc90bd1e6a7774ad1ba7017396d))
 
 ### 👷 CI/CD
 
-* allow semantic-release to push commits by removing persist-credentials: false ([187eeae](https://github.com/prakashmahendran/node-server-engine/commit/187eeaee7b22ad8b79709d61ea12523aa8bd426f))
-* allow tests to fail gracefully ([1a3a3e6](https://github.com/prakashmahendran/node-server-engine/commit/1a3a3e6d003aa40442b0dfb02ec27ced5bd2564b))
-* skip tests if not present ([9c2b540](https://github.com/prakashmahendran/node-server-engine/commit/9c2b54062c468ea702173c22916b071cfdab9550))
-* update Node.js version to 22 for semantic-release 25.x compatibility ([7c38177](https://github.com/prakashmahendran/node-server-engine/commit/7c381774c5833b5ee7e1baf054e586ccd1c43aa3))
+- allow semantic-release to push commits by removing persist-credentials: false ([187eeae](https://github.com/prakashmahendran/node-server-engine/commit/187eeaee7b22ad8b79709d61ea12523aa8bd426f))
+- allow tests to fail gracefully ([1a3a3e6](https://github.com/prakashmahendran/node-server-engine/commit/1a3a3e6d003aa40442b0dfb02ec27ced5bd2564b))
+- skip tests if not present ([9c2b540](https://github.com/prakashmahendran/node-server-engine/commit/9c2b54062c468ea702173c22916b071cfdab9550))
+- update Node.js version to 22 for semantic-release 25.x compatibility ([7c38177](https://github.com/prakashmahendran/node-server-engine/commit/7c381774c5833b5ee7e1baf054e586ccd1c43aa3))

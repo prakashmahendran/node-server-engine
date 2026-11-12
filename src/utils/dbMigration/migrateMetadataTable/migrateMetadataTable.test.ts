@@ -37,7 +37,9 @@ describe('Utils - migrateMetadataTable', () => {
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 
-      expect(sequelizeStub.query.firstCall.args[0]).to.match(/table_schema = DATABASE\(\)/);
+      expect(sequelizeStub.query.firstCall.args[0]).to.match(
+        /table_schema = DATABASE\(\)/
+      );
     });
 
     it('should not recreate the table when postgres returns it as a row object', async () => {
@@ -54,9 +56,7 @@ describe('Utils - migrateMetadataTable', () => {
     it('should create new metadata table for postgres when none exists', async () => {
       process.env.SQL_TYPE = 'postgres';
 
-      sequelizeStub.query
-        .onFirstCall()
-        .resolves([['other_table']] as any);
+      sequelizeStub.query.onFirstCall().resolves([['other_table']] as any);
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 
@@ -99,9 +99,7 @@ describe('Utils - migrateMetadataTable', () => {
     it('should throw error for unsupported SQL type', async () => {
       process.env.SQL_TYPE = 'unsupported';
 
-      sequelizeStub.query
-        .onFirstCall()
-        .resolves([['other_table']] as any);
+      sequelizeStub.query.onFirstCall().resolves([['other_table']] as any);
 
       try {
         await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
@@ -115,29 +113,20 @@ describe('Utils - migrateMetadataTable', () => {
       process.env.SQL_TYPE = 'postgres';
 
       // First call: check tables - returns legacy table exists
-      sequelizeStub.query
-        .onFirstCall()
-        .resolves([['SequelizeMeta']] as any);
+      sequelizeStub.query.onFirstCall().resolves([['SequelizeMeta']] as any);
 
       // Second call: CREATE TABLE
-      sequelizeStub.query
-        .onSecondCall()
-        .resolves([] as any);
+      sequelizeStub.query.onSecondCall().resolves([] as any);
 
       // Third call: SELECT from legacy table
       sequelizeStub.query
         .onThirdCall()
         .resolves([
-          [
-            { name: '20240101-migration.ts' },
-            { name: '20240201-migration.ts' }
-          ]
+          [{ name: '20240101-migration.ts' }, { name: '20240201-migration.ts' }]
         ] as any);
 
       // Fourth call: INSERT
-      sequelizeStub.query
-        .onCall(3)
-        .resolves([undefined, 2] as any);
+      sequelizeStub.query.onCall(3).resolves([undefined, 2] as any);
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 
@@ -155,19 +144,13 @@ describe('Utils - migrateMetadataTable', () => {
         .onFirstCall()
         .resolves([[{ TABLE_NAME: 'SequelizeMeta' }]] as any);
 
-      sequelizeStub.query
-        .onSecondCall()
-        .resolves([] as any);
+      sequelizeStub.query.onSecondCall().resolves([] as any);
 
       sequelizeStub.query
         .onThirdCall()
-        .resolves([
-          [{ name: '20240101-migration.ts' }]
-        ] as any);
+        .resolves([[{ name: '20240101-migration.ts' }]] as any);
 
-      sequelizeStub.query
-        .onCall(3)
-        .resolves([undefined, 1] as any);
+      sequelizeStub.query.onCall(3).resolves([undefined, 1] as any);
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 
@@ -182,19 +165,13 @@ describe('Utils - migrateMetadataTable', () => {
         .onFirstCall()
         .resolves([[{ TABLE_NAME: 'SequelizeMeta' }]] as any);
 
-      sequelizeStub.query
-        .onSecondCall()
-        .resolves([] as any);
+      sequelizeStub.query.onSecondCall().resolves([] as any);
 
       sequelizeStub.query
         .onThirdCall()
-        .resolves([
-          [{ name: '20240101-migration.ts' }]
-        ] as any);
+        .resolves([[{ name: '20240101-migration.ts' }]] as any);
 
-      sequelizeStub.query
-        .onCall(3)
-        .resolves([undefined, 1] as any);
+      sequelizeStub.query.onCall(3).resolves([undefined, 1] as any);
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 
@@ -205,9 +182,7 @@ describe('Utils - migrateMetadataTable', () => {
     it('should skip migration if custom sequelize_meta already exists for postgres', async () => {
       process.env.SQL_TYPE = 'postgres';
 
-      sequelizeStub.query
-        .onFirstCall()
-        .resolves([['sequelize_meta']] as any);
+      sequelizeStub.query.onFirstCall().resolves([['sequelize_meta']] as any);
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 
@@ -231,9 +206,7 @@ describe('Utils - migrateMetadataTable', () => {
     it('should handle both legacy and new table not existing', async () => {
       process.env.SQL_TYPE = 'postgres';
 
-      sequelizeStub.query
-        .onFirstCall()
-        .resolves([['users', 'posts']] as any);
+      sequelizeStub.query.onFirstCall().resolves([['users', 'posts']] as any);
 
       await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
 

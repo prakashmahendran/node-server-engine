@@ -69,8 +69,8 @@ export function verificationToken(
 
     const resolvedSubject = options.subjectResolver
       ? options.subjectResolver(request)
-      : (request.user?.id as string | undefined) ??
-        (request.user?.sub as string | undefined);
+      : ((request.user?.id as string | undefined) ??
+        (request.user?.sub as string | undefined));
 
     const payload = verifyVerificationToken(token, {
       action,

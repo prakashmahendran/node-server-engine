@@ -30,9 +30,7 @@ describe('Entity - LifecycleController', function () {
           }
         })
       ],
-      initCallbacks: [
-        Localizator.init.bind(Localizator)
-      ]
+      initCallbacks: [Localizator.init.bind(Localizator)]
     });
 
     await server.init();

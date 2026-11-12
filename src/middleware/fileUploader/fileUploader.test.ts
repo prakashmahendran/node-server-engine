@@ -41,7 +41,11 @@ describe('Middleware - fileUploader', () => {
       const middleware = fileUploader(
         [
           { key: 'document', required: true, mimeTypes: ['application/pdf'] },
-          { key: 'image', required: false, mimeTypes: ['image/jpeg', 'image/png'] }
+          {
+            key: 'image',
+            required: false,
+            mimeTypes: ['image/jpeg', 'image/png']
+          }
         ],
         {}
       );
@@ -58,7 +62,10 @@ describe('Middleware - fileUploader', () => {
         }
       };
 
-      const middleware = fileUploader([{ key: 'file', required: true }], schema);
+      const middleware = fileUploader(
+        [{ key: 'file', required: true }],
+        schema
+      );
 
       expect(middleware).to.be.a('function');
     });
@@ -89,7 +96,13 @@ describe('Middleware - fileUploader', () => {
 
     it('should configure with multiple MIME types', () => {
       const middleware = fileUploader(
-        [{ key: 'image', required: true, mimeTypes: ['image/jpeg', 'image/png', 'image/gif'] }],
+        [
+          {
+            key: 'image',
+            required: true,
+            mimeTypes: ['image/jpeg', 'image/png', 'image/gif']
+          }
+        ],
         {}
       );
 
@@ -141,7 +154,11 @@ describe('Middleware - fileUploader', () => {
         [
           { key: 'required_doc', required: true },
           { key: 'optional_image', required: false },
-          { key: 'required_pdf', required: true, mimeTypes: ['application/pdf'] }
+          {
+            key: 'required_pdf',
+            required: true,
+            mimeTypes: ['application/pdf']
+          }
         ],
         {}
       );

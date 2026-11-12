@@ -17,7 +17,7 @@ export const PushNotification = {
         message:
           'Environment variable PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC is not defined'
       });
-    
+
     // Register publisher with optimized settings for push notifications
     PubSub.addPublisher(process.env.PUBSUB_PUSH_NOTIFICATION_QUEUE_TOPIC, {
       enableMessageOrdering: false, // Push notifications don't need strict ordering

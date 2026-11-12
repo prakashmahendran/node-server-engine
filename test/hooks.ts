@@ -44,10 +44,10 @@ before(async () => {
   generateEcdsaKeyPair();
   sequelize.init();
   sequelize.addModels(modelArray);
-  
+
   // Wait a bit to allow async authentication to complete/fail
   // This prevents unhandled rejections from occurring during tests
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise((resolve) => setTimeout(resolve, 100));
 });
 
 beforeEach(async () => {

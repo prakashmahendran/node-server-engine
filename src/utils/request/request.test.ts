@@ -15,7 +15,11 @@ describe('Utils - Request', function () {
     const scope = nock(url)
       .get('/')
       .times(5)
-      .replyWithError(Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }));
+      .replyWithError(
+        Object.assign(new Error('connect ECONNREFUSED'), {
+          code: 'ECONNREFUSED'
+        })
+      );
 
     const promise = request({ url });
 

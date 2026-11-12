@@ -99,10 +99,7 @@ describe('Entity - KeySet', function () {
   });
 
   it('should read a key from a PEM string', async () => {
-    const pem = await readFile(
-      process.env.ECDSA_PUBLIC_KEY as string,
-      'utf-8'
-    );
+    const pem = await readFile(process.env.ECDSA_PUBLIC_KEY as string, 'utf-8');
 
     const keySet = new KeySet(pem, { pem: true });
 
