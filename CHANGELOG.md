@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.0.0...v2.0.1) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **migrations:** detect the metadata table per dialect ([b0709b1](https://github.com/prakashmahendran/node-server-engine/commit/b0709b169e80997fa1f16959cb5610459aad264f))
+* **migrations:** find compiled migrations when NODE_ENV=production ([2e8fd08](https://github.com/prakashmahendran/node-server-engine/commit/2e8fd08184d84045fc2767ef3fba7b9ae43c64a8))
+
 ## [2.0.0](https://github.com/prakashmahendran/node-server-engine/compare/v1.14.1...v2.0.0) (2026-11-12)
 
 ### ⚠ BREAKING CHANGES
