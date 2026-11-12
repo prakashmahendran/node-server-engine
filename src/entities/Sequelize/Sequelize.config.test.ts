@@ -6,6 +6,7 @@ describe('Entity - Sequelize config (mssql)', () => {
   /** The config is computed at import time: load a fresh copy for the current environment */
   function loadConfig(): {
     dialectOptions?: { options?: Record<string, unknown> };
+    pool?: { max?: number };
   } {
     const id = require.resolve('./Sequelize.config');
     delete require.cache[id];
@@ -49,5 +50,18 @@ describe('Entity - Sequelize config (mssql)', () => {
     expect(loadConfig().dialectOptions?.options).to.include({
       lowerCaseGuids: true
     });
+  });
+
+  it('should size the pool from SQL_POOL_MAX outside tests', () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.SQL_POOL_MAX;
+    expect(loadConfig().pool?.max).to.equal(5);
+    process.env.SQL_POOL_MAX = '20';
+    expect(loadConfig().pool?.max).to.equal(20);
+    process.env.SQL_POOL_MAX = 'not-a-number';
+    expect(loadConfig().pool?.max).to.equal(5);
+    process.env.NODE_ENV = 'test';
+    process.env.SQL_POOL_MAX = '20';
+    expect(loadConfig().pool?.max).to.equal(1);
   });
 });

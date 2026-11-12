@@ -150,7 +150,17 @@ export function addModels(models: Array<ModelCtor>): void {
     }
   });
 
-  sequelizeClient.sync();
+  // Creating tables from the models is for the in-memory test database (or when explicitly asked).
+  // Elsewhere the schema belongs to the migrations: a sync racing them would create tables without
+  // their constraints and triggers.
+  if (
+    process.env.NODE_ENV === 'test' ||
+    process.env.SQL_SYNC_MODELS === 'true'
+  ) {
+    sequelizeClient.sync().catch((error: unknown) => {
+      reportError(error);
+    });
+  }
 }
 
 /** Create Sequelize client */

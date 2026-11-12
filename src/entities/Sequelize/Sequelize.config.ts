@@ -30,7 +30,10 @@ const config: Options = {
   },
   dialectOptions: {},
   pool: {
-    max: process.env.NODE_ENV === 'test' ? 1 : 5,
+    max:
+      process.env.NODE_ENV === 'test'
+        ? 1
+        : Number(process.env.SQL_POOL_MAX) || 5,
     min: 0,
     acquire: process.env.NODE_ENV === 'test' ? 1000 : 30000, // Reduce acquire timeout in test
     idle: process.env.NODE_ENV === 'test' ? 1000 : 10000, // Reduce idle time in test

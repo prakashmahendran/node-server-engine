@@ -1057,17 +1057,19 @@ Sequelize.closeSequelize();
 
 It can be configured through environment variables
 
-| env                   | description                                                                                | default  |
-| --------------------- | ------------------------------------------------------------------------------------------ | -------- |
-| SQL_HOST              | Host to which connect to                                                                   |          |
-| SQL_PORT              | Port on which SQL is served                                                                | 5432     |
-| SQL_PASSWORD          | Password used to authenticate with the SQL server                                          |          |
-| SQL_USER              | User used to authenticate with the SQL server                                              |          |
-| SQL_DB                | Database to which connect to                                                               |          |
-| SQL_TYPE              | SQL type which connect to                                                                  | postgres |
-| SQL_ENCRYPT           | `mssql` only: set to `false` to disable TLS                                                | true     |
-| SQL_LOWERCASE_GUIDS   | `mssql` only: `true` returns UNIQUEIDENTIFIER values in lower case, like JavaScript UUIDs  | false    |
-| SQL_TRUST_SERVER_CERT | `mssql` only: `true` skips certificate verification (self-signed development servers only) | false    |
+| env                   | description                                                                                                                                    | default  |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| SQL_HOST              | Host to which connect to                                                                                                                       |          |
+| SQL_PORT              | Port on which SQL is served                                                                                                                    | 5432     |
+| SQL_PASSWORD          | Password used to authenticate with the SQL server                                                                                              |          |
+| SQL_USER              | User used to authenticate with the SQL server                                                                                                  |          |
+| SQL_DB                | Database to which connect to                                                                                                                   |          |
+| SQL_TYPE              | SQL type which connect to                                                                                                                      | postgres |
+| SQL_ENCRYPT           | `mssql` only: set to `false` to disable TLS                                                                                                    | true     |
+| SQL_LOWERCASE_GUIDS   | `mssql` only: `true` returns UNIQUEIDENTIFIER values in lower case, like JavaScript UUIDs                                                      | false    |
+| SQL_TRUST_SERVER_CERT | `mssql` only: `true` skips certificate verification (self-signed development servers only)                                                     | false    |
+| SQL_POOL_MAX          | Maximum connections in the pool (always 1 when `NODE_ENV=test`)                                                                                | 5        |
+| SQL_SYNC_MODELS       | `true` creates missing tables from the models in `addModels()`; always on when `NODE_ENV=test`, off otherwise so the migrations own the schema | false    |
 
 ---
 
