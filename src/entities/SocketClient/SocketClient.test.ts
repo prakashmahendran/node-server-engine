@@ -405,4 +405,72 @@ describe('Entity - SocketClient', () => {
       }).to.throw();
     });
   });
+
+  describe('application user, close and authentication timeout', () => {
+    const authenticate = async (token: string) => {
+      const messageHandler = mockWebSocket.on
+        .getCalls()
+        .find((call: any) => call.args[0] === 'message')?.args[1];
+      await messageHandler(
+        Buffer.from(
+          JSON.stringify({ type: 'authenticate', payload: { token } })
+        )
+      );
+      await new Promise((resolve) => setImmediate(resolve));
+    };
+
+    it('should expose the token user claim and expiry', async () => {
+      const { generateAccessToken } = await import('test');
+      const token = generateAccessToken('user-1', {}, { role: 'admin' });
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: []
+      });
+
+      await authenticate(token);
+
+      const user = client.getUser();
+      expect(user?.user).to.deep.include({ id: 'user-1' });
+      expect(user?.expiresAt).to.be.a('number').greaterThan(Date.now());
+      client.close();
+    });
+
+    it('should close the socket with the given code and reason', () => {
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: []
+      });
+      client.close(4403, 'Not allowed');
+      expect(mockWebSocket.close).to.have.been.calledWith(4403, 'Not allowed');
+    });
+
+    it('should close an unauthenticated socket after authTimeoutMs', () => {
+      const clock = sinon.useFakeTimers();
+      try {
+        new SocketClient(mockWebSocket, mockRequest, {
+          handlers: [],
+          authTimeoutMs: 5000
+        });
+        clock.tick(4999);
+        expect(mockWebSocket.close).to.not.have.been.called;
+        clock.tick(1);
+        expect(mockWebSocket.close).to.have.been.calledWith(
+          4401,
+          'Authentication required'
+        );
+      } finally {
+        clock.restore();
+      }
+    });
+
+    it('should keep an authenticated socket open after authTimeoutMs', async () => {
+      const { generateAccessToken } = await import('test');
+      const client = new SocketClient(mockWebSocket, mockRequest, {
+        handlers: [],
+        authTimeoutMs: 50
+      });
+      await authenticate(generateAccessToken('user-2'));
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      expect(mockWebSocket.close).to.not.have.been.called;
+      client.close();
+    });
+  });
 });

@@ -56,6 +56,12 @@ export class SocketClient {
   private audience: undefined | Array<string>;
   /** Status tracking variable used to check the liveness of connections */
   private isAlive = true;
+  /** The `user` claim of the token the client authenticated with */
+  private tokenUser: undefined | Record<string, unknown>;
+  /** Timestamp (ms) at which the current authentication expires */
+  private authExpiresAt: undefined | number;
+  /** Closes the connection if the client does not authenticate in time */
+  private authTimeout: NodeJS.Timeout | undefined;
   /** Timer used to track interval between client pinging */
   private pingInterval: NodeJS.Timeout | string | number | undefined;
 
@@ -105,10 +111,16 @@ export class SocketClient {
     SocketClient.socketClients[this.id] = this;
 
     reportInfo({ message: `Client connected [${this.id}]` });
+    // Optionally close connections that do not authenticate in time
+    if (options.authTimeoutMs && options.authTimeoutMs > 0) {
+      this.authTimeout = setTimeout(() => {
+        if (!this.authenticated) this.close(4401, 'Authentication required');
+      }, options.authTimeoutMs);
+    }
     // On socket close, deregister from clients list
-    this.ws.on('close', () => {
+    this.ws.on('close', (code: number, reason: Buffer) => {
       this.handleClose
-        .bind(this)()
+        .bind(this)(code, reason?.toString())
         .catch((error) => {
           reportError(error);
         });
@@ -222,6 +234,17 @@ export class SocketClient {
     }
   }
 
+  /**
+   * Close the connection
+   * @param code - WebSocket close code (4000-4999 are free for applications, e.g. 4401 / 4403)
+   * @param reason - Human readable reason, sent to the client
+   */
+  public close(code = 1000, reason?: string): void {
+    this.clearTimeouts();
+    if (this.authTimeout) clearTimeout(this.authTimeout);
+    this.ws.close(code, reason);
+  }
+
   /** Get the client authentication status */
   public isAuthenticated(): boolean {
     return this.authenticated;
@@ -234,7 +257,9 @@ export class SocketClient {
         userId: this.userId as string,
         deviceId: this.deviceId as string,
         tokenId: this.tokenId as string,
-        audience: this.audience as Array<string>
+        audience: this.audience as Array<string>,
+        user: this.tokenUser,
+        expiresAt: this.authExpiresAt
       };
     return undefined;
   }
@@ -288,6 +313,9 @@ export class SocketClient {
     this.setUserData(payload);
 
     this.authenticated = true;
+    this.tokenUser = payload.user;
+    this.authExpiresAt = payload.exp * 1000;
+    if (this.authTimeout) clearTimeout(this.authTimeout);
     // Time remaining before token expiration
     const authExpiration = payload.exp * 1000 - Date.now();
     // Clear previously created timers
@@ -385,9 +413,10 @@ export class SocketClient {
   /**
    * Process a socket close event
    */
-  private async handleClose(code?: string, reason?: string): Promise<void> {
+  private async handleClose(code?: number, reason?: string): Promise<void> {
     delete SocketClient.socketClients[this.id];
     this.clearTimeouts();
+    if (this.authTimeout) clearTimeout(this.authTimeout);
     // Stop ping process
     if (this.pingInterval) clearInterval(this.pingInterval);
     // Run all the shutdown callbacks

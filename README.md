@@ -528,22 +528,24 @@ const server = new Server({
 });
 ```
 
-| Parameter         | Type                                       | Description                                               | Default      |
-| ----------------- | ------------------------------------------ | --------------------------------------------------------- | ------------ |
-| handlers          | Array\<[MessageHandler](#message-handler)> | A list of message handlers to use                         | **required** |
-| authCallbacks     | Function \| Array\<Function>               | Callbacks called when a client successfully authenticates | []           |
-| initCallbacks     | Function \| Array\<Function>               | Callbacks called when the socket client is created        | []           |
-| shutdownCallbacks | Function \| Array\<Function>               | Callbacks called when the socket client is destroyed      | []           |
+| Parameter         | Type                                       | Description                                                                       | Default      |
+| ----------------- | ------------------------------------------ | --------------------------------------------------------------------------------- | ------------ |
+| handlers          | Array\<[MessageHandler](#message-handler)> | A list of message handlers to use                                                 | **required** |
+| authCallbacks     | Function \| Array\<Function>               | Callbacks called when a client successfully authenticates                         | []           |
+| initCallbacks     | Function \| Array\<Function>               | Callbacks called when the socket client is created                                | []           |
+| shutdownCallbacks | Function \| Array\<Function>               | Callbacks called when the socket client is destroyed                              | []           |
+| authTimeoutMs     | Number                                     | Close the socket with code 4401 if it has not authenticated within this time (ms) | never        |
 
 #### Client Properties & Methods
 
-| Property/Method   | Type                          | Description                                                       |
-| ----------------- | ----------------------------- | ----------------------------------------------------------------- |
-| id                | String                        | Unique identifier for the connection                              |
-| establishedAt     | Date                          | Timestamp when connection was established                         |
-| isAuthenticated() | () => Boolean                 | Check if client is authenticated                                  |
-| getUser()         | () => SocketUser \| undefined | Get authenticated user data (userId, deviceId, tokenId, audience) |
-| sendMessage()     | (type, payload, options)      | Send a message to the client                                      |
+| Property/Method   | Type                          | Description                                                                                              |
+| ----------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| id                | String                        | Unique identifier for the connection                                                                     |
+| establishedAt     | Date                          | Timestamp when connection was established                                                                |
+| isAuthenticated() | () => Boolean                 | Check if client is authenticated                                                                         |
+| getUser()         | () => SocketUser \| undefined | Get authenticated user data (userId, deviceId, tokenId, audience, the token's `user` claim, `expiresAt`) |
+| sendMessage()     | (type, payload, options)      | Send a message to the client                                                                             |
+| close()           | (code?, reason?)              | Close the connection, e.g. `close(4403, 'Not allowed')` from an `authCallbacks` check                    |
 
 #### Client Authentication
 

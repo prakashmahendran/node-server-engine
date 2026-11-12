@@ -15,6 +15,8 @@ export interface SocketClientOptions {
   authCallbacks?: SocketClientCallback | Array<SocketClientCallback>;
   /** Callback function that are called when the client connection is terminated */
   shutdownCallbacks?: SocketClientCallback | Array<SocketClientCallback>;
+  /** Close the connection with code 4401 if the client has not authenticated after this many ms (default: never) */
+  authTimeoutMs?: number;
 }
 
 /** Socket Message abstract typing */
@@ -59,4 +61,8 @@ export interface SocketUser {
   tokenId: string;
   /** Audience included in the token */
   audience: Array<string>;
+  /** The `user` claim of the authentication token (application data such as role or organisation) */
+  user?: Record<string, unknown>;
+  /** Timestamp (ms) at which the authentication expires */
+  expiresAt?: number;
 }
