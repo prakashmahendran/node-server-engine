@@ -11,9 +11,15 @@ export function error(
 ): void {
   reportError(error, request);
   if (error instanceof WebError) {
+    if (error.retryAfterSec !== undefined)
+      response.set(
+        'Retry-After',
+        String(Math.max(1, Math.round(error.retryAfterSec)))
+      );
     response.status(error.statusCode).json({
       errorCode: error.errorCode,
-      hint: error.hint
+      hint: error.hint,
+      ...(error.details !== undefined ? { details: error.details } : {})
     });
     return;
   }

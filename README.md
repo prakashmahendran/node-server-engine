@@ -1816,11 +1816,15 @@ if (!user) {
 
 In addition to the [common options](#common-options), WebError defines some other options specific for error reporting to clients.
 
-| option     | definition                                                       | example      | default      |
-| ---------- | ---------------------------------------------------------------- | ------------ | ------------ |
-| errorCode  | A machine readable error code that will be parsed by the client. | unknown-user | **required** |
-| statusCode | HTTP status code of the response.                                | 400          | 500          |
-| hint       | A human readable error message that is intended for developers   |              |
+| option        | definition                                                                                                                                                  | example               | default      |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------------ |
+| errorCode     | A machine readable error code that will be parsed by the client.                                                                                            | unknown-user          | **required** |
+| statusCode    | HTTP status code of the response.                                                                                                                           | 400                   | 500          |
+| hint          | A human readable error message that is intended for developers                                                                                              |                       |
+| details       | Public structured data the client acts on, returned as `details` (attempts left, per-row errors...). Never put secrets here; `data` stays in the logs only. | `{ attemptsLeft: 2 }` |              |
+| retryAfterSec | Seconds before the client may retry, sent as the `Retry-After` header                                                                                       | 60                    |              |
+
+The error middleware answers `{ errorCode, hint, details? }` with the given status code.
 
 ## Middlewares
 

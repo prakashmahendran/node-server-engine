@@ -24,6 +24,28 @@ describe('Middleware - error', () => {
     await request(app).get(PATH).expect(statusCode, { errorCode, hint });
   });
 
+  it('should return public details and the Retry-After header', async () => {
+    app.get(PATH, () => {
+      throw new WebError({
+        statusCode: 429,
+        errorCode: 'otp-blocked',
+        hint: 'Wait',
+        details: { attemptsLeft: 0 },
+        retryAfterSec: 299.6
+      });
+    });
+    app.use(error);
+    const res = await request(app)
+      .get(PATH)
+      .expect(429, {
+        errorCode: 'otp-blocked',
+        hint: 'Wait',
+        details: { attemptsLeft: 0 }
+      });
+    if (res.headers['retry-after'] !== '300')
+      throw new Error(`Retry-After was ${res.headers['retry-after']}`);
+  });
+
   it('should not return hint if none is specified', async () => {
     const errorCode = faker.lorem.word();
     const message = faker.lorem.sentence();

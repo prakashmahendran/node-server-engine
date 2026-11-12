@@ -10,6 +10,10 @@ export class WebError extends EngineError {
   public errorCode: string;
   /** HTTP status code associated with this error */
   public statusCode: number;
+  /** Public structured data sent to the client as `details` */
+  public details?: unknown;
+  /** Seconds before the client may retry (Retry-After header) */
+  public retryAfterSec?: number;
 
   /**
    * Create a WebError, these errors are best suited for runtime errors
@@ -19,5 +23,8 @@ export class WebError extends EngineError {
 
     this.statusCode = config.statusCode ?? 400;
     this.errorCode = config.errorCode;
+    if (config.details !== undefined) this.details = config.details;
+    if (config.retryAfterSec !== undefined)
+      this.retryAfterSec = config.retryAfterSec;
   }
 }
