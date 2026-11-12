@@ -1057,14 +1057,16 @@ Sequelize.closeSequelize();
 
 It can be configured through environment variables
 
-| env          | description                                       | default  |
-| ------------ | ------------------------------------------------- | -------- |
-| SQL_HOST     | Host to which connect to                          |          |
-| SQL_PORT     | Port on which SQL is served                       | 5432     |
-| SQL_PASSWORD | Password used to authenticate with the SQL server |          |
-| SQL_USER     | User used to authenticate with the SQL server     |          |
-| SQL_DB       | Database to which connect to                      |          |
-| SQL_TYPE     | SQL type which connect to                         | postgres |
+| env                   | description                                                                                | default  |
+| --------------------- | ------------------------------------------------------------------------------------------ | -------- |
+| SQL_HOST              | Host to which connect to                                                                   |          |
+| SQL_PORT              | Port on which SQL is served                                                                | 5432     |
+| SQL_PASSWORD          | Password used to authenticate with the SQL server                                          |          |
+| SQL_USER              | User used to authenticate with the SQL server                                              |          |
+| SQL_DB                | Database to which connect to                                                               |          |
+| SQL_TYPE              | SQL type which connect to                                                                  | postgres |
+| SQL_ENCRYPT           | `mssql` only: set to `false` to disable TLS                                                | true     |
+| SQL_TRUST_SERVER_CERT | `mssql` only: `true` skips certificate verification (self-signed development servers only) | false    |
 
 ---
 

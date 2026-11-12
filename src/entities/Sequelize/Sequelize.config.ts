@@ -40,11 +40,16 @@ const config: Options = {
 
 // Additional configurations for MSSQL
 if (config.dialect === 'mssql') {
+  // tedious connection options live under dialectOptions.options
   config.dialectOptions = {
-    requestTimeout: 30000, // Increase request timeout for MSSQL
-    connectTimeout: 30000, // Increase connection timeout for MSSQL
-    encrypt: true, // Use encryption for MSSQL (set to false if not needed)
-    trustServerCertificate: true // Set to true if using self-signed certificates
+    options: {
+      requestTimeout: 30000, // Increase request timeout for MSSQL
+      connectTimeout: 30000, // Increase connection timeout for MSSQL
+      // Encrypted connections by default; SQL_ENCRYPT=false only for servers without TLS
+      encrypt: process.env.SQL_ENCRYPT !== 'false',
+      // The server certificate is verified unless SQL_TRUST_SERVER_CERT=true (self-signed development servers)
+      trustServerCertificate: process.env.SQL_TRUST_SERVER_CERT === 'true'
+    }
   };
 }
 
