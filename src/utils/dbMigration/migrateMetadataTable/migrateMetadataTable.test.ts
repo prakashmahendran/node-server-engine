@@ -18,6 +18,39 @@ describe('Utils - migrateMetadataTable', () => {
   });
 
   describe('migrateMetadataTable', () => {
+    it('should list sqlite tables from sqlite_master and create the table', async () => {
+      process.env.SQL_TYPE = 'sqlite';
+      sequelizeStub.query.onFirstCall().resolves([] as any);
+
+      await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
+
+      expect(sequelizeStub.query.firstCall.args[0]).to.match(/sqlite_master/);
+      expect(sequelizeStub.query).to.have.been.calledWith(
+        sinon.match(/CREATE TABLE sequelize_meta/),
+        { type: QueryTypes.RAW }
+      );
+    });
+
+    it('should scope the mysql table lookup to the current database', async () => {
+      process.env.SQL_TYPE = 'mysql';
+      sequelizeStub.query.onFirstCall().resolves([] as any);
+
+      await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
+
+      expect(sequelizeStub.query.firstCall.args[0]).to.match(/table_schema = DATABASE\(\)/);
+    });
+
+    it('should not recreate the table when postgres returns it as a row object', async () => {
+      process.env.SQL_TYPE = 'postgres';
+      sequelizeStub.query
+        .onFirstCall()
+        .resolves([{ table_name: 'sequelize_meta' }] as any);
+
+      await migrateMetadataTable(sequelizeStub as unknown as Sequelize);
+
+      expect(sequelizeStub.query).to.have.been.calledOnce;
+    });
+
     it('should create new metadata table for postgres when none exists', async () => {
       process.env.SQL_TYPE = 'postgres';
 

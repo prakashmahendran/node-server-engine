@@ -4,6 +4,28 @@ import { reportDebug, reportError } from 'utils/report';
 
 const namespace = 'engine:utils:dbMigration';
 
+/** List the tables of the current database (not of every database on the server) */
+function listTablesQuery(sqlType?: string): string {
+  switch (sqlType) {
+    case 'sqlite':
+      return `SELECT name AS table_name FROM sqlite_master WHERE type = 'table'`;
+    case 'mysql':
+      return `SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()`;
+    case 'postgres':
+      return `SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema()`;
+    default:
+      return `SELECT table_name FROM information_schema.tables`;
+  }
+}
+
+/** Extract the table name from a result row, whatever shape the driver returns */
+function getTableName(row: unknown): string | undefined {
+  if (typeof row === 'string') return row;
+  if (Array.isArray(row)) return getTableName(row[0]);
+  if (row && typeof row === 'object') return getTableName(Object.values(row)[0]);
+  return undefined;
+}
+
 /**
  * Run migrations on the metadata table
  * The table containing the migrations metadata cannot be handled through migrations
@@ -15,7 +37,7 @@ export async function migrateMetadataTable(
   try {
     reportDebug({ namespace, message: 'Executing metadata migration routine' });
 
-    const query = `SELECT table_name FROM information_schema.tables`;
+    const query = listTablesQuery(process.env.SQL_TYPE);
 
     reportDebug({ 
       namespace, 
@@ -24,18 +46,13 @@ export async function migrateMetadataTable(
     });
 
     // We check if we have a custom sequelize_meta table yet
-    const tables = await sequelize.query<Array<string>>(query, {
+    const tables = await sequelize.query<Record<string, unknown>>(query, {
       type: QueryTypes.SELECT
     });
+    const tableNames = tables.map(getTableName);
 
-  const hasCustomSequelizeMeta =
-    process.env.SQL_TYPE === 'postgres'
-      ? tables.some((table) => table[0] === 'sequelize_meta')
-      : tables.some((table) => Object.values(table)[0] === 'sequelize_meta');
-  const hasLegacySequelizeMeta =
-    process.env.SQL_TYPE === 'postgres'
-      ? tables.some((table) => table[0] === 'SequelizeMeta')
-      : tables.some((table) => Object.values(table)[0] === 'SequelizeMeta');
+  const hasCustomSequelizeMeta = tableNames.includes('sequelize_meta');
+  const hasLegacySequelizeMeta = tableNames.includes('SequelizeMeta');
   if (!hasCustomSequelizeMeta) {
     reportDebug({
       namespace,
@@ -48,6 +65,7 @@ export async function migrateMetadataTable(
     switch (process.env.SQL_TYPE) {
       case 'mysql':
       case 'postgres':
+      case 'sqlite':
         createTableQuery = `
           CREATE TABLE sequelize_meta (
             name      VARCHAR(100) PRIMARY KEY,
@@ -100,6 +118,8 @@ export async function migrateMetadataTable(
               case 'mysql':
               case 'postgres':
                 return `('${migration.name}', NULL, NOW(), NOW())`;
+              case 'sqlite':
+                return `('${migration.name}', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`;
               case 'mssql':
                 return `('${migration.name}', NULL, GETDATE(), GETDATE())`;
               default:
