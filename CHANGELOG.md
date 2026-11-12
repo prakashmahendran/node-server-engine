@@ -1,3 +1,13 @@
+## [2.1.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.0.2...v2.1.0) (2026-11-12)
+
+### ✨ Features
+
+* **websocket:** expose token user, add close() and auth timeout ([9930e9f](https://github.com/prakashmahendran/node-server-engine/commit/9930e9fc3ab593373852b5d975b71c2fde2fab79))
+
+### 🐛 Bug Fixes
+
+* **security:** verify SQL Server certificates by default ([1a1284d](https://github.com/prakashmahendran/node-server-engine/commit/1a1284d15f19cfb35fbafa02b1c927e03800d205))
+
 ## [2.0.2](https://github.com/prakashmahendran/node-server-engine/compare/v2.0.1...v2.0.2) (2026-11-12)
 
 ### 💄 Styles
