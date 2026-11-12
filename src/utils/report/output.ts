@@ -143,8 +143,41 @@ function isLocalDevelopment(): boolean {
   );
 }
 
+/** Keys whose values must never be written to the logs */
+const SENSITIVE_KEY_PATTERN =
+  /^(authorization|proxy[-_]?authorization|cookie|set[-_]?cookie|password|passwd|pass|secret|client[-_]?secret|token|access[-_]?token|refresh[-_]?token|id[-_]?token|api[-_]?key|private[-_]?key|credentials?|otp)$/i;
+const REDACTED = '[REDACTED]';
+const MAX_REDACT_DEPTH = 10;
+
+/** Returns a copy of the value with sensitive fields masked */
+export function redactSensitive(
+  value: unknown,
+  depth = 0,
+  seen: WeakSet<object> = new WeakSet()
+): unknown {
+  if (!value || typeof value !== 'object' || depth > MAX_REDACT_DEPTH)
+    return value;
+  if (seen.has(value)) return value;
+  seen.add(value);
+  if (Array.isArray(value))
+    return value.map((item) => redactSensitive(item, depth + 1, seen));
+  // Only walk plain objects, leave class instances (Errors, Buffers, Dates...) untouched
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return value;
+  const result: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    result[key] = SENSITIVE_KEY_PATTERN.test(key)
+      ? REDACTED
+      : redactSensitive(entry, depth + 1, seen);
+  }
+  return result;
+}
+
 /** Add metadata to the log entry and print it */
 export function output(data: LogEntry): FullLogEntry {
+  if (data.data !== undefined)
+    data = { ...data, data: redactSensitive(data.data) };
+
   // Gather useful information about where the logger was called from
   const call = callsite()[2];
 

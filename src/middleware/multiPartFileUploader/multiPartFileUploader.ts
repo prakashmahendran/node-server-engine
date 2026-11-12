@@ -25,6 +25,25 @@ fs.ensureDirSync(TEMP_DIR);
 
 const storage = multer.memoryStorage();
 
+/** Default maximum size of a single chunk when no limit is configured */
+const DEFAULT_MAX_CHUNK_SIZE = 32 * 1024 * 1024;
+/** Maximum number of chunks a single upload can be split into */
+const MAX_CHUNKS = Number(process.env.UPLOAD_MAX_CHUNKS) || 10000;
+/** Upload session IDs are restricted to a safe charset so they can be used as a folder name */
+const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+
+/** Check that a client supplied file name cannot escape its destination folder */
+function isSafeFilename(filename: string): boolean {
+  return (
+    filename.length > 0 &&
+    filename.length <= 255 &&
+    filename !== '.' &&
+    filename !== '..' &&
+    !/[/\\\0]/.test(filename) &&
+    path.basename(filename) === filename
+  );
+}
+
 export function multiPartFileUploader(
   filesOption: MultiPartFileUploaderConfig,
   validator: Schema
@@ -37,8 +56,26 @@ export function multiPartFileUploader(
     try {
       reportDebug({ namespace, message: 'Starting file upload middleware' });
 
-      const uploadSingle = multer({ storage }).single('file');
+      // Bound the size of a single chunk held in memory
+      const chunkSizeLimit =
+        (filesOption?.maxSize && bytes(filesOption.maxSize)) ||
+        (process.env.UPLOAD_MAX_SIZE && bytes(process.env.UPLOAD_MAX_SIZE)) ||
+        DEFAULT_MAX_CHUNK_SIZE;
+      const uploadSingle = multer({
+        storage,
+        limits: { fileSize: chunkSizeLimit, files: 1 }
+      }).single('file');
       uploadSingle(req, res, async (err) => {
+        if ((err as { code?: string } | undefined)?.code === 'LIMIT_FILE_SIZE') {
+          return next(
+            new WebError({
+              statusCode: 413,
+              errorCode: 'chunk-too-large',
+              message: 'Uploaded chunk exceeds the maximum allowed size',
+              data: { maxSize: chunkSizeLimit }
+            })
+          );
+        }
         if (err) {
           reportError('Error uploading chunk');
           return next(
@@ -100,6 +137,32 @@ export function multiPartFileUploader(
           );
         }
 
+        // Client supplied values are used to build file system paths, they must be strictly validated
+        // to prevent path traversal (e.g. uniqueID="../../etc") and resource exhaustion
+        const chunkIndexNum = Number(chunkIndex);
+        const totalChunksNum = Number(totalChunks);
+        if (
+          typeof uniqueID !== 'string' ||
+          !SAFE_ID_PATTERN.test(uniqueID) ||
+          typeof filename !== 'string' ||
+          !isSafeFilename(filename) ||
+          !Number.isInteger(totalChunksNum) ||
+          totalChunksNum < 1 ||
+          totalChunksNum > MAX_CHUNKS ||
+          !Number.isInteger(chunkIndexNum) ||
+          chunkIndexNum < 0 ||
+          chunkIndexNum >= totalChunksNum
+        ) {
+          return next(
+            new WebError({
+              statusCode: 400,
+              errorCode: 'invalid-field',
+              message: 'Invalid chunk upload parameters',
+              data: { filename, totalChunks, chunkIndex, uniqueID }
+            })
+          );
+        }
+
         if (
           filesOption?.maxSize &&
           req.file.size > (bytes(filesOption.maxSize) || 0)
@@ -121,7 +184,7 @@ export function multiPartFileUploader(
         fs.ensureDirSync(sessionFolder);
         const chunkPath = path.join(
           sessionFolder,
-          `${filename}.part${chunkIndex}`
+          `${filename}.part${chunkIndexNum}`
         );
 
         try {
@@ -149,7 +212,7 @@ export function multiPartFileUploader(
           data: { uploadedChunks: uploadedChunks.length, totalChunks }
         });
 
-        if (uploadedChunks.length === parseInt(totalChunks, 10)) {
+        if (uploadedChunks.length === totalChunksNum) {
           try {
             const finalFilePath = path.join(
               FILE_DIR,

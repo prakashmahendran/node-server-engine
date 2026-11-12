@@ -32,20 +32,20 @@ export function authJwt(): (
         message: 'No bearer token found',
         errorCode: 'unauthorized',
         statusCode: 401,
-        data: { authorization: request.headers?.authorization }
+        data: { scheme }
       });
     }
     reportDebug({
       namespace,
       message: 'Performing JWT authentication',
-      data: { scheme, credentials }
+      data: { scheme }
     });
     // Verify token and extract its payload
     const payload = await jwtVerify(credentials, TokenIssuer.AUTH_SERVICE);
     reportDebug({
       namespace,
       message: 'Extracted user data from JWT',
-      data: { payload, credentials }
+      data: { payload }
     });
     // The user object on the request is hydrated with data from the token
     request.user = payload.user;

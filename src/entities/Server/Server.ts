@@ -36,6 +36,20 @@ import { tlsConfig, loadTlsConfig, TlsConfig } from 'utils/tlsConfig';
 
 const namespace = 'engine:Server';
 
+/** Default maximum size (in bytes) of an incoming WebSocket message */
+const DEFAULT_WS_MAX_PAYLOAD = 1024 * 1024;
+
+/** Parse the CORS_ORIGIN variable, which can hold a single origin or a comma separated list */
+export function parseCorsOrigin(value?: string): string | Array<string> {
+  if (!value) return '*';
+  const origins = value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  if (origins.length === 0) return '*';
+  return origins.length === 1 ? origins[0] : origins;
+}
+
 /** Main server class */
 export class Server {
   /** The express application powering the main endpoints */
@@ -119,7 +133,7 @@ export class Server {
     this.app = express();
     this.app.use(
       cors({
-        origin: process.env.CORS_ORIGIN ?? '*',
+        origin: parseCorsOrigin(process.env.CORS_ORIGIN),
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: [
           'Content-Type',
@@ -379,6 +393,8 @@ export class Server {
   /** Add a handler for WebSocket connections */
   private attachWebSocket(options: ServerWebSocketConfig): void {
     this.wss = new WebSocketServer({
+      // Limit the size of incoming messages (ws defaults to 100MiB)
+      maxPayload: Number(process.env.WS_MAX_PAYLOAD) || DEFAULT_WS_MAX_PAYLOAD,
       ...options.server,
       server: this.httpServer
     })

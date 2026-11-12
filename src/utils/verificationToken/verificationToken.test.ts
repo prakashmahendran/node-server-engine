@@ -65,16 +65,47 @@ describe('Utils - Verification Token', () => {
     }
   });
 
-  it('should allow default test verification for test@review.com with OTP 000000', () => {
-    const payload = verifyVerificationToken('dummy-token', {
-      action: 'TEST_VERIFICATION',
-      otp: '000000',
-      subject: 'test@review.com'
+  describe('review account bypass', () => {
+    afterEach(() => {
+      delete process.env.VERIFICATION_BYPASS_SUBJECT;
+      delete process.env.VERIFICATION_BYPASS_OTP;
     });
 
-    expect(payload.act).to.equal('TEST_VERIFICATION');
-    expect(payload.sub).to.equal('test@review.com');
-    expect(payload.jti).to.equal('test-verification-jti');
-    expect(payload.otp).to.be.a('string');
+    it('should not bypass verification when the bypass is not configured', () => {
+      expect(() =>
+        verifyVerificationToken('dummy-token', {
+          action: 'TEST_VERIFICATION',
+          otp: '000000',
+          subject: 'test@review.com'
+        })
+      ).to.throw();
+    });
+
+    it('should allow the configured review account with the configured OTP', () => {
+      process.env.VERIFICATION_BYPASS_SUBJECT = 'test@review.com';
+      process.env.VERIFICATION_BYPASS_OTP = '000000';
+      const payload = verifyVerificationToken('dummy-token', {
+        action: 'TEST_VERIFICATION',
+        otp: '000000',
+        subject: 'test@review.com'
+      });
+
+      expect(payload.act).to.equal('TEST_VERIFICATION');
+      expect(payload.sub).to.equal('test@review.com');
+      expect(payload.jti).to.equal('test-verification-jti');
+      expect(payload.otp).to.be.a('string');
+    });
+
+    it('should not bypass verification with a wrong OTP for the review account', () => {
+      process.env.VERIFICATION_BYPASS_SUBJECT = 'test@review.com';
+      process.env.VERIFICATION_BYPASS_OTP = '000000';
+      expect(() =>
+        verifyVerificationToken('dummy-token', {
+          action: 'TEST_VERIFICATION',
+          otp: '123456',
+          subject: 'test@review.com'
+        })
+      ).to.throw();
+    });
   });
 });

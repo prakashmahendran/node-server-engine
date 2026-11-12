@@ -155,7 +155,6 @@ export async function jwtVerify(
             errorCode: 'unauthorized',
             statusCode: 401,
             message: 'Invalid token supplied',
-            data: { token },
             error: error instanceof Error ? error : undefined
           })
         );

@@ -2171,6 +2171,7 @@ const payload = verifyVerificationToken(token, {
 - `VERIFICATION_TOKEN_OTP_SECRET` (optional, defaults to `VERIFICATION_TOKEN_SECRET`)
 - `VERIFICATION_TOKEN_ISSUER` (optional, default: `node-server-engine`)
 - `VERIFICATION_TOKEN_AUDIENCE` (optional, used when `audience` is not provided)
+- `VERIFICATION_BYPASS_SUBJECT` / `VERIFICATION_BYPASS_OTP` (optional, both required to enable). Lets a single review account (for example an app store review login) pass verification with a fixed OTP when `verifyVerificationToken` is called with a matching `subject`. Disabled by default; only set these in environments that need it.
 
 #### Multi-service setup
 

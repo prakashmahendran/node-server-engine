@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { output } from './output';
+import { output, redactSensitive } from './output';
 import { LogSeverity } from 'const';
 
 describe('Utils - output', () => {
@@ -77,6 +77,34 @@ describe('Utils - output', () => {
     const res = output({ severity: LogSeverity.INFO, statusCode: 500, message: 'boom' });
     expect(res.message).to.equal('boom');
     expect(calledErr).to.equal(true);
+  });
+
+  it('should redact sensitive fields from the log data', () => {
+    const res = output({
+      severity: LogSeverity.INFO,
+      message: 'redact',
+      data: {
+        email: 'user@example.com',
+        password: 'hunter2',
+        nested: { Authorization: 'Bearer abc', accessToken: 'xyz', keep: 1 },
+        list: [{ api_key: 'k', name: 'n' }]
+      }
+    });
+    expect(res.data).to.deep.equal({
+      email: 'user@example.com',
+      password: '[REDACTED]',
+      nested: { Authorization: '[REDACTED]', accessToken: '[REDACTED]', keep: 1 },
+      list: [{ api_key: '[REDACTED]', name: 'n' }]
+    });
+  });
+
+  it('should not mutate the original data and should handle cycles', () => {
+    const original: Record<string, unknown> = { token: 't', ok: true };
+    original.self = original;
+    const redacted = redactSensitive(original) as Record<string, unknown>;
+    expect(original.token).to.equal('t');
+    expect(redacted.token).to.equal('[REDACTED]');
+    expect(redacted.ok).to.equal(true);
   });
 });
 import { expect } from 'chai';

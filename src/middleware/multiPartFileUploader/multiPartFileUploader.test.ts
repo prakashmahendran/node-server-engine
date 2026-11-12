@@ -141,4 +141,36 @@ describe('Middleware - multiPartFileUploader', () => {
     const merged = await fs.readFile(req2.multipartFile.filePath, 'utf-8');
     expect(merged).to.equal('AB');
   });
+
+  const traversalCases: Array<[string, Record<string, unknown>]> = [
+    ['uniqueID with parent segments', { filename: 'a.txt', totalChunks: '1', chunkIndex: 0, uniqueID: '../../escape' }],
+    ['uniqueID with a slash', { filename: 'a.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'a/b' }],
+    ['filename with parent segments', { filename: '../../escape.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }],
+    ['filename equal to ..', { filename: '..', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }],
+    ['filename with a backslash', { filename: '..\\escape.txt', totalChunks: '1', chunkIndex: 0, uniqueID: 'u3' }],
+    ['non numeric chunkIndex', { filename: 'a.txt', totalChunks: '2', chunkIndex: '../x', uniqueID: 'u3' }],
+    ['chunkIndex out of range', { filename: 'a.txt', totalChunks: '2', chunkIndex: 2, uniqueID: 'u3' }],
+    ['zero totalChunks', { filename: 'a.txt', totalChunks: '0', chunkIndex: 0, uniqueID: 'u3' }]
+  ];
+
+  traversalCases.forEach(([label, body]) => {
+    it(`should reject unsafe upload parameters (${label})`, async () => {
+      const { multiPartFileUploader } = require('./multiPartFileUploader');
+      const middleware = multiPartFileUploader({}, {} as any);
+      const req = buildReq(body, { buffer: Buffer.from('X'), size: 1 });
+      const next = sinon.spy();
+
+      await middleware(req as any, buildRes() as any, next as unknown as NextFunction);
+      await new Promise((r) => setImmediate(r));
+
+      expect(next.calledOnce).to.be.true;
+      const err = next.firstCall.args[0];
+      expect(err).to.have.property('statusCode', 400);
+      expect(err).to.have.property('errorCode', 'invalid-field');
+      expect(req.multipartFile).to.be.undefined;
+      // Nothing must have been written outside of the storage folder
+      expect(fs.existsSync(path.join(tmpRoot, '..', 'escape'))).to.be.false;
+      expect(fs.existsSync(path.join(tmpRoot, '..', 'escape.txt.part0'))).to.be.false;
+    });
+  });
 });

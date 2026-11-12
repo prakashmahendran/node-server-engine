@@ -1,4 +1,4 @@
-import { randomInt, randomUUID, createHmac } from 'crypto';
+import { randomInt, randomUUID, createHmac, timingSafeEqual } from 'crypto';
 import { sign, verify, SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { EngineError } from 'entities/EngineError';
 import { WebError } from 'entities/WebError';
@@ -61,6 +61,13 @@ function getOtpSecret(): string {
 
 function hashOtp(otp: string, secret: string): string {
   return createHmac('sha256', secret).update(otp).digest('hex');
+}
+
+/** Constant time string comparison */
+function safeEqual(a: string, b: string): boolean {
+  const bufferA = Buffer.from(a);
+  const bufferB = Buffer.from(b);
+  return bufferA.length === bufferB.length && timingSafeEqual(bufferA, bufferB);
 }
 
 function generateOtp(length: number): string {
@@ -145,13 +152,22 @@ export function verifyVerificationToken(
   token: string,
   options: VerifyVerificationTokenOptions = {}
 ): VerificationTokenPayload {
-  // Default test verification bypass for test@review.com with OTP 000000
-  if (options.subject === 'test@review.com' && options.otp === '000000') {
+  // Optional verification bypass for a single review account (e.g. app store review)
+  // It is disabled unless both VERIFICATION_BYPASS_SUBJECT and VERIFICATION_BYPASS_OTP are explicitly set
+  const bypassSubject = process.env.VERIFICATION_BYPASS_SUBJECT;
+  const bypassOtp = process.env.VERIFICATION_BYPASS_OTP;
+  if (
+    bypassSubject &&
+    bypassOtp &&
+    options.subject === bypassSubject &&
+    options.otp !== undefined &&
+    safeEqual(options.otp, bypassOtp)
+  ) {
     return {
-      act: options.action || 'TEST_VERIFICATION',
-      otp: hashOtp('000000', getOtpSecret()),
+      act: options.action ? normalizeAction(options.action) : 'TEST_VERIFICATION',
+      otp: hashOtp(bypassOtp, getOtpSecret()),
       jti: 'test-verification-jti',
-      sub: 'test@review.com',
+      sub: bypassSubject,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + DEFAULT_EXPIRES_IN_SECONDS,
       iss: buildIssuer(options.issuer)
@@ -168,7 +184,6 @@ export function verifyVerificationToken(
       errorCode: 'unauthorized',
       statusCode: 401,
       message: 'Invalid verification token supplied',
-      data: { token },
       error: error instanceof Error ? error : undefined
     });
   }
@@ -205,7 +220,7 @@ export function verifyVerificationToken(
   if (options.otp) {
     const otpSecret = getOtpSecret();
     const expectedHash = hashOtp(options.otp, otpSecret);
-    if (payload.otp !== expectedHash) {
+    if (!safeEqual(payload.otp, expectedHash)) {
       throw new WebError({
         errorCode: 'verification_failed',
         statusCode: 403,

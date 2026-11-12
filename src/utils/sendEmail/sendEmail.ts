@@ -24,8 +24,9 @@ export const sendEmail = async (
         pass: process.env.SMTP_PASS
       },
       tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
+        // Certificates are verified by default to protect the SMTP credentials and content
+        // Set SMTP_TLS_REJECT_UNAUTHORIZED=false only for servers with self-signed certificates
+        rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false'
       },
       requireTLS: true
     });
@@ -50,9 +51,9 @@ export const sendEmail = async (
 
     // Determine email status
     let status: EmailStatus = 'sent';
-    if (info.response.includes('queued')) {
+    if (info.response?.includes('queued')) {
       status = 'queued';
-    } else if (info.response.includes('delivered')) {
+    } else if (info.response?.includes('delivered')) {
       status = 'delivered';
     }
 
