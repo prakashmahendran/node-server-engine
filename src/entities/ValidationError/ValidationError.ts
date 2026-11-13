@@ -22,13 +22,24 @@ export class ValidationError extends WebError {
       (hint, error) => ({ ...hint, [error.type]: error.msg as string }),
       {}
     );
+    // Which fields failed and why, so a client can point at them. The submitted values are left out.
+    const details = errors.map((error) =>
+      error.type === 'field'
+        ? {
+            field: error.path,
+            location: error.location,
+            message: error.msg as string
+          }
+        : { message: error.msg as string }
+    );
     super({
       message: 'Request did not pass validation',
       errorCode: 'invalid-request',
       statusCode: 400,
       severity: LogSeverity.WARNING,
       data: hint,
-      hint
+      hint,
+      details
     });
   }
 }

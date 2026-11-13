@@ -260,4 +260,31 @@ describe('Entity - ValidationError', () => {
       expect(parsed.data).to.exist;
     });
   });
+
+  it('should list every failed field in details, without the values', () => {
+    const result = validationResult({ body: {} } as any);
+    const errors = [
+      {
+        type: 'field',
+        msg: 'Invalid email',
+        path: 'email',
+        location: 'body',
+        value: 'secret@x'
+      },
+      {
+        type: 'field',
+        msg: 'Too long',
+        path: 'name',
+        location: 'body',
+        value: 'x'
+      }
+    ];
+    (result as any).isEmpty = () => false;
+    (result as any).array = () => errors;
+    const error = new ValidationError(result);
+    expect(error.details).to.deep.equal([
+      { field: 'email', location: 'body', message: 'Invalid email' },
+      { field: 'name', location: 'body', message: 'Too long' }
+    ]);
+  });
 });
