@@ -1,3 +1,9 @@
+## [2.5.2](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.1...v2.5.2) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* run on Windows (glob paths, upload folders, docs index) ([5cc0ae2](https://github.com/prakashmahendran/node-server-engine/commit/5cc0ae234063fe435f3955ad716173003d069784))
+
 ## [2.5.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.0...v2.5.1) (2026-11-13)
 
 ### 🐛 Bug Fixes
