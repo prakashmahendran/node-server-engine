@@ -1,3 +1,9 @@
+## [2.6.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.4...v2.6.0) (2026-11-13)
+
+### ✨ Features
+
+* **endpoint:** publicReason for endpoints that are public on purpose ([acd5896](https://github.com/prakashmahendran/node-server-engine/commit/acd5896ce65bfcdffb3d5e8327f9fae2d07f2ee3))
+
 ## [2.5.4](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.3...v2.5.4) (2026-11-13)
 
 ### 📚 Documentation
