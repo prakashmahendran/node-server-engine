@@ -1,3 +1,9 @@
+## [2.3.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.3.0...v2.3.1) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **migrations:** one migrations folder, load only pending migrations, connected dialect ([e93b32d](https://github.com/prakashmahendran/node-server-engine/commit/e93b32d7d92b5a7791ef29eecd93f82dfe22e3ed))
+
 ## [2.3.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.2.0...v2.3.0) (2026-11-13)
 
 ### ✨ Features
