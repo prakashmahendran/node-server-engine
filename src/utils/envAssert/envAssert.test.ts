@@ -20,6 +20,11 @@ describe('Utils - envAssert', () => {
       expect(() => validator._parse('test-value')).to.not.throw();
     });
 
+    it('should return the value, so choices and defaults are strings', () => {
+      const validator = envAssert.isString({ choices: ['mssql', 'postgres'] });
+      expect(validator._parse('mssql')).to.equal('mssql');
+    });
+
     it('should reject empty strings by default', () => {
       const validator = envAssert.isString();
 
