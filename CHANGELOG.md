@@ -1,3 +1,9 @@
+## [2.6.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.6.0...v2.6.1) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **swaggerDocs:** keep index.yaml responses and schemas ([0739b66](https://github.com/prakashmahendran/node-server-engine/commit/0739b668b66c468899428dcf3cf8bc75a8ec34d2))
+
 ## [2.6.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.4...v2.6.0) (2026-11-13)
 
 ### ✨ Features
