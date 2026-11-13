@@ -11,7 +11,8 @@ import {
   ResponsesConfig,
   EndpointConfig,
   SchemasConfig,
-  SwaggerConfig
+  SwaggerConfig,
+  ComponentDocumentation
 } from './swaggerDocs.types';
 
 /** Get the paths of all the endpoint documentation files */
@@ -91,10 +92,18 @@ function loadConfig(): SwaggerConfig {
   return {
     ...config,
     ...endpointConfig,
+    // Schemas and responses from index.yaml and from the schemas/ and responses/ folders are merged: a
+    // reference to either kind keeps resolving
     components: {
       ...config.components,
-      ...schemaConfig,
-      ...responseConfig
+      schemas: {
+        ...(config.components?.schemas as ComponentDocumentation | undefined),
+        ...schemaConfig.schemas
+      },
+      responses: {
+        ...(config.components?.responses as ComponentDocumentation | undefined),
+        ...responseConfig.responses
+      }
     }
   };
 }

@@ -4,7 +4,7 @@ export interface EndpointDocumentation {
 }
 
 /** Documentation content  */
-interface ComponentDocumentation {
+export interface ComponentDocumentation {
   [name: string]: { [key: string]: unknown };
 }
 

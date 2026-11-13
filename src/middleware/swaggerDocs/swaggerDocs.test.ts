@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import * as glob from 'glob';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 
@@ -55,6 +57,57 @@ describe('Middleware - swaggerDocs', () => {
     const router = swaggerDocs();
     expect(router).to.exist;
     expect(setupStub).to.have.been.calledOnce;
+  });
+
+  it('should keep the responses and schemas declared in index.yaml next to the loaded ones', () => {
+    // Real files in a temporary service folder: only swaggerUi.setup stays stubbed
+    globSyncStub.restore();
+    yamlStub.restore();
+    existsStub.restore();
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'swagger-'));
+    const write = (file: string, text: string): void => {
+      fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+      fs.writeFileSync(path.join(root, file), text);
+    };
+    write(
+      'src/docs/index.yaml',
+      [
+        'openapi: 3.0.0',
+        'components:',
+        '  securitySchemes:',
+        '    bearerAuth:',
+        '      type: http',
+        '  responses:',
+        '    BadRequest:',
+        '      description: Bad request',
+        '  schemas:',
+        '    Error:',
+        '      type: object'
+      ].join('\n')
+    );
+    write('src/docs/schemas/User.yaml', 'User:\n  type: object\n');
+    write(
+      'src/a/a.docs.yaml',
+      "/a:\n  get:\n    responses:\n      '400':\n        $ref: '#/components/responses/BadRequest'\n"
+    );
+    sinon.stub(process, 'cwd').returns(root);
+    try {
+      swaggerDocs();
+      const spec = setupStub.firstCall.args[0];
+      expect(Object.keys(spec.components.responses)).to.deep.equal([
+        'BadRequest'
+      ]);
+      expect(Object.keys(spec.components.schemas).sort()).to.deep.equal([
+        'Error',
+        'User'
+      ]);
+      expect(spec.components.securitySchemes).to.have.property('bearerAuth');
+      expect(spec.paths['/a'].get.responses['400'].$ref).to.equal(
+        '#/components/responses/BadRequest'
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('should load index.yaml when present', () => {
