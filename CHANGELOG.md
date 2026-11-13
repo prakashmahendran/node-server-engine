@@ -1,3 +1,13 @@
+## [2.3.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.2.0...v2.3.0) (2026-11-13)
+
+### ✨ Features
+
+* **validation:** list the failed fields in ValidationError details ([7ed70a2](https://github.com/prakashmahendran/node-server-engine/commit/7ed70a29945c3f135b2ca28a4f8814b8448f5dd3))
+
+### 📚 Documentation
+
+* validation error details ([91809a1](https://github.com/prakashmahendran/node-server-engine/commit/91809a16f0e161bdd4bca67fd8773ead826ab690))
+
 ## [2.2.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.1.0...v2.2.0) (2026-11-13)
 
 ### ✨ Features
