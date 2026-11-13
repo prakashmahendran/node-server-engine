@@ -2706,7 +2706,7 @@ We welcome contributions! Please follow these guidelines:
 
 ## License
 
-ISC © Ram
+ISC © GWC Data.AI
 
 ## Support
 
