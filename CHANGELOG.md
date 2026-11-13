@@ -1,3 +1,9 @@
+## [2.5.4](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.3...v2.5.4) (2026-11-13)
+
+### 📚 Documentation
+
+* services install the driver of their SQL_TYPE ([0f86ace](https://github.com/prakashmahendran/node-server-engine/commit/0f86ace1df9d88c1540cec3abb47fca19a83c154))
+
 ## [2.5.3](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.2...v2.5.3) (2026-11-13)
 
 ### 🐛 Bug Fixes
