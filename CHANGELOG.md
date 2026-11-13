@@ -1,3 +1,9 @@
+## [2.5.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.4.1...v2.5.0) (2026-11-13)
+
+### ✨ Features
+
+* **email:** Microsoft Graph delivery and MAIL_FROM default for sendEmail ([d371822](https://github.com/prakashmahendran/node-server-engine/commit/d371822055a429a9591b1a7833c6a5acf57a5ca7))
+
 ## [2.4.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.4.0...v2.4.1) (2026-11-13)
 
 ### 🐛 Bug Fixes
