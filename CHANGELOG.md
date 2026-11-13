@@ -1,3 +1,14 @@
+## [2.2.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.1.0...v2.2.0) (2026-11-13)
+
+### ✨ Features
+
+* **errors:** WebError can send public details and Retry-After ([9c078a4](https://github.com/prakashmahendran/node-server-engine/commit/9c078a49d814839f2f17d1063ca71eff1a79f054))
+* **sequelize:** SQL_LOWERCASE_GUIDS for SQL Server ([018ca75](https://github.com/prakashmahendran/node-server-engine/commit/018ca752c6fa1fafc87b6620f901229cd620745d))
+
+### 🐛 Bug Fixes
+
+* **sequelize:** sync models only in tests or when SQL_SYNC_MODELS=true; SQL_POOL_MAX ([66cfb3b](https://github.com/prakashmahendran/node-server-engine/commit/66cfb3bbf1503ea961fb0ce9c6bd253d7059ea0a))
+
 ## [2.1.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.0.2...v2.1.0) (2026-11-12)
 
 ### ✨ Features
