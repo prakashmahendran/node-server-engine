@@ -2256,7 +2256,8 @@ await sendPush(userId, notification);
 
 ### Send Email
 
-Send an email using the SMTP configuration.
+Send an email: through Microsoft Graph (Microsoft 365) when the `GRAPH_*` variables are set, otherwise
+through SMTP. Failures are returned (`status: 'failed'`, `error`), not thrown.
 
 ```javascript
 import { sendEmail } from 'node-server-engine';
@@ -2293,6 +2294,19 @@ console.log(result.status); // 'sent', 'delivered', 'queued', or 'failed'
 | `replyTo`     | (Optional) Email address for replies.                                                                             |
 | `headers`     | (Optional) Custom email headers.                                                                                  |
 | `priority`    | (Optional) Email priority (`high`, `normal`, or `low`).                                                           |
+
+#### Environment Variables
+
+| Variable                       | Description                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `MAIL_FROM`                    | Default sender (`App <no-reply@example.com>`) when `from` is not given                        |
+| `SMTP_HOST`, `SMTP_PORT`       | SMTP server (465 uses TLS from the start, other ports STARTTLS)                               |
+| `SMTP_USER`, `SMTP_PASS`       | SMTP credentials                                                                              |
+| `SMTP_TLS_REJECT_UNAUTHORIZED` | `false` accepts a self-signed SMTP certificate (development only)                             |
+| `GRAPH_TENANT_ID`              | Microsoft Graph: the Entra ID tenant                                                          |
+| `GRAPH_CLIENT_ID`              | Microsoft Graph: the app registration (application permission `Mail.Send`)                    |
+| `GRAPH_CLIENT_SECRET`          | Microsoft Graph: its client secret                                                            |
+| `GRAPH_SENDER`                 | Microsoft Graph: the mailbox mail is sent as (not kept in its Sent Items; `from` is not used) |
 
 ### Return Status
 

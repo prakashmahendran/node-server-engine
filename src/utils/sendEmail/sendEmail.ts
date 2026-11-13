@@ -1,4 +1,5 @@
 import { EmailOptions, EmailResult, EmailStatus } from './sendEmail.types';
+import { graphConfigured, sendViaGraph } from './graphMail';
 import nodemailer, {
   Transporter,
   SendMailOptions,
@@ -6,13 +7,22 @@ import nodemailer, {
 } from 'nodemailer';
 
 /**
- * Sends an email using Nodemailer.
+ * Sends an email: through Microsoft Graph when GRAPH_* is configured, otherwise through SMTP (Nodemailer).
+ * The sender defaults to MAIL_FROM.
  * @param emailOptions - Configuration options for sending the email.
  * @returns A Promise that resolves with an EmailResult indicating success or failure.
  */
 export const sendEmail = async (
   emailOptions: EmailOptions
 ): Promise<EmailResult> => {
+  if (graphConfigured()) {
+    try {
+      await sendViaGraph(emailOptions);
+      return { status: 'sent' };
+    } catch (error) {
+      return { status: 'failed', error: (error as Error).message };
+    }
+  }
   try {
     // Create a transport with SMTP configuration
     const transporter: Transporter = nodemailer.createTransport({
@@ -33,7 +43,7 @@ export const sendEmail = async (
 
     // Construct email options
     const mailOptions: SendMailOptions = {
-      from: emailOptions.from,
+      from: emailOptions.from ?? process.env.MAIL_FROM,
       to: emailOptions.to,
       cc: emailOptions.cc,
       bcc: emailOptions.bcc,
