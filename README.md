@@ -238,6 +238,8 @@ The main function of the endpoint is called the **handler**. This function shoul
 
 An endpoint usually has a **validator**. A validator is a schema that will be compared to the incoming request. The request will be denied if it contains illegal or malformed arguments. For more detail see the documentation of the underlying package [express-validator](https://express-validator.github.io/docs/schema-validation.html).
 
+A request that fails validation is answered `400` with `errorCode: 'invalid-request'` and `details`, one entry per failed field: `{ field, location, message }` (the submitted values are not echoed back).
+
 ```javascript
 import { Endpoint, EndpointMethod } from 'node-server-engine';
 
