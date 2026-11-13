@@ -9,6 +9,22 @@ export function error(
   response: Response,
   _next: NextFunction
 ): void {
+  // A body the JSON parser refused is the client's mistake, not a server error
+  const bodyError = (error as { type?: string }).type;
+  if (bodyError === 'entity.parse.failed') {
+    response.status(400).json({
+      errorCode: 'invalid-json',
+      hint: 'The request body is not valid JSON'
+    });
+    return;
+  }
+  if (bodyError === 'entity.too.large') {
+    response.status(413).json({
+      errorCode: 'request-too-large',
+      hint: 'The request body is too large'
+    });
+    return;
+  }
   reportError(error, request);
   if (error instanceof WebError) {
     if (error.retryAfterSec !== undefined)

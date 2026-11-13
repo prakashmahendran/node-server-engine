@@ -9,11 +9,24 @@ import { Sequelize } from 'sequelize';
 import { fake, SinonStub, stub } from 'sinon';
 import supertest from 'supertest';
 import WS from 'ws';
-import { Server } from './Server';
+import { Server, parseTrustProxy } from './Server';
 import { Endpoint, EndpointMethod, EndpointAuthType } from 'entities/Endpoint';
 import { SocketClient, SocketMessage } from 'entities/SocketClient';
 import { httpsAgent, loadTlsConfig } from 'utils';
 import * as jwt from 'utils/jwt/jwt';
+
+describe('Entity - Server - parseTrustProxy', () => {
+  it('reads hop counts, booleans and address lists', () => {
+    expect(parseTrustProxy(undefined)).to.equal(undefined);
+    expect(parseTrustProxy(' ')).to.equal(undefined);
+    expect(parseTrustProxy('1')).to.equal(1);
+    expect(parseTrustProxy('true')).to.equal(true);
+    expect(parseTrustProxy('false')).to.equal(false);
+    expect(parseTrustProxy('loopback, 10.0.0.0/8')).to.equal(
+      'loopback, 10.0.0.0/8'
+    );
+  });
+});
 
 describe('Entity - Server', function () {
   let token: string;

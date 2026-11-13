@@ -79,4 +79,27 @@ describe('Middleware - error', () => {
     app.get(PATH, (req: any, res: any) => res.sendStatus(200));
     await request(app).get(PATH).expect(200);
   });
+
+  it('should answer an unreadable or oversized JSON body as a client error', async () => {
+    app.use(express.json({ limit: '10b' }));
+    app.post(PATH, (_req, res) => {
+      res.json({});
+    });
+    app.use(error);
+    await request(app)
+      .post(PATH)
+      .set('content-type', 'application/json')
+      .send('{"a":')
+      .expect(400, {
+        errorCode: 'invalid-json',
+        hint: 'The request body is not valid JSON'
+      });
+    await request(app)
+      .post(PATH)
+      .send({ text: 'more than ten bytes' })
+      .expect(413, {
+        errorCode: 'request-too-large',
+        hint: 'The request body is too large'
+      });
+  });
 });

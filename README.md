@@ -228,6 +228,10 @@ server.init();
 
 <!-- markdownlint-enable MD033 -->
 
+Behind a load balancer or reverse proxy, set `TRUST_PROXY` (a number of proxy hops such as `1`, `true`, or
+addresses/subnets such as `loopback, 10.0.0.0/8`) so `req.ip` is the client's address (rate limits, logs).
+It is passed to express' `trust proxy` setting; unset, no proxy is trusted.
+
 ---
 
 ### Endpoint
@@ -1829,7 +1833,9 @@ In addition to the [common options](#common-options), WebError defines some othe
 | details       | Public structured data the client acts on, returned as `details` (attempts left, per-row errors...). Never put secrets here; `data` stays in the logs only. | `{ attemptsLeft: 2 }` |              |
 | retryAfterSec | Seconds before the client may retry, sent as the `Retry-After` header                                                                                       | 60                    |              |
 
-The error middleware answers `{ errorCode, hint, details? }` with the given status code.
+The error middleware answers `{ errorCode, hint, details? }` with the given status code. A request body
+the JSON parser refuses is answered `400 { errorCode: 'invalid-json' }`, and one over
+`REQUEST_SIZE_LIMIT` `413 { errorCode: 'request-too-large' }`; any other error is `500 { errorCode: 'server-error' }`.
 
 ## Middlewares
 
@@ -2041,6 +2047,60 @@ checkPermission(['admin', 'moderator']);
 
 ---
 
+### Security Headers
+
+Sets the usual API security headers with [helmet](https://helmetjs.github.io/): `X-Content-Type-Options`,
+`X-Frame-Options`, `Referrer-Policy`, the cross-origin policies, and `Strict-Transport-Security` when
+`NODE_ENV` is `production`. The content security policy is off by default (JSON responses do not need it and
+it would block the swagger UI). Helmet options passed in override these defaults.
+
+```javascript
+import { Server, middleware } from 'node-server-engine';
+
+new Server({
+  globalMiddleware: [middleware.securityHeaders(), middleware.swaggerDocs()],
+  endpoints
+});
+```
+
+### Rate Limit
+
+Limits how often a client may call the endpoints it is attached to (per process, in memory). Over the limit
+the request is answered `429 { errorCode: 'rate-limited', hint }` with a `Retry-After` header.
+
+| option   | description                                                                                                                      | default |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| windowMs | Length of the window in milliseconds                                                                                             |         |
+| max      | Requests allowed per key and window                                                                                              |         |
+| key      | `'ip'` (client address; set `TRUST_PROXY` behind a load balancer), `'token'` (the Authorization header) or `(req) => string` | `'ip'`  |
+
+```javascript
+import { Endpoint, middleware, EndpointAuthType, EndpointMethod } from 'node-server-engine';
+
+// Sign-in: 30 attempts per address every 15 minutes
+const signInLimit = middleware.rateLimit({ windowMs: 15 * 60_000, max: 30 });
+
+export const loginEndpoint = new Endpoint({
+  path: '/auth/login',
+  method: EndpointMethod.POST,
+  authType: EndpointAuthType.NONE,
+  validator: loginValidator,
+  middleware: [signInLimit],
+  handler: loginHandler
+});
+```
+
+Create the limiter once and share it between the endpoints that should share a counter.
+
+### Request Id
+
+Gives every request an id (`req.id`), also sent back as the `X-Request-Id` header, so a client report, the
+logs and the data a request wrote (e.g. an audit trail) can be matched.
+
+```javascript
+new Server({ globalMiddleware: [middleware.requestId()], endpoints });
+```
+
 ### Verification Token Middleware
 
 ⚠️ **Must be used in combination with AuthType.JWT**
@@ -2076,6 +2136,50 @@ new Endpoint({
 - Body/query fields: `verificationToken`, `verificationOtp`
 
 ## Utilities
+
+### Validators
+
+Field rules for endpoint [validators](#endpoint) (express-validator schemas), so every service checks input
+the same strict way. Body values are checked by JSON type (`"5"` is not a number in a JSON body); query and
+path values are strings, and numbers there are converted. A field with a `default` gets it when missing;
+`optional` fields stay absent.
+
+```javascript
+import { Schema } from 'express-validator';
+import { validators } from 'node-server-engine';
+
+const { string, email, int, bool, oneOf, uuid, date, time, page } = validators;
+
+export const createTeamValidator: Schema = {
+  name: string('body', { min: 2, max: 60, trim: true }),
+  leadEmail: email('body', { optional: true }),
+  size: int('body', { min: 1, max: 500, default: 10 }),
+  remote: bool('body', { default: false }),
+  kind: oneOf('body', ['team', 'project'], { default: 'team' }),
+  parentId: uuid('body', { nullable: true }), // an id or null
+  startsOn: date('body'), // YYYY-MM-DD
+  dayStart: time('body', { nullable: true }) // HH:MM or null (the default)
+};
+
+export const listTeamsValidator: Schema = {
+  managerId: uuid('query', { orValues: ['none'] }), // an id, or 'none'
+  ...page({ maxPageSize: 100 }) // page (default 1), pageSize (default 25)
+};
+```
+
+| rule                               | options                                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| `string(location, rule)`           | `min`, `max`, `optional`, `trim`, `matches` (RegExp), `message`, `default` |
+| `email(location, options)`         | `optional`, `message`; trimmed and lower-cased                             |
+| `uuid(location, options)`          | `optional`, `nullable`, `orValues`                                         |
+| `oneOf(location, values, options)` | `optional`, `default`, `message`                                           |
+| `int(location, rule)`              | `min`, `max`, `optional`, `nullable`, `default`, `check(n)`, `message`     |
+| `bool(location, options)`          | `optional`, `default`                                                      |
+| `date(location, options)`          | `optional`                                                                 |
+| `time(location, options)`          | `optional`, `nullable`                                                     |
+| `page(options)`                    | `maxPageSize` (100), `pageSize` (25)                                       |
+
+`DATE_RE` and `TIME_RE` are exported for checks in handlers.
 
 The server engine ships with a handful of utility functions that are commonly used by servers
 

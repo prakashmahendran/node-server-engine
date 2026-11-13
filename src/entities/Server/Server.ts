@@ -50,6 +50,20 @@ export function parseCorsOrigin(value?: string): string | Array<string> {
   return origins.length === 1 ? origins[0] : origins;
 }
 
+/**
+ * Parse the TRUST_PROXY variable for express' 'trust proxy' setting: a number of proxy hops, true/false, or
+ * addresses/subnets (comma separated). Unset: express' default (no proxy trusted).
+ */
+export function parseTrustProxy(
+  value?: string
+): number | boolean | string | undefined {
+  if (value === undefined || value.trim() === '') return undefined;
+  const v = value.trim();
+  if (/^\d+$/.test(v)) return Number(v);
+  if (v === 'true' || v === 'false') return v === 'true';
+  return v;
+}
+
 /** Main server class */
 export class Server {
   /** The express application powering the main endpoints */
@@ -131,6 +145,9 @@ export class Server {
 
     // Create the primary express core that serves the business logic
     this.app = express();
+    // Behind a load balancer or reverse proxy, req.ip (rate limits, logs) must be the client's address
+    const trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
+    if (trustProxy !== undefined) this.app.set('trust proxy', trustProxy);
     this.app.use(
       cors({
         origin: parseCorsOrigin(process.env.CORS_ORIGIN),
