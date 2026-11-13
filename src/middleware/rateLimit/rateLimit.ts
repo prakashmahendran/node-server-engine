@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import { RequestHandler } from 'express';
-import expressRateLimit from 'express-rate-limit';
+import expressRateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { RateLimitOptions } from './rateLimit.types';
 
 /**
@@ -22,9 +22,12 @@ export function rateLimit(options: RateLimitOptions): RequestHandler {
           keyGenerator:
             key === 'token'
               ? (request): string =>
-                  createHash('sha256')
-                    .update(request.headers.authorization ?? request.ip ?? '')
-                    .digest('hex')
+                  request.headers.authorization
+                    ? createHash('sha256')
+                        .update(request.headers.authorization)
+                        .digest('hex')
+                    : // no token: the client address, IPv6 grouped by subnet
+                      ipKeyGenerator(request.ip ?? '')
               : key
         }),
     message: {

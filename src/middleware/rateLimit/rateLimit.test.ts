@@ -33,4 +33,11 @@ describe('Middleware - rateLimit', () => {
     await request(server).get('/').set('authorization', 'Bearer a').expect(429);
     await request(server).get('/').set('authorization', 'Bearer b').expect(200);
   });
+
+  it('counts clients without a token by address when keyed by token', async () => {
+    const server = app('token');
+    await request(server).get('/').expect(200);
+    await request(server).get('/').expect(200);
+    await request(server).get('/').expect(429);
+  });
 });

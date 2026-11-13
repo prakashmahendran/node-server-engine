@@ -532,11 +532,14 @@ export class Server {
     if (
       config.checkEnvironment &&
       Object.values(config.checkEnvironment).some(
-        (validator) => typeof validator !== 'function'
+        // envAssert / envalid validators are objects with a _parse function
+        (validator) =>
+          typeof (validator as { _parse?: unknown } | undefined)?._parse !==
+          'function'
       )
     )
       throw new EngineError(
-        'Some of the environment checks are not valid functions'
+        'Some of the environment checks are not envAssert validators'
       );
 
     if (

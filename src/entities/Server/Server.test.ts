@@ -10,6 +10,7 @@ import { fake, SinonStub, stub } from 'sinon';
 import supertest from 'supertest';
 import WS from 'ws';
 import { Server, parseTrustProxy } from './Server';
+import { envAssert } from 'utils/envAssert';
 import { Endpoint, EndpointMethod, EndpointAuthType } from 'entities/Endpoint';
 import { SocketClient, SocketMessage } from 'entities/SocketClient';
 import { httpsAgent, loadTlsConfig } from 'utils';
@@ -297,5 +298,31 @@ describe('Entity - Server', function () {
     await supertest(server.getSecondaryApp()).get('/random').expect(404);
 
     await server.shutdown();
+  });
+});
+
+describe('Entity - Server - checkEnvironment', () => {
+  it('accepts envAssert validators and runs them', () => {
+    process.env.ENGINE_TEST_CHOICE = 'b';
+    expect(
+      () =>
+        new Server({
+          endpoints: [],
+          checkEnvironment: {
+            ENGINE_TEST_CHOICE: envAssert.isString({ choices: ['a', 'b'] })
+          }
+        })
+    ).to.not.throw();
+    delete process.env.ENGINE_TEST_CHOICE;
+  });
+
+  it('refuses something that is not a validator', () => {
+    expect(
+      () =>
+        new Server({
+          endpoints: [],
+          checkEnvironment: { X: (() => true) as never }
+        })
+    ).to.throw(/envAssert validators/);
   });
 });
