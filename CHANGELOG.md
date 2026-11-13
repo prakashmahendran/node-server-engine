@@ -1,3 +1,9 @@
+## [2.4.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.3.1...v2.4.0) (2026-11-13)
+
+### ✨ Features
+
+* security headers, rate limit, request id, validators, TRUST_PROXY ([08c230a](https://github.com/prakashmahendran/node-server-engine/commit/08c230aa89f2a75ab1e300a9e525ae735e155736))
+
 ## [2.3.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.3.0...v2.3.1) (2026-11-13)
 
 ### 🐛 Bug Fixes
