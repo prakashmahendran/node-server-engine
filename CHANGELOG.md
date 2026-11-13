@@ -1,3 +1,9 @@
+## [2.5.3](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.2...v2.5.3) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* checkEnvironment accepts envAssert validators; token rate limit and TLS checks ([451bf98](https://github.com/prakashmahendran/node-server-engine/commit/451bf98096795fe275c86d7e7d5987087d36a1f9))
+
 ## [2.5.2](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.1...v2.5.2) (2026-11-13)
 
 ### 🐛 Bug Fixes
