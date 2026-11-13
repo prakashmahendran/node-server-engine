@@ -246,3 +246,36 @@ describe('Entity - Endpoint', () => {
     await server.shutdown();
   });
 });
+
+describe('Entity - Endpoint - publicReason', () => {
+  it('flags an endpoint without authentication, which is warned about at start-up', () => {
+    expect(new Endpoint(config).openByMistake).to.equal(true);
+  });
+
+  it('does not flag an endpoint that is public on purpose', () => {
+    const endpoint = new Endpoint({ ...config, publicReason: 'Health check' });
+    expect(endpoint.openByMistake).to.equal(false);
+    expect(endpoint.publicReason).to.equal('Health check');
+  });
+
+  it('never flags an authenticated endpoint', () => {
+    expect(
+      new Endpoint({ ...config, authType: EndpointAuthType.JWT } as never)
+        .openByMistake
+    ).to.equal(false);
+  });
+
+  it('refuses a publicReason on an authenticated endpoint, or an empty one', () => {
+    expect(
+      () =>
+        new Endpoint({
+          ...config,
+          authType: EndpointAuthType.JWT,
+          publicReason: 'x'
+        } as never)
+    ).to.throw(/requires authentication/);
+    expect(() => new Endpoint({ ...config, publicReason: '  ' })).to.throw(
+      /must say why/
+    );
+  });
+});

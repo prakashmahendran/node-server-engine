@@ -52,6 +52,13 @@ export class Endpoint<T extends EndpointAuthType> {
   private validator: Schema;
   /** Authentication related options for this endpoint */
   private authParams?: EndpointAuthParams<T>;
+  /** Why this endpoint is public on purpose (no authentication) */
+  public readonly publicReason?: string;
+
+  /** No authentication and no publicReason: possibly left open by mistake (warned about at start-up) */
+  public get openByMistake(): boolean {
+    return this.authType === EndpointAuthType.NONE && !this.publicReason;
+  }
   /** Settings to upload files through this endpoint (this will automatically switch the expected request to be a multipart) */
   private files?: Array<FileUploaderConfig>;
   /** Settings to upload file parts (Chunks) through this endpoint (this will automatically switch the expected request to be a multipart) */
@@ -96,6 +103,21 @@ export class Endpoint<T extends EndpointAuthType> {
     if (!EndpointAuthTypes.includes(config.authType))
       throw new EngineError({ message: 'Endpoint auth type is not valid' });
     this.authType = config.authType;
+
+    if (config.publicReason !== undefined) {
+      if (config.authType !== EndpointAuthType.NONE)
+        throw new EngineError({
+          message: `Endpoint [${config.method} - ${config.path}] has a publicReason but requires authentication`
+        });
+      if (
+        typeof config.publicReason !== 'string' ||
+        !config.publicReason.trim()
+      )
+        throw new EngineError({
+          message: `Endpoint [${config.method} - ${config.path}] publicReason must say why it is public`
+        });
+      this.publicReason = config.publicReason;
+    }
 
     this.validator = config.validator;
     this.authParams = config.authParams;
@@ -195,10 +217,12 @@ export class Endpoint<T extends EndpointAuthType> {
 
     const handler = EndpointAuthHandlers[authType] as EndpointAuthHandler<T>;
     if (!handler) {
-      reportInfo({
-        severity: LogSeverity.WARNING,
-        message: `Endpoint "${this.method} - ${this.path}" was declared with no authentication method`
-      });
+      // Public on purpose (publicReason) is not worth a warning; an endpoint left open by mistake is
+      if (this.openByMistake)
+        reportInfo({
+          severity: LogSeverity.WARNING,
+          message: `Endpoint "${this.method} - ${this.path}" was declared with no authentication method (set publicReason if it is public on purpose)`
+        });
       return [];
     }
 

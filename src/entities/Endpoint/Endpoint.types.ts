@@ -124,6 +124,12 @@ export interface EndpointOptions<T extends EndpointAuthType> {
   authType: T;
   /** Authentication related options for this endpoint */
   authParams?: EndpointAuthParams<T>;
+  /**
+   * Why an endpoint without authentication (EndpointAuthType.NONE) is public on purpose, e.g. "Sign-in: the
+   * caller has no token yet". It documents the decision and silences the start-up warning that every other
+   * unauthenticated endpoint still gets. Only allowed with EndpointAuthType.NONE.
+   */
+  publicReason?: string;
   /** @deprecated Setting to upload a file through this endpoint */
   file?: FileUploaderConfig;
   /** Settings to upload files through this endpoint (this will automatically switch the expected request to be a multipart) */

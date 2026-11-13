@@ -290,6 +290,7 @@ new Endpoint({
 | validator       | Object                      | Schema to validate against the request. [See documentation](https://express-validator.github.io/docs/schema-validation.html) for more details. |               |
 | authType        | [AuthType](#authentication) | Authentication to use for this endpoint                                                                                                        | AuthType.NONE |
 | authParams      | Object                      | Options specific to the [authentication methods](#authentication)                                                                              | {}            |
+| publicReason    | String                      | Why an endpoint with `AuthType.NONE` is public on purpose; see [Public endpoints](#public-endpoints)                                           |               |
 | files           | Array\<Object>              | Configuration to upload files. See the [specific documentation](#file-upload).                                                                 | {}            |
 | middleware      | Array\<Function>            | List of middlewares to run before the handler.                                                                                                 | []            |
 | errorMiddleware | Array\<Function>            | List of middlewares to run after the handler                                                                                                   | []            |
@@ -349,6 +350,25 @@ The server engine exposes an enumeration for auth types.
 | AuthType.STATIC | A valid shared Bearer token is required. Shared token is stored in env variable (STATIC_TOKEN)                                                                                                                      |
 
 <!-- markdownlint-enable MD033 -->
+
+##### Public endpoints
+
+An endpoint with `AuthType.NONE` is logged as a warning at start-up, so one left open by mistake gets noticed.
+When it is public on purpose (sign-in, health checks, webhooks with their own signature), say why with
+`publicReason`: the warning goes away and the reason stays next to the code. `publicReason` is refused on an
+endpoint that requires authentication. `endpoint.openByMistake` is true for an unauthenticated endpoint
+without a reason, which a service's tests can check for every endpoint.
+
+```javascript
+export const loginEndpoint = new Endpoint({
+  path: '/auth/login',
+  method: EndpointMethod.POST,
+  authType: EndpointAuthType.NONE,
+  publicReason: 'Sign-in: the caller has no token yet',
+  validator: loginValidator,
+  handler: loginHandler
+});
+```
 
 #### File Upload Middleware
 
