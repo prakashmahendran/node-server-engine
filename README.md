@@ -1061,6 +1061,9 @@ The server engine exposes an SQL ORM that is configured to work with the standar
 
 It is a pre-configured instance of [sequelize](https://github.com/sequelize/sequelize). See the package documentation for more details.
 
+The PostgreSQL driver (`pg`) comes with the engine. For another `SQL_TYPE`, install its driver in the service
+itself, where Sequelize can find it: `npm install tedious` for `mssql`, `npm install mysql2` for `mysql`.
+
 ```javascript
 import { Sequelize } from 'node-server-engine';
 
