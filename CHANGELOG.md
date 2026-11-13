@@ -1,3 +1,9 @@
+## [2.6.2](https://github.com/prakashmahendran/node-server-engine/compare/v2.6.1...v2.6.2) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **swaggerDocs:** document src/ or dist/, never both ([af51eb1](https://github.com/prakashmahendran/node-server-engine/commit/af51eb16a6d0465304a70d3f994493c5c20bc4d7))
+
 ## [2.6.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.6.0...v2.6.1) (2026-11-13)
 
 ### 🐛 Bug Fixes
