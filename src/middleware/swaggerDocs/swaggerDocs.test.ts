@@ -110,6 +110,34 @@ describe('Middleware - swaggerDocs', () => {
     }
   });
 
+  it('should document the sources only, not a stale build next to them', () => {
+    globSyncStub.restore();
+    yamlStub.restore();
+    existsStub.restore();
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'swagger-'));
+    const write = (file: string, text: string): void => {
+      fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+      fs.writeFileSync(path.join(root, file), text);
+    };
+    write('src/a/a.docs.yaml', '/new:\n  get:\n    summary: current\n');
+    write('dist/a/a.docs.yaml', '/old:\n  get:\n    summary: stale\n');
+    sinon.stub(process, 'cwd').returns(root);
+    try {
+      swaggerDocs();
+      expect(Object.keys(setupStub.firstCall.args[0].paths)).to.deep.equal([
+        '/new'
+      ]);
+      // A server with the build only documents it
+      fs.rmSync(path.join(root, 'src'), { recursive: true });
+      swaggerDocs();
+      expect(Object.keys(setupStub.secondCall.args[0].paths)).to.deep.equal([
+        '/old'
+      ]);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('should load index.yaml when present', () => {
     // Force existsSync true and provide index config
     existsStub.restore();

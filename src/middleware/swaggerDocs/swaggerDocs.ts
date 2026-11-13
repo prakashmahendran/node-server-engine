@@ -15,28 +15,31 @@ import {
   ComponentDocumentation
 } from './swaggerDocs.types';
 
+/**
+ * The documentation files matching `pattern` in src/ (development, and wherever the sources are deployed),
+ * else in dist/ (a server with the build only). Never both: a stale build would document old routes twice.
+ */
+function docFiles(pattern: string): Array<string> {
+  for (const dir of ['src', 'dist']) {
+    if (!fs.existsSync(path.join(process.cwd(), dir))) continue;
+    return glob.sync(globPattern(process.cwd(), `${dir}/${pattern}`));
+  }
+  return [];
+}
+
 /** Get the paths of all the endpoint documentation files */
 function getEndpointDocPaths(): Array<string> {
-  return [
-    ...glob.sync(globPattern(process.cwd(), 'src/**/*.docs.yaml')),
-    ...glob.sync(globPattern(process.cwd(), 'dist/**/*.docs.yaml'))
-  ];
+  return docFiles('**/*.docs.yaml');
 }
 
 /** Get the paths of all the schema files */
 function getSchemaPaths(): Array<string> {
-  return [
-    ...glob.sync(globPattern(process.cwd(), 'src/docs/schemas/*.yaml')),
-    ...glob.sync(globPattern(process.cwd(), 'dist/docs/schemas/*.yaml'))
-  ];
+  return docFiles('docs/schemas/*.yaml');
 }
 
 /** Get the paths of all the response files */
 function getResponsePaths(): Array<string> {
-  return [
-    ...glob.sync(globPattern(process.cwd(), 'src/docs/responses/*.yaml')),
-    ...glob.sync(globPattern(process.cwd(), 'dist/docs/responses/*.yaml'))
-  ];
+  return docFiles('docs/responses/*.yaml');
 }
 
 /**
