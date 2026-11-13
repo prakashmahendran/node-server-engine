@@ -1,3 +1,9 @@
+## [2.5.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.5.0...v2.5.1) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **envAssert:** isString returns the string, not a boolean ([c5e8ad0](https://github.com/prakashmahendran/node-server-engine/commit/c5e8ad02511750a9e9e930519f48637970b4e5b5))
+
 ## [2.5.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.4.1...v2.5.0) (2026-11-13)
 
 ### ✨ Features
