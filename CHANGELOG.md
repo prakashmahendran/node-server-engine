@@ -1,3 +1,9 @@
+## [2.4.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.4.0...v2.4.1) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **server:** a failed cron run no longer stops the job ([be716e6](https://github.com/prakashmahendran/node-server-engine/commit/be716e6ddf1b4d3d71c655fc3f858a0ff52bc95d))
+
 ## [2.4.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.3.1...v2.4.0) (2026-11-13)
 
 ### ✨ Features
