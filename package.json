@@ -165,6 +165,29 @@
   "overrides": {
     "sequelize": {
       "uuid": "^11.1.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.8"
+    },
+    "babel-plugin-module-resolver": {
+      "glob": {
+        "minimatch": "^11.0.8"
+      }
+    },
+    "test-exclude": {
+      "minimatch": "^11.0.8",
+      "glob": "^14.0.6"
+    },
+    "mocha": {
+      "minimatch": "^11.0.8",
+      "glob": {
+        "minimatch": "^11.0.8"
+      }
+    },
+    "nyc": {
+      "glob": {
+        "minimatch": "^11.0.8"
+      }
     }
   }
 }
