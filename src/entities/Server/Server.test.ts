@@ -186,6 +186,24 @@ describe('Entity - Server', function () {
     await server.shutdown();
   });
 
+  it('should keep running a cronjob after a failed run', async () => {
+    let runs = 0;
+    const handler = async (): Promise<void> => {
+      runs++;
+      if (runs === 1) throw new Error('first run fails');
+    };
+
+    const server = new Server({
+      endpoints: [],
+      cron: [{ handler, interval: 0.01 }]
+    });
+
+    await server.init();
+    await setTimeout(40);
+    await server.shutdown();
+    expect(runs).to.be.greaterThan(1);
+  });
+
   it('should handle the cronjob', async () => {
     const handler = fake();
     const interval = 0.01; // 10ms

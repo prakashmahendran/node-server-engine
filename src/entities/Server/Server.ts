@@ -476,26 +476,32 @@ export class Server {
     });
   }
 
-  /** Executes a recurring job */
+  /**
+   * Executes a recurring job: it runs at start-up, then `interval` seconds after each run finished, until the
+   * server shuts down. A run that fails is reported and the job keeps its schedule.
+   */
   private runCronJob(job: ServerCronJon): void {
+    const name = job.handler?.name || 'anonymous';
     (async (): Promise<void> => {
-      reportInfo({ message: `Starting scheduled job "${job.handler.name}"` });
-      try {
-        await job.handler();
-        reportInfo({
-          message: `Job "${job.handler.name}" finished, starting again in ${job.interval} seconds`
-        });
-        await setTimeoutPromise(job.interval * 1000, undefined, {
-          signal: this.abortController.signal
-        });
-        this.runCronJob(job);
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          reportDebug({
-            namespace,
-            message: `Scheduled job "${job.handler?.name}" has been aborted`
+      for (;;) {
+        reportDebug({ namespace, message: `Running scheduled job "${name}"` });
+        try {
+          await job.handler();
+        } catch (error) {
+          reportError(error);
+        }
+        try {
+          await setTimeoutPromise(job.interval * 1000, undefined, {
+            signal: this.abortController.signal
           });
-        } else {
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            reportDebug({
+              namespace,
+              message: `Scheduled job "${name}" has been aborted`
+            });
+            return;
+          }
           throw error;
         }
       }
