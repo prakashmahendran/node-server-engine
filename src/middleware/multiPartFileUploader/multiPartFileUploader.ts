@@ -20,8 +20,8 @@ const FILE_DIR: string = path.join(
   'completed_files'
 );
 
-fs.ensureDirSync(FILE_DIR);
-fs.ensureDirSync(TEMP_DIR);
+// The folders are created when an upload arrives, not when the engine loads: a service that never
+// uploads files must not need write access to its working directory.
 
 const storage = multer.memoryStorage();
 
@@ -216,6 +216,7 @@ export function multiPartFileUploader(
 
         if (uploadedChunks.length === totalChunksNum) {
           try {
+            fs.ensureDirSync(FILE_DIR);
             const finalFilePath = path.join(
               FILE_DIR,
               `${uniqueID}_${filename}`

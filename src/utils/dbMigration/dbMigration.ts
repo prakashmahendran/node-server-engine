@@ -9,6 +9,7 @@ import { EngineError } from 'entities/EngineError';
 import { sequelize } from 'entities/Sequelize';
 import { reportDebug, reportInfo } from 'utils/report';
 import { semverCompare } from 'utils/semverCompare';
+import { globPattern } from 'utils/globPattern';
 
 const namespace = 'engine:utils:dbMigration';
 
@@ -41,7 +42,7 @@ export function getMigrationPaths(): Array<string> | undefined {
       customPath: process.env.DB_MIGRATIONS_DIR
     }
   });
-  return path.map((p) => `${p}/*.${getMigrationExtension(p)}`);
+  return path.map((p) => globPattern(p, `*.${getMigrationExtension(p)}`));
 }
 
 /**

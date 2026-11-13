@@ -103,6 +103,13 @@ Framework used to develop Node backend services. This package ships with a lot o
       - [Assertions Available](#assertions-available)
       - [Wait](#wait)
 
+### Windows
+
+The engine runs on Windows (for example as a Windows service behind IIS): file globs (migrations, API
+docs) are built with forward slashes, which glob libraries require, and nothing is written to the
+working directory unless a feature that needs it is used (the chunked upload folders under
+`FILE_STORAGE_FOLDER` are created on the first upload).
+
 ## Install
 
 To start a new service, it is **highly recommended** that you clone it from [our template](https://github.com/prakashmahendran/node-server-template). It will already include all the necessary tools and boilerplate.

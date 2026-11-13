@@ -1,6 +1,8 @@
+import path from 'path';
 import fs from 'fs';
 import { Router } from 'express';
 import { glob } from 'glob';
+import { globPattern } from 'utils/globPattern';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 import {
@@ -15,24 +17,24 @@ import {
 /** Get the paths of all the endpoint documentation files */
 function getEndpointDocPaths(): Array<string> {
   return [
-    ...glob.sync(`${process.cwd()}/src/**/*.docs.yaml`),
-    ...glob.sync(`${process.cwd()}/dist/**/*.docs.yaml`)
+    ...glob.sync(globPattern(process.cwd(), 'src/**/*.docs.yaml')),
+    ...glob.sync(globPattern(process.cwd(), 'dist/**/*.docs.yaml'))
   ];
 }
 
 /** Get the paths of all the schema files */
 function getSchemaPaths(): Array<string> {
   return [
-    ...glob.sync(`${process.cwd()}/src/docs/schemas/*.yaml`),
-    ...glob.sync(`${process.cwd()}/dist/docs/schemas/*.yaml`)
+    ...glob.sync(globPattern(process.cwd(), 'src/docs/schemas/*.yaml')),
+    ...glob.sync(globPattern(process.cwd(), 'dist/docs/schemas/*.yaml'))
   ];
 }
 
 /** Get the paths of all the response files */
 function getResponsePaths(): Array<string> {
   return [
-    ...glob.sync(`${process.cwd()}/src/docs/responses/*.yaml`),
-    ...glob.sync(`${process.cwd()}/dist/docs/responses/*.yaml`)
+    ...glob.sync(globPattern(process.cwd(), 'src/docs/responses/*.yaml')),
+    ...glob.sync(globPattern(process.cwd(), 'dist/docs/responses/*.yaml'))
   ];
 }
 
@@ -78,10 +80,11 @@ function loadResponses(): ResponsesConfig {
 
 /** Load the whole Swagger config */
 function loadConfig(): SwaggerConfig {
-  const indexPath = `${process.cwd()}/src/docs/index.yaml`;
-  const config = (
-    fs.existsSync(indexPath) ? YAML.load(indexPath) : {}
-  ) as IndexDocumentation;
+  // The sources in development, the build output on a server that only has dist/
+  const indexPath = ['src', 'dist']
+    .map((dir) => path.join(process.cwd(), dir, 'docs', 'index.yaml'))
+    .find((file) => fs.existsSync(file));
+  const config = (indexPath ? YAML.load(indexPath) : {}) as IndexDocumentation;
   const schemaConfig = loadSchemas();
   const responseConfig = loadResponses();
   const endpointConfig = loadEndpoints();

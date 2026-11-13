@@ -23,6 +23,7 @@ export * from './sendEmail';
 
 // String manipulation
 export * from './trimPathSlash';
+export * from './globPattern';
 
 // File Upload
 export * from './geminiFileUpload';
