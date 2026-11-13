@@ -38,12 +38,14 @@ export async function migrateMetadataTable(
   try {
     reportDebug({ namespace, message: 'Executing metadata migration routine' });
 
-    const query = listTablesQuery(process.env.SQL_TYPE);
+    // The dialect actually connected (tests use SQLite whatever SQL_TYPE says)
+    const sqlType = sequelize.getDialect();
+    const query = listTablesQuery(sqlType);
 
     reportDebug({
       namespace,
       message: 'Checking for existing metadata tables',
-      data: { sqlType: process.env.SQL_TYPE }
+      data: { sqlType: sqlType }
     });
 
     // We check if we have a custom sequelize_meta table yet
@@ -63,7 +65,7 @@ export async function migrateMetadataTable(
       // Define SQL for creating the table based on the database type
       let createTableQuery = '';
 
-      switch (process.env.SQL_TYPE) {
+      switch (sqlType) {
         case 'mysql':
         case 'postgres':
         case 'sqlite':
@@ -92,7 +94,7 @@ export async function migrateMetadataTable(
       reportDebug({
         namespace,
         message: 'Creating sequelize_meta table',
-        data: { sqlType: process.env.SQL_TYPE }
+        data: { sqlType: sqlType }
       });
       await sequelize.query(createTableQuery, { type: QueryTypes.RAW });
       reportDebug({
@@ -118,7 +120,7 @@ export async function migrateMetadataTable(
       INSERT INTO sequelize_meta (name, version, createdAt, updatedAt) VALUES
         ${migrations
           .map((migration) => {
-            switch (process.env.SQL_TYPE) {
+            switch (sqlType) {
               case 'mysql':
               case 'postgres':
                 return `('${migration.name}', NULL, NOW(), NOW())`;
@@ -143,7 +145,7 @@ export async function migrateMetadataTable(
       data: {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        sqlType: process.env.SQL_TYPE,
+        sqlType: sequelize.getDialect(),
         sqlHost: process.env.SQL_HOST
       }
     });

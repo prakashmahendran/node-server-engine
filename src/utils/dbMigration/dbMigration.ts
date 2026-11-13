@@ -23,10 +23,14 @@ export function getMigrationPaths(): Array<string> | undefined {
   const path = [
     process.env.DB_MIGRATIONS_DIR,
     isProduction ? prodDefaultPath : devDefaultPath
-  ].filter(
-    (path): path is string =>
-      !!path && existsSync(path) && lstatSync(path).isDirectory()
-  );
+  ]
+    .filter(
+      (path): path is string =>
+        !!path && existsSync(path) && lstatSync(path).isDirectory()
+    )
+    // Only the first one: running a second folder of the same migrations (src/ next to dist/) would load
+    // files this process cannot run, e.g. TypeScript sources from a built server
+    .slice(0, 1);
   reportDebug({
     namespace,
     message: 'Obtaining Umzug migration options',
@@ -100,8 +104,11 @@ export async function runPendingMigrations(): Promise<void> {
           resolve: ({ name, path, context }) => {
             const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
 
-            // Use dynamic import for better TypeScript/ES module support
-            const migrationPromise = import(path || '');
+            // Imported only when it runs: a migration already applied is never loaded
+            const load = (): Promise<{
+              up: (context: unknown) => Promise<unknown>;
+              down: (context: unknown) => Promise<unknown>;
+            }> => import(path || '');
             return {
               name: nameWithoutExtension,
               up: async () => {
@@ -109,11 +116,11 @@ export async function runPendingMigrations(): Promise<void> {
                   namespace,
                   message: `Running migration: ${nameWithoutExtension}`
                 });
-                const migration = await migrationPromise;
+                const migration = await load();
                 return migration.up(context);
               },
               down: async () => {
-                const migration = await migrationPromise;
+                const migration = await load();
                 return migration.down(context);
               }
             };
@@ -199,15 +206,19 @@ export async function rollbackMigrations(): Promise<void> {
           // Strip file extension to ensure consistent naming across .ts and .js files
           const nameWithoutExtension = name.replace(/\.(ts|js)$/, '');
 
-          const migrationPromise = import(path || '');
+          // Imported only when it runs: a migration already applied is never loaded
+          const load = (): Promise<{
+            up: (context: unknown) => Promise<unknown>;
+            down: (context: unknown) => Promise<unknown>;
+          }> => import(path || '');
           return {
             name: nameWithoutExtension,
             up: async () => {
-              const migration = await migrationPromise;
+              const migration = await load();
               return migration.up(context);
             },
             down: async () => {
-              const migration = await migrationPromise;
+              const migration = await load();
               return migration.down(context);
             }
           };
@@ -239,7 +250,7 @@ export async function testRecreateDB(
   if (!sequelize)
     throw new EngineError({ message: 'Sequelize is not initialized' });
   await sequelize.query(
-    `DROP SCHEMA public${process.env.SQL_TYPE === 'postgres' ? ' CASCADE' : ''}`
+    `DROP SCHEMA public${sequelize.getDialect() === 'postgres' ? ' CASCADE' : ''}`
   );
   await sequelize.query(`CREATE SCHEMA public`);
   if (!options.clean) await runPendingMigrations();
@@ -264,7 +275,7 @@ function clearDbTransaction(sequelize: Sequelize, options: ClearDbOptions) {
       if (!options.includeMetadata && model === 'sequelizeMeta') continue;
       const table = sequelize.models[model].tableName;
       await sequelize.query(
-        `TRUNCATE ${table}${process.env.SQL_TYPE === 'postgres' ? ' CASCADE' : ''};`,
+        `TRUNCATE ${table}${sequelize.getDialect() === 'postgres' ? ' CASCADE' : ''};`,
         {
           raw: true,
           transaction: t

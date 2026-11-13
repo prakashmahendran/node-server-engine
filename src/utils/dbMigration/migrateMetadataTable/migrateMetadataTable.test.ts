@@ -10,6 +10,8 @@ describe('Utils - migrateMetadataTable', () => {
   beforeEach(() => {
     originalEnv = { ...process.env };
     sequelizeStub = sinon.createStubInstance(Sequelize);
+    // The dialect of the connection: each test picks it through SQL_TYPE
+    sequelizeStub.getDialect.callsFake(() => process.env.SQL_TYPE as string);
   });
 
   afterEach(() => {

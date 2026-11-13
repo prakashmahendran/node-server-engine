@@ -45,6 +45,26 @@ describe('Utils - dbMigration', () => {
       expect(dbMigration.getMigrationPaths()).to.include(`${dir}/*.ts`);
     });
 
+    it('should use only DB_MIGRATIONS_DIR when it is set, not the default folder as well', () => {
+      fs.writeFileSync(path.join(dir, '20240101-init.js'), '');
+      const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'service-'));
+      fs.mkdirSync(path.join(cwd, 'src', 'db', 'migrations'), {
+        recursive: true
+      });
+      fs.writeFileSync(
+        path.join(cwd, 'src', 'db', 'migrations', '20240101-init.ts'),
+        ''
+      );
+      sinon.stub(process, 'cwd').returns(cwd);
+      process.env.NODE_ENV = 'development';
+      process.env.DB_MIGRATIONS_DIR = dir;
+      try {
+        expect(dbMigration.getMigrationPaths()).to.deep.equal([`${dir}/*.js`]);
+      } finally {
+        fs.rmSync(cwd, { recursive: true, force: true });
+      }
+    });
+
     it('should ignore declaration files when detecting TypeScript', () => {
       fs.writeFileSync(path.join(dir, '20240101-init.js'), '');
       fs.writeFileSync(path.join(dir, '20240101-init.d.ts'), '');
@@ -54,6 +74,37 @@ describe('Utils - dbMigration', () => {
   });
 
   describe('runPendingMigrations', () => {
+    it('should load only the migrations it runs, never one already applied', async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'migrations-lazy-'));
+      const flag = `__engineMigration${Date.now()}`;
+      const migration = (body: string): string =>
+        `exports.up = async () => { ${body} }; exports.down = async () => {};`;
+      await sequelize.init();
+      try {
+        process.env.DB_MIGRATIONS_DIR = dir;
+        fs.writeFileSync(
+          path.join(dir, '20990101000000-applied.js'),
+          migration('')
+        );
+        await dbMigration.runPendingMigrations();
+
+        // Applied already: now it cannot even be loaded, and the next run must not try
+        fs.writeFileSync(
+          path.join(dir, '20990101000000-applied.js'),
+          "throw new Error('an applied migration was loaded');"
+        );
+        fs.writeFileSync(
+          path.join(dir, '20990101000001-new.js'),
+          migration(`globalThis.${flag} = true;`)
+        );
+        await dbMigration.runPendingMigrations();
+        expect((globalThis as Record<string, unknown>)[flag]).to.equal(true);
+      } finally {
+        await sequelize.shutdown();
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
     it('should execute without errors when sequelize is initialized', async () => {
       // In test environment, sequelize is initialized with SQLite
       // This should handle the migration process
