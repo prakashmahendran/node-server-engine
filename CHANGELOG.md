@@ -1,3 +1,9 @@
+## [2.8.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.7.0...v2.8.0) (2026-11-25)
+
+### ✨ Features
+
+* **server:** keep metrics off a public primary port and record each request once ([943caef](https://github.com/prakashmahendran/node-server-engine/commit/943caef31d13eb01e9f04a933ae668e617ab5f33))
+
 ## [2.7.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.6.2...v2.7.0) (2026-11-25)
 
 ### ✨ Features
