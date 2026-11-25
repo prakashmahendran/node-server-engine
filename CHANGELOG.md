@@ -1,3 +1,9 @@
+## [2.7.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.6.2...v2.7.0) (2026-11-25)
+
+### ✨ Features
+
+* **report:** LOG_LEVEL sets the minimum severity written ([82d84b1](https://github.com/prakashmahendran/node-server-engine/commit/82d84b1a58814a0195d5c57c87a5e87f45b898bf))
+
 ## [2.6.2](https://github.com/prakashmahendran/node-server-engine/compare/v2.6.1...v2.6.2) (2026-11-13)
 
 ### 🐛 Bug Fixes
