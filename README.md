@@ -144,6 +144,9 @@ Logs automatically detect the environment:
 | `LOG_FORMAT`    | `local`, `json` | Force specific log format                 | Auto-detect |
 | `DETAILED_LOGS` | `true`, `false` | Show stack traces and verbose details     | `false`     |
 | `DEBUG`         | `namespace:*`   | Enable debug logs for specific namespaces | Off         |
+| `LOG_LEVEL`     | `debug`, `info`, `warning` (`warn`), `error`, `critical` (`fatal`) | Minimum severity written; lower ones are dropped (e.g. `warning` keeps warning, error and critical) | `debug` (everything) |
+
+`LOG_LEVEL` applies to every log the engine writes, including the request logger (successful requests are logged at `DEBUG`, 4xx at `WARNING`, 5xx at `ERROR`). On a platform that already records requests, such as Cloud Run, `LOG_LEVEL=info` drops those duplicate lines. `reportDebug` output additionally needs its namespace in `DEBUG`.
 
 ### Examples
 

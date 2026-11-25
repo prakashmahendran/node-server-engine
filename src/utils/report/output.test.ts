@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { output, redactSensitive } from './output';
+import { output, redactSensitive, isLevelEnabled } from './output';
 import { LogSeverity } from 'const';
 
 describe('Utils - output', () => {
@@ -126,6 +126,76 @@ describe('Utils - output', () => {
     expect(original.token).to.equal('t');
     expect(redacted.token).to.equal('[REDACTED]');
     expect(redacted.ok).to.equal(true);
+  });
+
+  describe('LOG_LEVEL', () => {
+    const savedLevel = process.env.LOG_LEVEL;
+    afterEach(() => {
+      if (savedLevel === undefined) delete process.env.LOG_LEVEL;
+      else process.env.LOG_LEVEL = savedLevel;
+    });
+
+    /** Which severities reach the console under the current LOG_LEVEL */
+    const written = (): string[] => {
+      process.env.NODE_ENV = 'production';
+      process.env.LOG_FORMAT = 'json';
+      const seen: string[] = [];
+      console.log = ((s: string) => seen.push(JSON.parse(s).severity)) as any;
+      console.error = ((s: string) => seen.push(JSON.parse(s).severity)) as any;
+      for (const severity of Object.values(LogSeverity))
+        output({ severity, message: severity });
+      return seen;
+    };
+
+    it('writes everything from DEBUG up when unset', () => {
+      delete process.env.LOG_LEVEL;
+      expect(written()).to.deep.equal([
+        'DEBUG',
+        'INFO',
+        'WARNING',
+        'ERROR',
+        'CRITICAL'
+      ]);
+    });
+
+    it('writes only that severity and above, case-insensitively', () => {
+      process.env.LOG_LEVEL = 'warning';
+      expect(written()).to.deep.equal(['WARNING', 'ERROR', 'CRITICAL']);
+      process.env.LOG_LEVEL = 'INFO';
+      expect(written()).to.deep.equal([
+        'INFO',
+        'WARNING',
+        'ERROR',
+        'CRITICAL'
+      ]);
+      process.env.LOG_LEVEL = 'critical';
+      expect(written()).to.deep.equal(['CRITICAL']);
+    });
+
+    it('accepts warn, err and fatal as aliases', () => {
+      process.env.LOG_LEVEL = 'warn';
+      expect(written()).to.deep.equal(['WARNING', 'ERROR', 'CRITICAL']);
+      process.env.LOG_LEVEL = 'fatal';
+      expect(written()).to.deep.equal(['CRITICAL']);
+    });
+
+    it('falls back to DEBUG for an unrecognised value rather than going quiet', () => {
+      process.env.LOG_LEVEL = 'verbose';
+      expect(written()).to.have.length(5);
+    });
+
+    it('treats an entry without a severity as INFO', () => {
+      process.env.LOG_LEVEL = 'warning';
+      expect(isLevelEnabled(undefined)).to.equal(false);
+      process.env.LOG_LEVEL = 'info';
+      expect(isLevelEnabled(undefined)).to.equal(true);
+    });
+
+    it('still returns the full entry when it is filtered out', () => {
+      process.env.LOG_LEVEL = 'error';
+      const res = output({ severity: LogSeverity.DEBUG, message: 'quiet' });
+      expect(res.message).to.equal('quiet');
+    });
   });
 });
 import { expect } from 'chai';

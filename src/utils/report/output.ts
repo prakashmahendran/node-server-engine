@@ -157,6 +157,40 @@ function isLocalDevelopment(): boolean {
   );
 }
 
+/** Severities from least to most severe */
+const SEVERITY_RANK: Record<string, number> = {
+  [LogSeverity.DEBUG]: 0,
+  [LogSeverity.INFO]: 1,
+  [LogSeverity.WARNING]: 2,
+  [LogSeverity.ERROR]: 3,
+  [LogSeverity.CRITICAL]: 4
+};
+/** Common spellings accepted in LOG_LEVEL besides the severity names */
+const LEVEL_ALIASES: Record<string, LogSeverity> = {
+  WARN: LogSeverity.WARNING,
+  ERR: LogSeverity.ERROR,
+  FATAL: LogSeverity.CRITICAL
+};
+
+/**
+ * The minimum severity written, from LOG_LEVEL (case-insensitive: debug, info, warning/warn,
+ * error, critical/fatal). Unset or unrecognised means DEBUG, i.e. everything. Read on every call so
+ * it can be changed without a restart in tests. Debug entries from reportDebug still also need a
+ * matching DEBUG namespace.
+ */
+export function minimumLevel(): LogSeverity {
+  const raw = process.env.LOG_LEVEL?.trim().toUpperCase();
+  if (!raw) return LogSeverity.DEBUG;
+  if (raw in SEVERITY_RANK) return raw as LogSeverity;
+  return LEVEL_ALIASES[raw] ?? LogSeverity.DEBUG;
+}
+
+/** Whether an entry of this severity is written under the current LOG_LEVEL (no severity = INFO) */
+export function isLevelEnabled(severity?: LogSeverity | string): boolean {
+  const rank = SEVERITY_RANK[severity ?? LogSeverity.INFO] ?? SEVERITY_RANK.INFO;
+  return rank >= SEVERITY_RANK[minimumLevel()];
+}
+
 /** Keys whose values must never be written to the logs */
 const SENSITIVE_KEY_PATTERN =
   /^(authorization|proxy[-_]?authorization|cookie|set[-_]?cookie|password|passwd|pass|secret|client[-_]?secret|token|access[-_]?token|refresh[-_]?token|id[-_]?token|api[-_]?key|private[-_]?key|credentials?|otp)$/i;
@@ -211,8 +245,9 @@ export function output(data: LogEntry): FullLogEntry {
     }
   };
 
-  // Ignore when silenced
+  // Ignore when silenced, or below the minimum level (LOG_LEVEL)
   if (process.env.SILENCE_REPORT) return fullEntry;
+  if (!isLevelEnabled(data.severity)) return fullEntry;
 
   if (process.env.NODE_ENV === 'test') {
     // In test mode pretty print with full depth
