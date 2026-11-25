@@ -48,8 +48,10 @@ Imports are absolute from `src` (`baseUrl: src`, for example `import { WebError 
 `Server` (`entities/Server/Server.ts`) builds two Express apps:
 
 - Primary port (`PORT`): CORS (`CORS_ORIGIN`, a single origin or a comma-separated list), default
-  middleware (health check, JSON body limit `REQUEST_SIZE_LIMIT`, metrics), then the global middleware,
-  then each `Endpoint`, then the error middleware.
+  middleware (health check, JSON body limit `REQUEST_SIZE_LIMIT`), metrics and version unless
+  `primaryPortOperationalRoutes: false`, then the global middleware, then each `Endpoint`, then the error
+  middleware. Request metrics are recorded by each `Endpoint`, labelled with its route pattern; unmatched
+  requests are not recorded (raw paths would leak ids and grow without bound).
 - Secondary port (`SECONDARY_PORT`): metrics, version and swagger docs.
 
 `Endpoint` wires together the auth middleware for its `authType` (`NONE`, `JWT`, `TLS`, `HMAC`, `STATIC`),

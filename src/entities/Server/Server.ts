@@ -11,6 +11,7 @@ import { Server as WebSocketServer } from 'ws';
 import { SocketClient } from '../SocketClient';
 import {
   defaultMiddleware,
+  primaryOperationalMiddleware,
   defaultErrorMiddleware,
   secondaryMiddleware,
   shutdownSignals
@@ -74,6 +75,8 @@ export class Server {
   private secondaryApp: Application;
   /** The node HTTP(S) server, serving the secondary express application */
   private secondaryHttpServer: http.Server | https.Server;
+  /** Whether metrics and version are also served on the primary port */
+  private primaryPortOperationalRoutes: boolean;
   /** List of endpoint instances that the server should handle */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private endpoints: Array<Endpoint<any>>;
@@ -122,6 +125,8 @@ export class Server {
     this.cron = config.cron;
     this.auth = { noFetch: false, ...config.auth };
     this.secretManagerConfig = config.secretManager;
+    this.primaryPortOperationalRoutes =
+      config.primaryPortOperationalRoutes ?? true;
 
     // The minimal environment check is different between the migration modes of execution and the regular server execution mode
     // When running in migration mode, we only check that we have SQL related environment variables
@@ -384,7 +389,13 @@ export class Server {
   /** Registers all the middleware with the express app */
   private registerMiddleware(app: Application): void {
     // Global middleware can specify a path to which they apply
-    [...defaultMiddleware, ...this.globalMiddleware].forEach((middleware) => {
+    [
+      ...defaultMiddleware,
+      ...(this.primaryPortOperationalRoutes
+        ? primaryOperationalMiddleware
+        : []),
+      ...this.globalMiddleware
+    ].forEach((middleware) => {
       if (typeof middleware === 'function') {
         app.use(middleware);
       } else {

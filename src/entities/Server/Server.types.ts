@@ -30,6 +30,12 @@ export interface ServerOptions {
   webSocket?: ServerWebSocketConfig;
   /** Configuration for GCP Secret Manager to load secrets at startup */
   secretManager?: SecretManagerOptions;
+  /**
+   * Also serve /metrics/instance, /metrics/service and /version on the primary port (default true). They are
+   * always served on SECONDARY_PORT. Set false when the primary port is reachable from the internet (Cloud Run,
+   * a public load balancer): metrics reveal routes, traffic and runtime versions.
+   */
+  primaryPortOperationalRoutes?: boolean;
 }
 
 /** Options for a CRON task on the server */

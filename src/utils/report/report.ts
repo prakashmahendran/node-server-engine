@@ -42,7 +42,7 @@ export function reportError(
       errorType: error.constructor.name,
       data: error.data,
       '@type':
-        !(error instanceof WebError) || error.statusCode >= 500
+        !(error instanceof WebError) || error.reportable
           ? 'type.googleapis.com/google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent'
           : undefined
     };

@@ -3,7 +3,14 @@ import { faker } from '@faker-js/faker';
 import { describe, it, beforeEach } from 'mocha';
 import { stub, match } from 'sinon';
 import * as output from './output';
-import { reportInfo, reportDebug, resetNamespaceSelector } from './report';
+import {
+  reportInfo,
+  reportDebug,
+  reportError,
+  resetNamespaceSelector
+} from './report';
+import { EngineError } from 'entities/EngineError';
+import { WebError } from 'entities/WebError';
 import { InfoLogEntry } from './report.types';
 
 describe('Utils - Report', () => {
@@ -21,6 +28,35 @@ describe('Utils - Report', () => {
     expect(result.fileName).to.equal(
       `${__dirname}/report.test.ts`.replace(/.*src\//, 'src/')
     );
+  });
+
+  describe('Report Error', () => {
+    const REPORTED =
+      'type.googleapis.com/google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent';
+
+    it('marks engine errors and 5xx web errors for Error Reporting', () => {
+      expect(
+        reportError(new EngineError({ message: 'boom' }))['@type']
+      ).to.equal(REPORTED);
+      expect(
+        reportError(new WebError({ errorCode: 'x', statusCode: 500 }))['@type']
+      ).to.equal(REPORTED);
+    });
+
+    it('leaves out 4xx web errors and a 5xx that is not reportable', () => {
+      expect(
+        reportError(new WebError({ errorCode: 'x', statusCode: 401 }))['@type']
+      ).to.equal(undefined);
+      expect(
+        reportError(
+          new WebError({
+            errorCode: 'busy',
+            statusCode: 503,
+            reportable: false
+          })
+        )['@type']
+      ).to.equal(undefined);
+    });
   });
 
   describe('Report Debug', () => {

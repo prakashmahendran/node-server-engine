@@ -14,6 +14,8 @@ export class WebError extends EngineError {
   public details?: unknown;
   /** Seconds before the client may retry (Retry-After header) */
   public retryAfterSec?: number;
+  /** Whether the log entry is marked for Google Cloud Error Reporting */
+  public reportable: boolean;
 
   /**
    * Create a WebError, these errors are best suited for runtime errors
@@ -26,5 +28,6 @@ export class WebError extends EngineError {
     if (config.details !== undefined) this.details = config.details;
     if (config.retryAfterSec !== undefined)
       this.retryAfterSec = config.retryAfterSec;
+    this.reportable = config.reportable ?? this.statusCode >= 500;
   }
 }

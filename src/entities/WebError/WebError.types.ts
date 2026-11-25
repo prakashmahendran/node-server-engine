@@ -13,4 +13,10 @@ export interface WebErrorOptions extends EngineErrorOptions {
   details?: unknown;
   /** Seconds the client should wait before retrying, sent as the Retry-After header (429, 503) */
   retryAfterSec?: number;
+  /**
+   * Whether the log entry is marked for Google Cloud Error Reporting (default: statusCode >= 500). Set false
+   * for a deliberate 5xx, such as a 503 that sheds load or answers while the service starts, so it stays in
+   * the logs without filling Error Reporting.
+   */
+  reportable?: boolean;
 }

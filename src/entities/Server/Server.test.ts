@@ -15,6 +15,7 @@ import { Endpoint, EndpointMethod, EndpointAuthType } from 'entities/Endpoint';
 import { SocketClient, SocketMessage } from 'entities/SocketClient';
 import { httpsAgent, loadTlsConfig } from 'utils';
 import * as jwt from 'utils/jwt/jwt';
+import { httpRequestCount } from 'metrics/request';
 
 describe('Entity - Server - parseTrustProxy', () => {
   it('reads hop counts, booleans and address lists', () => {
@@ -286,6 +287,64 @@ describe('Entity - Server', function () {
     await server.init();
 
     await supertest(server.getSecondaryApp()).get('/version').expect(200);
+
+    await server.shutdown();
+  });
+
+  it('serves metrics and version on the primary port by default', async () => {
+    const server = new Server({ endpoints: [] });
+
+    await server.init();
+
+    await supertest(server.getApp()).get('/metrics/instance').expect(200);
+    await supertest(server.getApp()).get('/version').expect(200);
+
+    await server.shutdown();
+  });
+
+  it('keeps metrics and version off the primary port when primaryPortOperationalRoutes is false', async () => {
+    const server = new Server({
+      endpoints: [],
+      primaryPortOperationalRoutes: false
+    });
+
+    await server.init();
+
+    await supertest(server.getApp()).get('/metrics/instance').expect(404);
+    await supertest(server.getApp()).get('/metrics/service').expect(404);
+    await supertest(server.getApp()).get('/version').expect(404);
+    await supertest(server.getSecondaryApp())
+      .get('/metrics/instance')
+      .expect(200);
+    await supertest(server.getSecondaryApp()).get('/version').expect(200);
+
+    await server.shutdown();
+  });
+
+  it('counts a request once, under its route pattern, and never an unmatched path', async () => {
+    const countStub = stub(httpRequestCount, 'inc').returns();
+    const item = new Endpoint({
+      method: EndpointMethod.GET,
+      authType: EndpointAuthType.NONE,
+      path: '/items/:id',
+      handler: (req, res): void => {
+        res.sendStatus(200);
+      },
+      validator: {}
+    });
+    const server = new Server({ endpoints: [item] });
+
+    await server.init();
+
+    await supertest(server.getApp()).get(`/items/${randomUUID()}`).expect(200);
+    await supertest(server.getApp()).get('/wp-login.php').expect(404);
+
+    expect(countStub).to.have.been.calledOnce;
+    expect(countStub.firstCall.args[0]).to.include({
+      path: '/items/:id',
+      method: 'GET',
+      status: '2XX'
+    });
 
     await server.shutdown();
   });
