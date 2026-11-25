@@ -1,3 +1,9 @@
+## [2.8.1](https://github.com/prakashmahendran/node-server-engine/compare/v2.8.0...v2.8.1) (2026-11-25)
+
+### 📚 Documentation
+
+* **env:** document LOG_LEVEL and the Microsoft Graph mail settings in .env.example ([350fc2d](https://github.com/prakashmahendran/node-server-engine/commit/350fc2d8d04314cf0593076ec814dc949a8d2454))
+
 ## [2.8.0](https://github.com/prakashmahendran/node-server-engine/compare/v2.7.0...v2.8.0) (2026-11-25)
 
 ### ✨ Features
